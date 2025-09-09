@@ -13,7 +13,7 @@ const router = useRouter()
 
 function login(){
     signInWithEmailAndPassword(getAuth(), email.value,pwd.value).then((userCredential) =>{
-        console.log("User Login")
+        // console.log("User Login")
         router.push({path: '/Home'})
         //router.push({path: '/Home'})
     }).catch((error) =>{

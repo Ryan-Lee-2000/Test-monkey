@@ -5,6 +5,8 @@ import { ref } from "vue"
 import { getAuth, createUserWithEmailAndPassword, updateProfile, signInWithEmailAndPassword } from "firebase/auth"
 import { useRouter, useRoute } from 'vue-router'
 
+import { createUser } from "./Database/Monkey_Store"
+
 const username = ref("")
 const email = ref("")
 const pwd = ref("")
@@ -22,11 +24,12 @@ function register(){
 function finalize_register(){
     //Now we create user using Email and Password
     createUserWithEmailAndPassword(getAuth(), email.value, pwd.value).then((userCredential) =>{
-        console.log("sucesss") //User has been created
+        //console.log("sucesss") //User has been created
         updateProfile(userCredential.user, {
             displayName: username.value
             }).then(() => {
-            console.log("profile updated!")
+            // console.log("profile updated!")
+            createUser([userCredential.user.uid,username.value,['24','Sports,Movies','Poly','M','SG']])
             router.push({path: '/Home'}) //Going Home page
             }).catch((error) => {
             // An error occurred

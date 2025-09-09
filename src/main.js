@@ -25,6 +25,7 @@ const router = createRouter({
 import { initializeApp } from 'firebase/app';
 import { getAnalytics } from "firebase/analytics";
 import { getAuth } from 'firebase/auth'
+import { getFirestore } from 'firebase/firestore'
 
 const firebaseConfig = {
 
@@ -47,11 +48,13 @@ const firebaseConfig = {
 
 // Initialize Firebase
 
-initializeApp(firebaseConfig); //Firebase app
+const firebase_app = initializeApp(firebaseConfig); //Firebase app
 // const auth = getAuth(firebaseApp) //Firebase Authentication
 
 //const analytics = getAnalytics(app);
 const app = createApp(App)
+const db = getFirestore(firebase_app);
+export { db };
 
 app.use(router)
 // app.provide('auth', auth)
