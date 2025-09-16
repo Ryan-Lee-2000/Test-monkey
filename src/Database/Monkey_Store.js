@@ -44,11 +44,11 @@ export function exampleMissionData(){
     var mission_data = [
   {
     id: 1,
-    name: "Senior Frontend Developer",
-    description: "Join our team to build cutting-edge web applications using React and Vue.js with modern development practices.",
-    company: "TechCorp Inc.",
-    location: "Remote",
-    salary: "$80k - $120k",
+    name: "Movie Aggregator Site",
+    description: "We need testers to ensure that movies can be accessed by users without issue.",
+    company: "MovieCorp Inc.",
+    length: "1 Week",
+    salary: "20 Bananas",
     type: "Full-time",
     posted: "2 days ago"
   },
@@ -57,7 +57,7 @@ export function exampleMissionData(){
     name: "UX/UI Designer",
     description: "Create intuitive and beautiful user interfaces for our mobile and web applications using Figma and Adobe Creative Suite.",
     company: "Design Studio",
-    location: "New York, NY",
+    length: "New York, NY",
     salary: "$70k - $95k",
     type: "Full-time",
     posted: "1 week ago"
@@ -67,7 +67,7 @@ export function exampleMissionData(){
     name: "Backend Engineer",
     description: "Develop robust server-side applications using Node.js, Python, and cloud technologies. Experience with microservices preferred.",
     company: "CloudTech Solutions",
-    location: "San Francisco, CA",
+    length: "San Francisco, CA",
     salary: "$90k - $130k",
     type: "Full-time",
     posted: "3 days ago"
@@ -77,7 +77,7 @@ export function exampleMissionData(){
     name: "Data Scientist",
     description: "Analyze complex datasets and build machine learning models to drive business insights and decision-making processes.",
     company: "Analytics Pro",
-    location: "Boston, MA",
+    length: "Boston, MA",
     salary: "$95k - $140k",
     type: "Full-time",
     posted: "5 days ago"
@@ -87,7 +87,7 @@ export function exampleMissionData(){
     name: "DevOps Engineer",
     description: "Manage CI/CD pipelines, containerization, and cloud infrastructure using AWS, Docker, and Kubernetes technologies.",
     company: "Infrastructure Inc.",
-    location: "Seattle, WA",
+    length: "Seattle, WA",
     salary: "$85k - $125k",
     type: "Contract",
     posted: "1 day ago"
@@ -97,7 +97,7 @@ export function exampleMissionData(){
     name: "Mobile App Developer",
     description: "Build native iOS and Android applications using Swift, Kotlin, and cross-platform frameworks like Flutter.",
     company: "Mobile First",
-    location: "Austin, TX",
+    length: "Austin, TX",
     salary: "$75k - $110k",
     type: "Full-time",
     posted: "4 days ago"
@@ -107,7 +107,7 @@ export function exampleMissionData(){
     name: "Product Manager",
     description: "Lead product development from conception to launch, working closely with engineering, design, and marketing teams.",
     company: "Innovation Labs",
-    location: "Chicago, IL",
+    length: "Chicago, IL",
     salary: "$100k - $150k",
     type: "Full-time",
     posted: "1 week ago"
@@ -117,7 +117,7 @@ export function exampleMissionData(){
     name: "Cybersecurity Analyst",
     description: "Protect our systems and data by implementing security measures, conducting audits, and responding to security incidents.",
     company: "SecureNet Corp",
-    location: "Washington, DC",
+    length: "Washington, DC",
     salary: "$80k - $120k",
     type: "Full-time",
     posted: "6 days ago"

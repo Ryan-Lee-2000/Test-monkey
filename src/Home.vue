@@ -7,20 +7,20 @@ import { useRouter } from 'vue-router'
 import { exampleMissionData } from "./Database/Monkey_Store";
 
 // Sample job data - replace with your actual data source
-const jobs = ref(exampleMissionData())
+const Missions = ref(exampleMissionData())
 
-const filteredJobs = ref([])
+const filteredMissions = ref([])
 const searchQuery = ref("")
 const selectedJobType = ref("all")
 
-// Initialize filtered jobs
+// Initialize filtered Missions
 onMounted(() => {
-  filteredJobs.value = jobs.value
+  filteredMissions.value = Missions.value
 })
 
 // Search and filter functionality
-const filterJobs = () => {
-  filteredJobs.value = jobs.value.filter(job => {
+const filterMissions = () => {
+  filteredMissions.value = Missions.value.filter(job => {
     const matchesSearch = job.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
                          job.description.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
                          job.company.toLowerCase().includes(searchQuery.value.toLowerCase())
@@ -54,18 +54,6 @@ onAuthStateChanged(auth, (user) => {
   }
 });
 
-function logout(){
-    signOut(auth).then(() => {
-        // Sign-out successful.
-        console.log("Logging out")
-        router.push({path: '/'})
-    }).catch((error) => {
-    // An error happened.
-        console.log(error.code)
-        alert(error.message)
-    });
-}
-
 </script>
 
 <template>
@@ -76,12 +64,7 @@ function logout(){
         <div class="row align-items-center">
           <div class="col-md-8">
             <h1 class="mb-2">{{user_name}}'s Dashboard</h1>
-            <p class="mb-0 opacity-75">Discover your next career opportunity</p>
-          </div>
-          <div class="col-md-4 text-md-end">
-            <button class="btn btn-outline-light" @click="logout">
-              <i class="fas fa-sign-out-alt me-2"></i>Logout
-            </button>
+            <p class="mb-0 opacity-75">Missions are ready for you</p>
           </div>
         </div>
       </div>
@@ -92,25 +75,25 @@ function logout(){
       <div class="row mb-4">
         <div class="col-6 col-md-3 mb-3">
           <div class="stats-card">
-            <div class="stats-number">{{ filteredJobs.length }}</div>
-            <div class="stats-label">Available Jobs</div>
+            <div class="stats-number">{{ filteredMissions.length }}</div>
+            <div class="stats-label">Available Missions</div>
           </div>
         </div>
         <div class="col-6 col-md-3 mb-3">
           <div class="stats-card">
-            <div class="stats-number">{{ jobs.filter(job => job.type === 'Full-time').length }}</div>
+            <div class="stats-number">{{ Missions.filter(job => job.type === 'Full-time').length }}</div>
             <div class="stats-label">Full-time</div>
           </div>
         </div>
         <div class="col-6 col-md-3 mb-3">
           <div class="stats-card">
-            <div class="stats-number">{{ jobs.filter(job => job.type === 'Contract').length }}</div>
+            <div class="stats-number">{{ Missions.filter(job => job.type === 'Contract').length }}</div>
             <div class="stats-label">Contract</div>
           </div>
         </div>
         <div class="col-6 col-md-3 mb-3">
           <div class="stats-card">
-            <div class="stats-number">{{ new Set(jobs.map(job => job.company)).size }}</div>
+            <div class="stats-number">{{ new Set(Missions.map(job => job.company)).size }}</div>
             <div class="stats-label">Companies</div>
           </div>
         </div>
@@ -127,14 +110,14 @@ function logout(){
               <input
                 type="text"
                 class="form-control border-start-0"
-                placeholder="Search jobs, companies, or keywords..."
+                placeholder="Search Missions, companies, or keywords..."
                 v-model="searchQuery"
-                @input="filterJobs"
+                @input="filterMissions"
               />
             </div>
           </div>
           <div class="col-md-4">
-            <select class="form-select" v-model="selectedJobType" @change="filterJobs">
+            <select class="form-select" v-model="selectedJobType" @change="filterMissions">
               <option value="all">All Job Types</option>
               <option value="full-time">Full-time</option>
               <option value="contract">Contract</option>
@@ -145,9 +128,9 @@ function logout(){
       </div>
 
       <!-- Job Grid -->
-      <div class="row" v-if="filteredJobs.length > 0">
+      <div class="row" v-if="filteredMissions.length > 0">
         <div 
-          v-for="job in filteredJobs" 
+          v-for="job in filteredMissions" 
           :key="job.id"
           class="col-12 col-sm-6 col-lg-4 col-xl-3 mb-4"
         >
@@ -166,7 +149,7 @@ function logout(){
               
               <div class="job-meta">
                 <span class="job-tag">
-                  <i class="fas fa-map-marker-alt me-1"></i>{{ job.location }}
+                  <i class="fas fa-map-marker-alt me-1"></i>{{ job.length }}
                 </span>
                 <span class="job-tag salary">{{ job.salary }}</span>
                 <span class="job-tag type">{{ job.type }}</span>
@@ -184,9 +167,9 @@ function logout(){
       </div>
 
       <!-- No Results -->
-      <div v-else class="no-jobs">
+      <div v-else class="no-Missions">
         <i class="fas fa-search"></i>
-        <h4>No jobs found</h4>
+        <h4>No Missions found</h4>
         <p>Try adjusting your search criteria or filters</p>
       </div>
     </div>
@@ -200,6 +183,7 @@ function logout(){
   color: white;
   padding: 2rem 0;
   margin-bottom: 2rem;
+  padding-top: 75px;
 }
 
 .search-filters {
@@ -350,13 +334,13 @@ function logout(){
   margin-top: 0.5rem;
 }
 
-.no-jobs {
+.no-Missions {
   text-align: center;
   padding: 3rem;
   color: #6c757d;
 }
 
-.no-jobs i {
+.no-Missions i {
   font-size: 4rem;
   margin-bottom: 1rem;
   opacity: 0.5;
