@@ -94,12 +94,12 @@ function login(){
                       />
                     </div>
                     
-                    <div class="mb-3 form-check">
-                      <input type="checkbox" class="form-check-input" id="remember">
-                      <label class="form-check-label" for="remember">
+                    <label class="mb-3 form-check" style="width: fit-content;" role="button" for="remember">
+                      <input type="checkbox" class="form-check-input" id="remember" role="button">
+                      <label class="form-check-label" for="remember" role="button">
                         Remember me
                       </label>
-                    </div>
+                    </label>
                     
                     <button
                       type="submit"
@@ -111,7 +111,7 @@ function login(){
                     </button>
                     
                     <div class="text-center mt-3">
-                      <a href="#" class="text-decoration-none">Forgot your password?</a>
+                      <p class="text-decoration-none link-color">Forgot your password?</p>
                     </div>
                     
                     <hr class="my-4">
@@ -119,7 +119,7 @@ function login(){
                     <div class="text-center">
                       <p class="text-muted mb-0">
                         Don't have an account? 
-                        <a href="#" class="text-decoration-none fw-semibold">Sign up here</a>
+                        <p @click="router.push('/register')" class="text-decoration-none fw-semibold link-color">Sign up here</p>
                       </p>
                     </div>
                   </form>
@@ -219,6 +219,15 @@ function login(){
 .btn-login:disabled {
     opacity: 0.7;
     transform: none;
+}
+
+
+.link-color{
+    color: #764ba2;
+}
+
+.link-color:hover{
+    cursor:pointer;
 }
 
 .spinner-border-sm {
