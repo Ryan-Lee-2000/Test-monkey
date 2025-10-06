@@ -2,9 +2,9 @@
 import "bootstrap/dist/css/bootstrap.min.css"
 import "bootstrap"
 import { ref, computed, onMounted } from "vue"
-import { getMissions } from "./Database/Monkey_Store";
+import { getMissions } from "../Database/Monkey_Store";
 import { getAuth, onAuthStateChanged, signOut  } from "firebase/auth";
-import { getUserName } from "./Database/Monkey_Store";
+import { getUserName } from "../Database/Monkey_Store";
 
 const missions = ref([])
 const isLoading = ref(false)

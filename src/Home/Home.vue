@@ -4,7 +4,7 @@ import "bootstrap"
 import { ref, onMounted } from "vue"
 import { getAuth, onAuthStateChanged, signOut  } from "firebase/auth";
 import { useRouter } from 'vue-router'
-import Missions from "./User_Missions.vue";
+import Missions from "./Available_Missions.vue";
 
 
 const user_name = ref("")

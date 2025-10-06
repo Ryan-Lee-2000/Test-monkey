@@ -20,9 +20,9 @@ onMounted(() => {
       show_navbar.value = true
       getUserRole(user.uid).then(Response =>{
         if(Response == 'Founder'){
-          role.value = false
-        } else{
           role.value = true
+        } else{
+          role.value = false
         }
       })
       // ...
@@ -76,7 +76,8 @@ function logout(){
                 >
               </li>
               <li class="nav-item">
-                <a class="nav-link" id="createMission" :hidden="role" @click="router.push({path: '/createMission'})"><div class="link_text">Create Mission</div></a>
+                <a class="nav-link" id="createMission" v-if="role" @click="router.push({path: '/createMission'})"><div class="link_text">Create Mission</div></a>
+                <a class="nav-link" id="createMission" v-else @click="router.push({path: '/missionList'})"><div class="link_text">Mission List</div></a>
               </li>
               <li class="nav-item dropdown ">
                 <a

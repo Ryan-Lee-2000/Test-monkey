@@ -4,7 +4,7 @@ import "bootstrap"
 import { ref, computed } from "vue"
 
 import Mission_Preview from "./Mission_Preview.vue"
-import { createMission } from "./Database/Monkey_Store"
+import { createMission } from "../Database/Monkey_Store"
 
 const missionName = ref("")
 const numberOfUsers = ref("")

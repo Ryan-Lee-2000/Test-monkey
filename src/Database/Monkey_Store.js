@@ -71,7 +71,7 @@ export async function getUserName(uid){
   }
   const docRef =  doc(db, 'Users',uid)
   const userDoc = await getDoc(docRef)
-  console.log(userDoc.data())
+  
   if(userDoc.data()){
     return userDoc.data().Name
   }

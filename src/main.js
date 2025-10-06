@@ -14,8 +14,9 @@ import { createMemoryHistory, createRouter } from 'vue-router'
 import Welcome from './Welcome.vue'
 import Login from './Login.vue'
 import Register from './Register.vue'
-import Home from './Home.vue'
-import Create_Mission from './Create_Mission.vue';
+import Home from './Home/Home.vue'
+import Create_Mission from './CreateMission/Create_Mission.vue';
+import Mission_List from './Mission_List.vue';
 
 
 //testing
@@ -50,6 +51,7 @@ const routes = [
   { path: '/login', component: Login },
   { path: '/register', component: Register },
   { path: '/createMission', component: Create_Mission },
+  { path: '/missionList', component: Mission_List },
 ]
 
 const router = createRouter({
@@ -59,7 +61,7 @@ const router = createRouter({
 
 router.beforeEach((to, from, next) => {
   const auth = getAuth()
-  
+
   if (to.meta.requiresAuth) {
     onAuthStateChanged(auth, (user) => {
       if (user) {
