@@ -3,21 +3,41 @@ import "bootstrap/dist/css/bootstrap.min.css"
 import "bootstrap"
 import { ref, computed, onMounted } from "vue"
 import { getMissions } from "./Database/Monkey_Store";
+import { getAuth, onAuthStateChanged, signOut  } from "firebase/auth";
+import { getUserName } from "./Database/Monkey_Store";
 
 const missions = ref([])
 const isLoading = ref(false)
 const error = ref(null)
 const searchQuery = ref("")
 const selectedJobType = ref("all")
+const user_name = ref('')
 
-defineProps({
-  user_name: String,
-})
+const auth = getAuth();
 
 // Initialize missions from database
 onMounted(async () => {
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      if(user.uid){
+        getUserName(user.uid).then(response =>{
+          if(response != null){
+            console.log('we are here')
+            user_name.value = response
+          }
+        })
+      }
+      
+      // ...
+    } else {
+      // User is signed out
+      console.log("User has been signed out")
+    }
+  })
+
   isLoading.value = true
   error.value = null
+  
   try {
     missions.value = await getMissions()
   } catch (err) {
@@ -74,6 +94,8 @@ const formatDuration = (duration) => {
   }
   return durationMap[duration] || `${duration} days`
 }
+
+
 </script>
 
 <template>

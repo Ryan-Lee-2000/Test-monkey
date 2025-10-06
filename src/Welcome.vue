@@ -9,16 +9,20 @@ import { onMounted, ref } from "vue";
 const router = useRouter()
 const isLoading = ref(true)
 const showWelcome = ref(false)
+const start = ref(true)
 
 onMounted(() => {
   const auth = getAuth();
   onAuthStateChanged(auth, (user) => {
+    if(start.value == false){
+      return
+    } else{
+      start.value = false
+    }
     if (user) {
       // User is signed in, see docs for a list of available properties
       // https://firebase.google.com/docs/reference/js/auth.user
-      
       router.replace({path: '/Home'})
-      
       // ...
     } else {
       // User is signed out

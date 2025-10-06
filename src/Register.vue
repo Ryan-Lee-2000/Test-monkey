@@ -14,9 +14,9 @@ const c_pwd = ref("")
 const role = ref(false)
 const router = useRouter()
 
-function register(){
+async function register(){
     if(pwd.value == c_pwd.value){
-        finalize_register() //Super basic check done
+        await finalize_register() //Super basic check done
     }else{
         console.log("Error: password not the same.")
     }
@@ -36,8 +36,11 @@ function finalize_register(){
             } else{
                 data = ['24','Sports,Movies','Poly','M','SG']
             }
-            createUser([userCredential.user.uid,username.value,data, role.value])
-            router.push({path: '/Home'}) //Going Home page
+            createUser([userCredential.user.uid,username.value,data, role.value]).then(()=>{
+                console.log('Registration completed!')
+                router.push({path: '/Home'})
+                 //Going Home page
+            })
             }).catch((error) => {
             // An error occurred
             // ...

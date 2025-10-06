@@ -10,7 +10,7 @@ export async function createUser(user_arr){
     var monkey_doc = ""
     try {
       var role_name = role? 'Founder':'TestMonkey'
-        await setDoc(doc(db, "Users", uid), {
+      await setDoc(doc(db, "Users", uid), {
             Name: name,
             Role: role_name,
             Data: ""
@@ -30,7 +30,7 @@ export async function createUser(user_arr){
             // console.log("Monkey Document written with ID: ", docRef.id);
             monkey_doc = docRef.id
             const userRef = doc(db, 'Users', uid);
-            updateDoc(userRef, { Data: "/Founders/" + monkey_doc });
+            await updateDoc(userRef, { Data: "/Founders/" + monkey_doc });
         } catch (e) {
             console.error("Error adding document: ", e);
             return
@@ -44,7 +44,11 @@ export async function createUser(user_arr){
             // console.log("Monkey Document written with ID: ", docRef.id);
             monkey_doc = docRef.id
             const userRef = doc(db, 'Users', uid);
-            updateDoc(userRef, { Data: "/TestMonkey/" + monkey_doc });
+            await updateDoc(userRef, { 
+              Data: "/TestMonkey/" + monkey_doc,
+              Active_Missions: [],
+              Mission_History: []
+            });
         } catch (e) {
             console.error("Error adding document: ", e);
             return
@@ -58,6 +62,20 @@ export async function getUserRole(uid){
   const userDoc = await getDoc(docRef)
 
   return userDoc.data().Role
+  
+}
+
+export async function getUserName(uid){
+  if(uid == null){
+    return null
+  }
+  const docRef =  doc(db, 'Users',uid)
+  const userDoc = await getDoc(docRef)
+  console.log(userDoc.data())
+  if(userDoc.data()){
+    return userDoc.data().Name
+  }
+  return null
   
 }
 
@@ -81,7 +99,8 @@ export async function createMission(mission_detail){
         testers: mission_detail.num_testers,
         duration: mission_detail.duration,
         payout: mission_detail.payout,
-        owner: uid
+        owner: uid,
+        testers: []
     });
 
     //Upload File
