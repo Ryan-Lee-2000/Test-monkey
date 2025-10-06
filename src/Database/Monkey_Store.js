@@ -1,14 +1,18 @@
-import { collection, addDoc, doc, setDoc } from "firebase/firestore";
-import { db } from "@/main";
+import { collection, addDoc, doc, setDoc, updateDoc, getDoc, getDocs, query } from "firebase/firestore";
+import { db,storage } from "@/main";
+import { ref as storageRef, uploadBytes } from 'firebase/storage';
+import { getAuth } from "firebase/auth";
+
 export async function createUser(user_arr){
     var uid = user_arr[0]
     var name = user_arr[1]
-    var role = "TestMonkey"
+    var role = user_arr[3]
     var monkey_doc = ""
     try {
+      var role_name = role? 'Founder':'TestMonkey'
         await setDoc(doc(db, "Users", uid), {
             Name: name,
-            Role: role,
+            Role: role_name,
             Data: ""
         });
         // console.log("User Document written with ID: ", uid);
@@ -17,7 +21,21 @@ export async function createUser(user_arr){
         return
     }
 
-    if(role == "TestMonkey"){
+    if(role){ //If user is founder
+        try {
+            const docRef = await addDoc(collection(db, "Founders"), {
+                User: uid,
+                Demographic: user_arr[2]
+            });
+            // console.log("Monkey Document written with ID: ", docRef.id);
+            monkey_doc = docRef.id
+            const userRef = doc(db, 'Users', uid);
+            updateDoc(userRef, { Data: "/Founders/" + monkey_doc });
+        } catch (e) {
+            console.error("Error adding document: ", e);
+            return
+        }
+    } else{ // User is a Test Monkey
         try {
             const docRef = await addDoc(collection(db, "TestMonkey"), {
                 User: uid,
@@ -26,7 +44,7 @@ export async function createUser(user_arr){
             // console.log("Monkey Document written with ID: ", docRef.id);
             monkey_doc = docRef.id
             const userRef = doc(db, 'Users', uid);
-            setDoc(userRef, { Data: "/TestMonkey/" + monkey_doc });
+            updateDoc(userRef, { Data: "/TestMonkey/" + monkey_doc });
         } catch (e) {
             console.error("Error adding document: ", e);
             return
@@ -35,11 +53,65 @@ export async function createUser(user_arr){
 
 }
 
+export async function getUserRole(uid){
+  const docRef =  doc(db, 'Users',uid)
+  const userDoc = await getDoc(docRef)
 
-async function addUserDoc(){
+  return userDoc.data().Role
+  
+}
+
+export async function createMission(mission_detail){
+        // 'missionName': missionName.value, 
+        // 'description': description.value, 
+        // 'num_testers': numberOfUsers.value, 
+        // 'duration': duration.value, 
+        // 'payout': bananasPayout.value, 
+        // 'file': selectedFile.value
+
+  //Create Mission
+  try{
+    const auth = getAuth();
+    const uid = auth.currentUser.uid;
+    const file = mission_detail.file
+
+    const docRef = await addDoc(collection(db, "Missions"), {
+        name: mission_detail.missionName,
+        description: mission_detail.description,
+        testers: mission_detail.num_testers,
+        duration: mission_detail.duration,
+        payout: mission_detail.payout,
+        owner: uid
+    });
+
+    //Upload File
+    const mission_ref = storageRef(storage,`mission/${docRef.id}`)
+    try{
+      const snapshot = await uploadBytes(mission_ref, file);
+      console.log('Uploaded a blob or file!');
+    } catch(error){
+      console.error("Error uploading file:", error);
+    }
+
+  } catch (e){
+    console.error("Error adding mission: ", e);
+  }
 
 }
 
+export async function getMissions(){
+  const snapshot = await getDocs(query(collection(db,'Missions')))
+  const all_missions = []
+  snapshot.forEach((doc)=>{
+    const mission_data = doc.data()
+    mission_data.mission_id = doc.id
+    all_missions.push(mission_data)
+  })
+  return all_missions
+}
+
+
+//Placeholder
 export function exampleMissionData(){
     var mission_data = [
   {

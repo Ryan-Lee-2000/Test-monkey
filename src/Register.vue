@@ -5,12 +5,13 @@ import { ref } from "vue"
 import { getAuth, createUserWithEmailAndPassword, updateProfile, signInWithEmailAndPassword } from "firebase/auth"
 import { useRouter, useRoute } from 'vue-router'
 
-import { createUser } from "./Database/Monkey_Store"
+import {createUser } from "./Database/Monkey_Store"
 
 const username = ref("")
 const email = ref("")
 const pwd = ref("")
 const c_pwd = ref("")
+const role = ref(false)
 const router = useRouter()
 
 function register(){
@@ -29,7 +30,13 @@ function finalize_register(){
             displayName: username.value
             }).then(() => {
             // console.log("profile updated!")
-            createUser([userCredential.user.uid,username.value,['24','Sports,Movies','Poly','M','SG']])
+            var data = []
+            if(role.value){
+                data = ['Clowns inc', 'Logo', 'UEN', 'linkedin']
+            } else{
+                data = ['24','Sports,Movies','Poly','M','SG']
+            }
+            createUser([userCredential.user.uid,username.value,data, role.value])
             router.push({path: '/Home'}) //Going Home page
             }).catch((error) => {
             // An error occurred
@@ -108,6 +115,11 @@ function finalize_register(){
                         v-model="c_pwd"
                     />
                 </div>
+                <div class="form-check form-switch">
+                    <label v-if="role == false" class="text-light">User</label>
+                    <label v-if="role == true" class="text-light">Founder</label>
+                    <input type="checkbox" class="form-check-input" role="switch" v-model="role" @change="()=> {console.log(role)}" />
+                </div>
                 <div class="mt-5 mx-auto text-center">
                     <button
                         type="submit"
@@ -117,6 +129,7 @@ function finalize_register(){
                         Register
                     </button>
                 </div>
+                
             </div>
         </div>
         

@@ -6,6 +6,7 @@ import { initializeApp } from 'firebase/app';
 import { getAnalytics } from "firebase/analytics";
 import { getAuth, setPersistence, browserSessionPersistence, onAuthStateChanged  } from 'firebase/auth'
 import { getFirestore } from 'firebase/firestore'
+import { getStorage, ref } from "firebase/storage";
 
 //VueJS Router
 import { createMemoryHistory, createRouter } from 'vue-router'
@@ -14,6 +15,15 @@ import Welcome from './Welcome.vue'
 import Login from './Login.vue'
 import Register from './Register.vue'
 import Home from './Home.vue'
+import Create_Mission from './Create_Mission.vue';
+
+
+//testing
+if (import.meta.hot) {
+   import.meta.hot.on('vite:beforeFullReload', () => {
+      throw '(skipping full reload)';
+   });
+}
 
 const firebaseConfig = {
 
@@ -39,6 +49,7 @@ const routes = [
   { path: '/home', component: Home, meta:{requiresAuth: true} },
   { path: '/login', component: Login },
   { path: '/register', component: Register },
+  { path: '/createMission', component: Create_Mission },
 ]
 
 const router = createRouter({
@@ -74,8 +85,10 @@ const app = createApp(App)
 const db = getFirestore(firebase_app);
 
 const auth = getAuth(firebase_app)
+
+const storage = getStorage(firebase_app);
 setPersistence(auth, browserSessionPersistence)
-export { db };
+export { db, storage };
 
 app.use(router)
 // app.provide('auth', auth)

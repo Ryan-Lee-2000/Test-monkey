@@ -117,10 +117,10 @@ function login(){
                     <hr class="my-4">
                     
                     <div class="text-center">
-                      <p class="text-muted mb-0">
+                      <div class="text-muted mb-0">
                         Don't have an account? 
                         <p @click="router.push('/register')" class="text-decoration-none fw-semibold link-color">Sign up here</p>
-                      </p>
+                      </div>
                     </div>
                   </form>
                 </div>
