@@ -91,9 +91,10 @@ const getDaysRemaining = (dueDate) => {
 </style>
 
 <template>
-  <div class="min-vh-100 bg-light">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <div class="min-vh-100 bg-light" >
     <!-- Header -->
-    <div class="hero-header">
+    <div class="hero-header" style="padding-top: 100px;">
       <div class="container">
         <div class="d-flex justify-content-between align-items-center">
           <div>

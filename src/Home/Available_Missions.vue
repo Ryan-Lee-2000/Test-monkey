@@ -19,15 +19,7 @@ const auth = getAuth();
 onMounted(async () => {
   onAuthStateChanged(auth, (user) => {
     if (user) {
-      if(user.uid){
-        getUserName(user.uid).then(response =>{
-          if(response != null){
-            console.log('we are here')
-            user_name.value = response
-          }
-        })
-      }
-      
+      user_name.value = user.displayName
       // ...
     } else {
       // User is signed out
@@ -99,6 +91,7 @@ const formatDuration = (duration) => {
 </script>
 
 <template>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <div class="min-vh-100 bg-light">
     <!-- Header -->
     <div class="dashboard-header text-white py-4 mb-4" style="padding-top: 100px;">

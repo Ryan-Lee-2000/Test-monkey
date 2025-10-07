@@ -14,6 +14,6 @@ const router = useRouter()
 </script>
 
 <template>
-  <missions :user_name="user_name"/>
+  <missions/>
 </template>
 
