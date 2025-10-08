@@ -96,11 +96,11 @@ export async function createMission(mission_detail){
     const docRef = await addDoc(collection(db, "Missions"), {
         name: mission_detail.missionName,
         description: mission_detail.description,
-        testers: mission_detail.num_testers,
+        num_testers: mission_detail.num_testers,
         duration: mission_detail.duration,
         payout: mission_detail.payout,
         owner: uid,
-        testers: []
+        active_testers: []
     });
 
     //Upload File
@@ -127,92 +127,4 @@ export async function getMissions(){
     all_missions.push(mission_data)
   })
   return all_missions
-}
-
-
-//Placeholder
-export function exampleMissionData(){
-    var mission_data = [
-  {
-    id: 1,
-    name: "Movie Aggregator Site",
-    description: "We need testers to ensure that movies can be accessed by users without issue.",
-    company: "MovieCorp Inc.",
-    length: "1 Week",
-    salary: "20 Bananas",
-    type: "Full-time",
-    posted: "2 days ago"
-  },
-  {
-    id: 2,
-    name: "UX/UI Designer",
-    description: "Create intuitive and beautiful user interfaces for our mobile and web applications using Figma and Adobe Creative Suite.",
-    company: "Design Studio",
-    length: "New York, NY",
-    salary: "$70k - $95k",
-    type: "Full-time",
-    posted: "1 week ago"
-  },
-  {
-    id: 3,
-    name: "Backend Engineer",
-    description: "Develop robust server-side applications using Node.js, Python, and cloud technologies. Experience with microservices preferred.",
-    company: "CloudTech Solutions",
-    length: "San Francisco, CA",
-    salary: "$90k - $130k",
-    type: "Full-time",
-    posted: "3 days ago"
-  },
-  {
-    id: 4,
-    name: "Data Scientist",
-    description: "Analyze complex datasets and build machine learning models to drive business insights and decision-making processes.",
-    company: "Analytics Pro",
-    length: "Boston, MA",
-    salary: "$95k - $140k",
-    type: "Full-time",
-    posted: "5 days ago"
-  },
-  {
-    id: 5,
-    name: "DevOps Engineer",
-    description: "Manage CI/CD pipelines, containerization, and cloud infrastructure using AWS, Docker, and Kubernetes technologies.",
-    company: "Infrastructure Inc.",
-    length: "Seattle, WA",
-    salary: "$85k - $125k",
-    type: "Contract",
-    posted: "1 day ago"
-  },
-  {
-    id: 6,
-    name: "Mobile App Developer",
-    description: "Build native iOS and Android applications using Swift, Kotlin, and cross-platform frameworks like Flutter.",
-    company: "Mobile First",
-    length: "Austin, TX",
-    salary: "$75k - $110k",
-    type: "Full-time",
-    posted: "4 days ago"
-  },
-  {
-    id: 7,
-    name: "Product Manager",
-    description: "Lead product development from conception to launch, working closely with engineering, design, and marketing teams.",
-    company: "Innovation Labs",
-    length: "Chicago, IL",
-    salary: "$100k - $150k",
-    type: "Full-time",
-    posted: "1 week ago"
-  },
-  {
-    id: 8,
-    name: "Cybersecurity Analyst",
-    description: "Protect our systems and data by implementing security measures, conducting audits, and responding to security incidents.",
-    company: "SecureNet Corp",
-    length: "Washington, DC",
-    salary: "$80k - $120k",
-    type: "Full-time",
-    posted: "6 days ago"
-  }
-]
-return mission_data
 }

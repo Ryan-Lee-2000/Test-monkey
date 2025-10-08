@@ -5,6 +5,7 @@ import { ref, computed, onMounted } from "vue"
 import { getMissions } from "../Database/Monkey_Store";
 import { getAuth, onAuthStateChanged, signOut  } from "firebase/auth";
 import { getUserName } from "../Database/Monkey_Store";
+import Mission_Preview from "./Mission_Preview.vue";
 
 const missions = ref([])
 const isLoading = ref(false)
@@ -14,6 +15,19 @@ const selectedJobType = ref("all")
 const user_name = ref('')
 
 const auth = getAuth();
+
+const missionName = ref("")
+const numberOfUsers = ref("")
+const description = ref("")
+const duration = ref("")
+const bananasPayout = ref("")
+const selectedFile = ref(null)
+const fileName = ref("")
+const fileType = ref("html")
+const totalCost = computed(() => (numberOfUsers.value && bananasPayout.value) 
+  ? (numberOfUsers.value * bananasPayout.value).toLocaleString() 
+  : '0')
+const showPreview = ref(false)
 
 // Initialize missions from database
 onMounted(async () => {
@@ -85,6 +99,43 @@ const formatDuration = (duration) => {
     '30': '1 month'
   }
   return durationMap[duration] || `${duration} days`
+}
+
+function showMission(id){
+  console.log(id)
+  var selected_mission = {}
+  for(var index in missions.value){
+    if(missions.value[index].mission_id == id){
+      console.log("mission found: ", missions.value[index].mission_id)
+      selected_mission = missions.value[index];
+      break
+    }
+  }
+  if(selected_mission){
+    console.log(selected_mission)
+      //     :show="showPreview"
+      // :missionName="missionName" -
+      // :description="description" -
+      // :numberOfUsers="numberOfUsers"
+      // :duration="duration"
+      // :bananasPayout="bananasPayout"
+      // :totalCost="totalCost"
+      // :selectedFile="selectedFile"
+      // :fileName="fileName"
+      // :fileType="fileType"
+      missionName.value = selected_mission.name
+      description.value = selected_mission.description
+      //mission_id.value = selected_mission.mission_id
+      numberOfUsers.value = selectedFile.num_testers
+      duration.value = selected_mission.duration
+      bananasPayout.value = selected_mission.payout
+      selectedFile.value = 'user_file'
+      fileName.value = 'file_name'
+      fileType.value = 'file_type'
+      showPreview.value = true
+
+  }
+  
 }
 
 
@@ -210,14 +261,14 @@ const formatDuration = (duration) => {
                     <i class="fas fa-dollar-sign me-1"></i>{{ mission.payout }}
                   </span>
                   <span class="badge bg-primary bg-opacity-10 text-primary">
-                    <i class="fas fa-users me-1"></i>{{ mission.testers }}
+                    <i class="fas fa-users me-1"></i>{{ mission.num_testers }}
                   </span>
                 </div>
               </div>
               
               <div class="card-footer bg-white d-flex justify-content-between align-items-center">
                 <small class="text-muted text-truncate me-2">ID: {{ mission.mission_id.slice(0, 8) }}...</small>
-                <button class="btn btn-sm btn-primary">
+                <button class="btn btn-sm btn-primary" @click="showMission(mission.mission_id)">
                   <i class="fas fa-paper-plane me-1"></i>Apply
                 </button>
               </div>
@@ -233,6 +284,19 @@ const formatDuration = (duration) => {
         </div>
       </template>
     </div>
+    <Mission_Preview 
+      :show="showPreview"
+      :missionName="missionName"
+      :description="description"
+      :numberOfUsers="numberOfUsers"
+      :duration="duration"
+      :bananasPayout="bananasPayout"
+      :totalCost="totalCost"
+      :selectedFile="selectedFile"
+      :fileName="fileName"
+      :fileType="fileType"
+      @close="showPreview = false"
+    />
   </div>
 </template>
 
