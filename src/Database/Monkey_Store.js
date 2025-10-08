@@ -23,31 +23,29 @@ export async function createUser(user_arr){
 
     if(role){ //If user is founder
         try {
-            const docRef = await addDoc(collection(db, "Founders"), {
+            await setDoc(doc(db, 'Founders',uid), {
                 User: uid,
                 Demographic: user_arr[2]
             });
             // console.log("Monkey Document written with ID: ", docRef.id);
-            monkey_doc = docRef.id
             const userRef = doc(db, 'Users', uid);
-            await updateDoc(userRef, { Data: "/Founders/" + monkey_doc });
+            await updateDoc(userRef, { Data: "/Founders/" + uid });
         } catch (e) {
             console.error("Error adding document: ", e);
             return
         }
     } else{ // User is a Test Monkey
         try {
-            const docRef = await addDoc(collection(db, "TestMonkey"), {
+            await setDoc(doc(db, 'TestMonkey',uid), {
                 User: uid,
-                Demographic: user_arr[2]
+                Demographic: user_arr[2],
+                active_missions: [],
+                mission_history: []
             });
             // console.log("Monkey Document written with ID: ", docRef.id);
-            monkey_doc = docRef.id
             const userRef = doc(db, 'Users', uid);
             await updateDoc(userRef, { 
-              Data: "/TestMonkey/" + monkey_doc,
-              Active_Missions: [],
-              Mission_History: []
+              Data: "/TestMonkey/" + uid,
             });
         } catch (e) {
             console.error("Error adding document: ", e);
@@ -126,5 +124,38 @@ export async function getMissions(){
     mission_data.mission_id = doc.id
     all_missions.push(mission_data)
   })
+  console.log(all_missions)
+  //Check for Missions that have max users and removes them from the list
+  for(var index in all_missions){
+    if(all_missions[index].active_testers.length >= all_missions[index].num_testers){
+      all_missions[index].active_testers.splice(index,1)
+    }
+  }
   return all_missions
+}
+
+export async function joinMission(mission_id){
+  //Allows for a user to join a mission
+  const missionRef = doc(db, "Missions", mission_id);
+  const missionDoc = await getDoc(missionRef);
+
+  const auth = getAuth();
+  const uid = auth.currentUser.uid;
+
+  const userRef =  doc(db, 'TestMonkey',uid)
+  const userDoc = await getDoc(userRef)
+
+  var mission_testers = missionDoc.data().active_testers
+  var user_active_missions = userDoc.data().active_missions
+  mission_testers.push(uid)
+  user_active_missions.push(mission_id)
+
+  await updateDoc(missionRef, { 
+              active_testers: mission_testers,
+            });
+  await updateDoc(userRef, { 
+              active_missions: user_active_missions,
+            });
+
+
 }

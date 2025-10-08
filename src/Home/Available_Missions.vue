@@ -16,6 +16,7 @@ const user_name = ref('')
 
 const auth = getAuth();
 
+const selected_mission_id = ref('')
 const missionName = ref("")
 const numberOfUsers = ref("")
 const description = ref("")
@@ -123,6 +124,7 @@ function showMission(id){
       // :selectedFile="selectedFile"
       // :fileName="fileName"
       // :fileType="fileType"
+      selected_mission_id.value = selected_mission.mission_id
       missionName.value = selected_mission.name
       description.value = selected_mission.description
       //mission_id.value = selected_mission.mission_id
@@ -137,6 +139,8 @@ function showMission(id){
   }
   
 }
+
+
 
 
 </script>
@@ -286,6 +290,7 @@ function showMission(id){
     </div>
     <Mission_Preview 
       :show="showPreview"
+      :missionId="selected_mission_id"
       :missionName="missionName"
       :description="description"
       :numberOfUsers="numberOfUsers"

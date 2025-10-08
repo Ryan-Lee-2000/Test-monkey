@@ -1,16 +1,18 @@
 <script setup>
 import "bootstrap/dist/css/bootstrap.min.css"
 import { computed } from "vue"
+import { joinMission } from "@/Database/Monkey_Store"
 
 const props = defineProps({
   show: Boolean,
+  missionId: String,
   missionName: String,
   description: String,
   numberOfUsers: [String, Number],
   duration: [String, Number],
   bananasPayout: [String, Number],
   totalCost: String,
-  selectedFile: Object,
+  selectedFile: String, //TODO: Change how preview works to take in file name only
   fileName: String,
   fileType: String
 })
@@ -23,6 +25,10 @@ const getPlaceholderImage = computed(() => {
   const text = encodeURIComponent(props.missionName || 'Mission Preview')
   return `data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="200"><rect fill="%23${color}" width="400" height="200"/><text x="50%" y="50%" text-anchor="middle" fill="white" font-size="24" dy=".3em">${text}</text></svg>`
 })
+
+function joinThisMission(){
+  joinMission(props.missionId)
+}
 </script>
 
 <style scoped>
@@ -111,7 +117,7 @@ const getPlaceholderImage = computed(() => {
         
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" @click="emit('close')">Close</button>
-          <button type="button" class="btn btn-primary">Looks Good - Sign me up</button>
+          <button type="button" class="btn btn-primary" @click="joinThisMission()">Looks Good - Sign me up</button>
         </div>
       </div>
     </div>
