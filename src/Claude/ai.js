@@ -20,4 +20,6 @@ export async function claude_getQuestions(description){
     ]
     })
     console.log('Claude Msg:',msg);
+    const question_arr = msg.content[0].text.split("|||")
+    return question_arr
 }

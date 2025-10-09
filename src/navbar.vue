@@ -67,7 +67,7 @@ function logout(){
                 <a class="nav-link" id="createMission" v-if="role" @click="router.push({path: '/createMission'})"><div class="link_text">Create Mission</div></a>
                 <a class="nav-link" id="createMission" v-else @click="router.push({path: '/missionList'})"><div class="link_text">Mission List</div></a>
               </li>
-              <li class="nav-item dropdown ">
+              <!-- <li class="nav-item dropdown ">
                 <a
                   class="nav-link dropdown-toggle"
                   d-flex
@@ -88,7 +88,7 @@ function logout(){
                     ><div class="link_text">Action 2</div></a
                   >
                 </div>
-              </li>
+              </li> -->
             </ul>
             <button id="logout_btn" class="btn my-2 my-lg-0" @click="logout">
               Logout

@@ -6,6 +6,11 @@ import { ref, computed } from "vue"
 import Mission_Preview from "./Mission_Preview.vue"
 import { createMission } from "../Database/Monkey_Store"
 import navbar from "@/navbar.vue";
+import { useRouter } from 'vue-router'
+
+import QuestionsModal from "./QuestionsModal.vue"
+import { claude_getQuestions } from "@/Claude/ai"
+import { QueryFieldFilterConstraint } from "firebase/firestore"
 
 const missionName = ref("")
 const numberOfUsers = ref("")
@@ -19,6 +24,12 @@ const fileType = ref("html")
 const fileLoaded = ref(false)
 const showPreview = ref(false)
 
+const showQuestions = ref(false)
+const generating = ref(true)
+const questions = ref([])
+
+const router = useRouter()
+
 const totalCost = computed(() => (numberOfUsers.value && bananasPayout.value) 
   ? (numberOfUsers.value * bananasPayout.value).toLocaleString() 
   : '0')
@@ -30,11 +41,11 @@ const handleFileUpload = (event) => {
     selectedFile.value = file
     fileName.value = file.name
     document.getElementById('fileInput').value = '' //Clear input for next use
-    console.log('log', selectedFile.value)
+    // console.log('log', selectedFile.value)
   }
 }
 
-function launchMission(){
+async function checkMission(){
     const required = { 
         'missionName': missionName.value, 
         'description': description.value, 
@@ -48,7 +59,10 @@ function launchMission(){
         alert(`Please fill in: ${empty[0].replace(/([A-Z])/g, ' $1').trim()}`)
         return
     }
-    createMission(required)
+    showQuestions.value = true
+    await generateQuestions()
+    generating.value = false
+    //createMission(required)
     
 }
 
@@ -59,6 +73,38 @@ function fileLoadSwitch(){
         fileLoaded.value = true
     }
 }
+
+async function generateQuestions(){
+    const questions_arr = await claude_getQuestions(description.value)
+    const new_arr = []
+    for(var index in questions_arr){
+        new_arr.push({id:index,text:questions_arr[index]})
+    }
+    questions.value = new_arr
+    generating.value = false
+}
+
+async function launchMission(){
+      console.log(questions.value)
+      //Convert questions objet to plain array
+      const mission_questions_array = []
+      for(var index in questions.value){
+        mission_questions_array.push(questions.value[index].text)
+      }
+      const required = { 
+        'missionName': missionName.value, 
+        'description': description.value, 
+        'num_testers': numberOfUsers.value, 
+        'duration': duration.value, 
+        'payout': bananasPayout.value, 
+        'file': selectedFile.value,
+        'questions': mission_questions_array
+      }
+      await createMission(required)
+      router.push({path: '/home'})
+}
+
+
 </script>
 
 
@@ -191,7 +237,7 @@ function fileLoadSwitch(){
 
               <div class="d-grid gap-2 mt-3">
                 <button class="btn btn-outline-primary" @click="showPreview = true"><i class="fas fa-eye me-2"></i>Preview</button>
-                <button class="btn btn-gradient" @click="launchMission"><i class="fas fa-rocket me-2"></i>Launch Mission</button>
+                <button class="btn btn-gradient" @click="checkMission"><i class="fas fa-rocket me-2"></i>Launch Mission</button>
               </div>
             </div>
           </div>
@@ -211,6 +257,12 @@ function fileLoadSwitch(){
       :fileType="fileType"
       @close="showPreview = false"
     />
+    <QuestionsModal 
+    :show="showQuestions" 
+    :generating="generating"
+    :questions="questions"
+    @close="showQuestions = false"
+    @launch="launchMission()"/>
   </div>
 </template>
 

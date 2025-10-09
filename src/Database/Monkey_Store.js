@@ -86,6 +86,7 @@ export async function createMission(mission_detail){
         // 'duration': duration.value, 
         // 'payout': bananasPayout.value, 
         // 'file': selectedFile.value
+        // 'questions': mission_questions_array
 
   //Create Mission
   try{
@@ -99,12 +100,11 @@ export async function createMission(mission_detail){
         num_testers: mission_detail.num_testers,
         duration: mission_detail.duration,
         payout: mission_detail.payout,
+        questions: mission_detail.questions,
         owner: uid,
         active_testers: [],
         status: 'Active'
     });
-
-    claude_getQuestions(mission_detail.description)
 
     //Upload File
     const mission_ref = storageRef(storage,`mission/${docRef.id}`)
