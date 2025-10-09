@@ -1,4 +1,4 @@
-import { collection, addDoc, doc, setDoc, updateDoc, getDoc, getDocs, query } from "firebase/firestore";
+import { collection, addDoc, doc, setDoc, updateDoc, getDoc, getDocs, query, where } from "firebase/firestore";
 import { db,storage } from "@/Config/api_services";
 import { ref as storageRef, uploadBytes } from 'firebase/storage';
 import { getAuth } from "firebase/auth";
@@ -101,7 +101,7 @@ export async function createMission(mission_detail){
         payout: mission_detail.payout,
         owner: uid,
         active_testers: [],
-        status: 'active'
+        status: 'Active'
     });
 
     claude_getQuestions(mission_detail.description)
@@ -125,6 +125,7 @@ export async function getMissions(){
   const snapshot = await getDocs(query(collection(db,'Missions')))
   const all_missions = []
   snapshot.forEach((doc)=>{
+    // console.log('foreach:',doc.data())
     const mission_data = doc.data()
     mission_data.mission_id = doc.id
     all_missions.push(mission_data)
@@ -132,14 +133,15 @@ export async function getMissions(){
   //Check for Missions that have max users and removes them from the list
   const auth = getAuth();
   const uid = auth.currentUser.uid;
-
-  for(var index in all_missions){
-    if(all_missions[index].active_testers.length >= all_missions[index].num_testers){
-      all_missions[index].splice(index,1)
-    } else if(all_missions[index].active_testers.indexOf(uid) > -1){
-      all_missions.splice(index,1)
+  // console.log('start', all_missions)
+  for(let i = all_missions.length - 1; i >= 0; i--){
+    if(all_missions[i].active_testers.length >= all_missions[i].num_testers){
+      all_missions.splice(i, 1);
+    } else if(all_missions[i].active_testers.indexOf(uid) > -1){
+      all_missions.splice(i, 1);
     }
   }
+  // console.log('leftover missions: ',all_missions)
   return all_missions
 }
 
@@ -165,6 +167,21 @@ export async function joinMission(mission_id){
   await updateDoc(userRef, { 
               active_missions: user_active_missions,
             });
+}
 
+export async function get_user_missions(uid){
+  
+  const active_missions = []
+
+  const snapshot = await getDocs(query(collection(db,'Missions'),where("active_testers", "array-contains", uid)))
+  snapshot.forEach((doc)=>{
+    console.log('doc', doc.data())
+    if(doc.data().status == 'Active'){
+      console.log('pushing')
+      active_missions.push(doc.data())
+    }
+  })
+
+  return active_missions
 
 }
