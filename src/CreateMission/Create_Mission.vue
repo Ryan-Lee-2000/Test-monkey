@@ -5,6 +5,7 @@ import { ref, computed } from "vue"
 
 import Mission_Preview from "./Mission_Preview.vue"
 import { createMission } from "../Database/Monkey_Store"
+import navbar from "@/navbar.vue";
 
 const missionName = ref("")
 const numberOfUsers = ref("")
@@ -62,7 +63,8 @@ function fileLoadSwitch(){
 
 
 <template>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <navbar/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <div class="min-vh-100 bg-light">
     <!-- Header -->
     <div class="hero-header" style="padding-top: 75px;">

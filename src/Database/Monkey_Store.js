@@ -1,7 +1,9 @@
 import { collection, addDoc, doc, setDoc, updateDoc, getDoc, getDocs, query } from "firebase/firestore";
-import { db,storage } from "@/main";
+import { db,storage } from "@/Config/api_services";
 import { ref as storageRef, uploadBytes } from 'firebase/storage';
 import { getAuth } from "firebase/auth";
+
+import {claude_getQuestions} from '@/Claude/ai'
 
 export async function createUser(user_arr){
     var uid = user_arr[0]
@@ -98,8 +100,11 @@ export async function createMission(mission_detail){
         duration: mission_detail.duration,
         payout: mission_detail.payout,
         owner: uid,
-        active_testers: []
+        active_testers: [],
+        status: 'active'
     });
+
+    claude_getQuestions(mission_detail.description)
 
     //Upload File
     const mission_ref = storageRef(storage,`mission/${docRef.id}`)
@@ -124,11 +129,15 @@ export async function getMissions(){
     mission_data.mission_id = doc.id
     all_missions.push(mission_data)
   })
-  console.log(all_missions)
   //Check for Missions that have max users and removes them from the list
+  const auth = getAuth();
+  const uid = auth.currentUser.uid;
+
   for(var index in all_missions){
     if(all_missions[index].active_testers.length >= all_missions[index].num_testers){
-      all_missions[index].active_testers.splice(index,1)
+      all_missions[index].splice(index,1)
+    } else if(all_missions[index].active_testers.indexOf(uid) > -1){
+      all_missions.splice(index,1)
     }
   }
   return all_missions

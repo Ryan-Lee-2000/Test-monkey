@@ -2,6 +2,7 @@
 import "bootstrap/dist/css/bootstrap.min.css"
 import "bootstrap"
 import { ref } from "vue"
+import navbar from "@/navbar.vue";
 
 const activeMissions = ref([
   {
@@ -91,6 +92,7 @@ const getDaysRemaining = (dueDate) => {
 </style>
 
 <template>
+  <navbar/>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <div class="min-vh-100 bg-light" >
     <!-- Header -->

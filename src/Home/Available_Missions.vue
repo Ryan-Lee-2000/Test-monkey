@@ -32,15 +32,7 @@ const showPreview = ref(false)
 
 // Initialize missions from database
 onMounted(async () => {
-  onAuthStateChanged(auth, (user) => {
-    if (user) {
-      user_name.value = user.displayName
-      // ...
-    } else {
-      // User is signed out
-      console.log("User has been signed out")
-    }
-  })
+  user_name.value = auth.currentUser.displayName;
 
   isLoading.value = true
   error.value = null
