@@ -1,7 +1,21 @@
-import { collection, addDoc, doc, setDoc, updateDoc, getDoc, getDocs, query, where } from "firebase/firestore";
-import { db,storage } from "@/Config/api_services";
+import { 
+  collection, 
+  addDoc, 
+  doc, 
+  setDoc, 
+  updateDoc, 
+  getDoc, 
+  getDocs, 
+  query, 
+  where, 
+  serverTimestamp, 
+  arrayUnion, 
+  arrayRemove 
+} from "firebase/firestore";
+import { db, storage } from "@/Config/api_services";
 import { ref as storageRef, uploadBytes } from 'firebase/storage';
 import { getAuth } from "firebase/auth";
+
 
 import {claude_getQuestions} from '@/Claude/ai'
 
@@ -175,13 +189,74 @@ export async function get_user_missions(uid){
 
   const snapshot = await getDocs(query(collection(db,'Missions'),where("active_testers", "array-contains", uid)))
   snapshot.forEach((doc)=>{
+    const missionData = doc.data();
     console.log('doc', doc.data())
     if(doc.data().status == 'Active'){
       console.log('pushing')
-      active_missions.push(doc.data())
+      active_missions.push({ id: doc.id, ...missionData });
     }
   })
 
   return active_missions
 
+}
+
+export async function getMissionById(missionId) {
+  const missionRef = doc(db, 'Missions', missionId);
+  const missionSnap = await getDoc(missionRef);
+
+  if (missionSnap.exists()) {
+    return missionSnap.data();
+  } else {
+    console.error("No such mission found!");
+    return null;
+  }
+}
+
+export async function submitMissionFeedback(submissionData) {
+  try {
+    await addDoc(collection(db, "Submissions"), {
+      ...submissionData,
+      submittedAt: serverTimestamp()
+    });
+    console.log("Feedback document created successfully!");
+
+    await updateUserMissionStatus(submissionData.testerId, submissionData.missionId);
+
+  } catch (e) {
+    console.error("Error submitting feedback: ", e);
+    throw e;
+  }
+}
+
+async function updateUserMissionStatus(userId, missionId) {
+  const userRef = doc(db, 'TestMonkey', userId);
+  
+  try {
+    await updateDoc(userRef, {
+      active_missions: arrayRemove(missionId),
+      mission_history: arrayUnion(missionId)
+    });
+    console.log(`User ${userId} status updated for mission ${missionId}`);
+  } catch (e) {
+    console.error("Error updating user mission status: ", e);
+
+  }
+}
+
+export async function getCompletedMissionsForFounder() {
+  const auth = getAuth();
+  const founderId = auth.currentUser.uid;
+  const missions = [];
+
+  // Create a query to find missions that are owned by this founder AND have a status of "Completed"
+  const missionsRef = collection(db, "Missions");
+  const q = query(missionsRef, where("owner", "==", founderId), where("status", "==", "Completed"));
+
+  const querySnapshot = await getDocs(q);
+  querySnapshot.forEach((doc) => {
+    missions.push({ id: doc.id, ...doc.data() });
+  });
+
+  return missions;
 }

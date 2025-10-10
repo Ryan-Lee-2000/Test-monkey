@@ -7,6 +7,8 @@ import Home from '../Home/Home.vue'
 import Create_Mission from '../CreateMission/Create_Mission.vue'
 import Mission_List from '../Mission_List.vue'
 import { auth } from './api_services'
+import FounderDashboard from '../FounderDashboard.vue';
+import Mission_Feedback from '../mission_feedback.vue'
 
 const routes = [
   { path: '/', component: Welcome },
@@ -15,6 +17,8 @@ const routes = [
   { path: '/register', component: Register },
   { path: '/createMission', component: Create_Mission },
   { path: '/missionList', component: Mission_List },
+  { path: '/mission/feedback/:missionId', component: Mission_Feedback, meta: { requiresAuth: true }},
+  { path: '/dashboard', component: FounderDashboard, meta: { requiresAuth: true } }
 ]
 
 const router = createRouter({

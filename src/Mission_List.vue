@@ -5,9 +5,11 @@ import { onMounted, computed, ref } from "vue"
 import navbar from "@/navbar.vue";
 import { getAuth} from "firebase/auth";
 import { get_user_missions } from "./Database/Monkey_Store";
+import { useRouter } from 'vue-router'
 
 const missions = ref([])
 const isLoading = ref(true)
+const router = useRouter()
 
 const activeMissions = computed(() => 
   missions.value.filter(m => m.status === 'Active')
@@ -172,7 +174,9 @@ const avgProgress = computed(() => {
                       <span class="badge bg-success me-2">🍌 {{ mission.payout }}</span>
                       <span class="badge bg-light text-dark"><i class="fas fa-clock me-1"></i>{{ getDaysRemaining(mission.duration) }}</span>
                     </div>
-                    <button class="btn btn-sm btn-gradient">Continue <i class="fas fa-arrow-right ms-1"></i></button>
+                    <button class="btn btn-sm btn-gradient" @click="router.push(`/mission/feedback/${mission.id}`)">
+                        Continue <i class="fas fa-arrow-right ms-1"></i>
+                    </button>
                   </div>
                 </div>
               </div>
