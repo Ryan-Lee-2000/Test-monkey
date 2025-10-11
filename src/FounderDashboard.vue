@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { getCompletedMissionsForFounder } from '@/Database/Monkey_Store';
+import navbar from './navbar.vue';
 
 const missions = ref([]);
 const isLoading = ref(true);
@@ -12,6 +13,7 @@ onMounted(async () => {
 </script>
 
 <template>
+  <navbar/>
   <div class="container mt-5" style="padding-top: 80px;">
     <h1 class="mb-4">Founder Dashboard</h1>
     <p class="text-muted">Review the AI-generated summaries for your completed missions.</p>

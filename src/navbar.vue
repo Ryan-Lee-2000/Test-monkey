@@ -66,7 +66,10 @@ function logout(){
               <li class="nav-item">
                 <a class="nav-link" id="createMission" v-if="role" @click="router.push({path: '/createMission'})"><div class="link_text">Create Mission</div></a>
                 <a class="nav-link" id="createMission" v-else @click="router.push({path: '/missionList'})"><div class="link_text">Mission List</div></a>
-                <a class="nav-link" v-if="role" @click="router.push({path: '/dashboard'})"><div class="link_text">Dashboard</div></a>
+                
+              </li>
+              <li class="nav-item">
+                <a class="nav-link " v-if="role" @click="router.push({path: '/dashboard'})"><div class="link_text">Dashboard</div></a>
               </li>
               <!-- <li class="nav-item dropdown ">
                 <a
