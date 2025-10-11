@@ -1,6 +1,6 @@
 [
   {
-    "origin": ["http://localhost:5173"],
+    "origin": ["http://localhost:5173", "https://test-project-c2c58.firebaseapp.com", "https://test-project-c2c58.web.app"],
     "method": ["GET", "POST", "OPTIONS"],
     "responseHeader": [
       "Content-Type",

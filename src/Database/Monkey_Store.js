@@ -13,7 +13,7 @@ import {
   arrayRemove 
 } from "firebase/firestore";
 import { db, storage } from "@/Config/api_services";
-import { ref as storageRef, uploadBytes } from 'firebase/storage';
+import { getDownloadURL, ref as storageRef, uploadBytes } from 'firebase/storage';
 import { getAuth } from "firebase/auth";
 
 
@@ -259,4 +259,11 @@ export async function getCompletedMissionsForFounder() {
   });
 
   return missions;
+}
+
+export async function retrieveFile(mission_id){
+  const mission_ref = storageRef(storage,`mission/${mission_id}`)
+  const download_url = await getDownloadURL(mission_ref)
+  
+  return download_url
 }

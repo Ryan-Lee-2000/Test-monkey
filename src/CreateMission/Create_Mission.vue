@@ -135,7 +135,7 @@ async function launchMission(){
 
               <div class="mb-3">
                 <label for="description" class="form-label fw-semibold">Description <span class="text-danger">*</span></label>
-                <textarea class="form-control" id="description" rows="4" placeholder="Describe what testers should focus on..." v-model="description" maxlength="500"></textarea>
+                <textarea class="form-control" id="description" rows="4" placeholder="Describe what testers should focus on..." v-model="description" maxlength="10000"></textarea>
                 <small class="text-muted float-end">{{ description.length }}/500</small>
               </div>
 

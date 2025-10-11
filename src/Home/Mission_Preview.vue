@@ -1,6 +1,6 @@
 <script setup>
 import "bootstrap/dist/css/bootstrap.min.css"
-import { computed } from "vue"
+import { computed, ref } from "vue"
 import { joinMission } from "@/Database/Monkey_Store"
 
 const props = defineProps({
@@ -17,7 +17,11 @@ const props = defineProps({
   fileType: String
 })
 
-const emit = defineEmits(['close'])
+const emit = defineEmits(['close','refresh'])
+
+const loading = ref(false)
+
+const success = ref(false)
 
 const getPlaceholderImage = computed(() => {
   const colors = ['4285f4', 'ea4335', 'fbbc05', '34a853']
@@ -26,8 +30,22 @@ const getPlaceholderImage = computed(() => {
   return `data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="200"><rect fill="%23${color}" width="400" height="200"/><text x="50%" y="50%" text-anchor="middle" fill="white" font-size="24" dy=".3em">${text}</text></svg>`
 })
 
-function joinThisMission(){
-  joinMission(props.missionId)
+async function joinThisMission(){
+  loading.value = true
+  await joinMission(props.missionId)
+  success.value = true
+}
+
+function close_preview(){
+  if(loading.value){
+    loading.value = false
+  }
+  if(success.value){
+    success.value = false
+    emit('refresh')
+    return
+  }
+  emit('close')
 }
 </script>
 
@@ -44,10 +62,22 @@ function joinThisMission(){
       <div class="modal-content">
         <div class="modal-header bg-primary text-white">
           <h5 class="modal-title"><i class="fas fa-eye me-2"></i>Mission Preview</h5>
-          <button type="button" class="btn-close btn-close-white" @click="emit('close')"></button>
+          <button type="button" class="btn-close btn-close-white" @click="close_preview()"></button>
+        </div>
+        <div v-if="loading" class="text-center py-5">
+          <div v-if="success">
+            <i class="fa-solid fa-circle-check fa-4x mb-3" style="color: #63E6BE;"></i>
+            <h5>Joined Successfully</h5>
+            <p class="text-muted">You've successfully joined this mission!</p>
+          </div>
+          <div v-else>
+            <div class="spinner-border text-primary mb-3" style="width: 3rem; height: 3rem;"></div>
+            <h5>Joining this Mission</h5>
+            <p class="text-muted">Sit tight as we prepare your admission!</p>
+          </div>
         </div>
         
-        <div class="modal-body p-0">
+        <div v-else class="modal-body p-0">
           <!-- Mission Card Preview -->
           <div class="p-3 bg-light">
             <p class="text-muted mb-2"><i class="fas fa-info-circle me-1"></i>Hi, this is the mission:</p>
@@ -116,8 +146,8 @@ function joinThisMission(){
         </div>
         
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" @click="emit('close')">Close</button>
-          <button type="button" class="btn btn-primary" @click="joinThisMission()">Looks Good - Sign me up</button>
+          <button type="button" class="btn btn-secondary" @click="close_preview()">Close</button>
+          <button type="button" class="btn btn-primary" @click="joinThisMission()" :hidden="loading">Looks Good - Sign me up</button>
         </div>
       </div>
     </div>

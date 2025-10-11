@@ -30,6 +30,8 @@ const totalCost = computed(() => (numberOfUsers.value && bananasPayout.value)
   : '0')
 const showPreview = ref(false)
 
+
+
 // Initialize missions from database
 onMounted(async () => {
   user_name.value = auth.currentUser.displayName;
@@ -132,6 +134,20 @@ function showMission(id){
   
 }
 
+async function refreshMissions(){
+  showPreview.value = false
+  isLoading.value = true
+  error.value = null
+  
+  try {
+    missions.value = await getMissions()
+  } catch (err) {
+    error.value = 'Failed to load missions. Please try again.'
+    console.error('Error loading missions:', err)
+  } finally {
+    isLoading.value = false
+  }
+}
 
 
 
@@ -293,6 +309,7 @@ function showMission(id){
       :fileName="fileName"
       :fileType="fileType"
       @close="showPreview = false"
+      @refresh="refreshMissions()"
     />
   </div>
 </template>
@@ -315,7 +332,10 @@ function showMission(id){
 
 .text-truncate-3 {
   display: -webkit-box;
+  line-clamp: 4;
+  -webkit-line-clamp: 4;
   -webkit-box-orient: vertical;
+  text-overflow: ellipsis;
   overflow: hidden;
 }
 </style>
