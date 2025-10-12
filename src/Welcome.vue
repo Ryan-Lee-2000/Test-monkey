@@ -23,7 +23,7 @@ onMounted(() => {
   if (auth.currentUser != null) {
     showWelcome.value = false
     isLoading.value = true
-    router.push({ path: "/Home" })
+    router.push({ path: "/home" })
   } else {
     showWelcome.value = true
     isLoading.value = false
@@ -67,7 +67,7 @@ onMounted(() => {
 
         <div class="welcome-actions">
           <RouterLink to="/Login" class="btn-solid">Login</RouterLink>
-          <RouterLink to="/register" class="btn-ghost">Create Account</RouterLink>
+          <RouterLink to="/register/type" class="btn-ghost">Create Account</RouterLink>
         </div>
       </div>
 
