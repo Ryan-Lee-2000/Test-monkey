@@ -116,7 +116,7 @@ async function registerTester () {
       <!-- banana -->
       <img :src="bananaUrl" class="banana" alt="" />
 
-      <!-- modal (centered over the whole card) -->
+      <!-- modal -->
       <transition name="fade">
         <div v-if="showDialog" class="modal-mask" role="dialog" aria-modal="true">
           <div class="modal" role="status" aria-live="assertive">
@@ -125,6 +125,7 @@ async function registerTester () {
           </div>
         </div>
       </transition>
+      
     </div>
   </div>
 </template>
@@ -275,25 +276,27 @@ async function registerTester () {
   transform: rotate(-3deg);
 }
 
-.modal-mask{
-  position:absolute;
-  inset:0;
-  background:rgba(0,0,0,.35);
-  display:grid;
-  place-items:center;
-  z-index:20;
-  backdrop-filter:blur(2px)
+.modal-mask {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(0,0,0,0.35);
+  border-radius: inherit;
+  z-index: 20;
+  backdrop-filter: blur(2px);
 }
-.modal{
-  min-width:220px;
-  max-width:340px;
-  padding:18px 20px;
-  border-radius:12px;
-  background:#fff;
-  box-shadow:0 14px 32px rgba(0,0,0,.25);
-  display:grid;
-  justify-items:center;
-  gap:12px
+
+.modal {
+  background: white;
+  padding: 18px 20px;
+  border-radius: 12px;
+  box-shadow: 0 14px 32px rgba(0,0,0,0.25);
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  min-width: 220px;
+  max-width: 340px;
 }
 .modal-img{width:40px;height:40px;object-fit:contain}
 .modal-text{color:#2b2b2b;font-weight:600}

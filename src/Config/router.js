@@ -4,7 +4,6 @@ import { createWebHistory, createRouter } from 'vue-router'
 // Pages
 import Welcome from '../Welcome.vue'
 import Login from '../Login.vue'
-// import Register from '../Register.vue' // ⬅️ remove for now (we redirect /register)
 import Home from '../Home/Home.vue'
 import Create_Mission from '../CreateMission/Create_Mission.vue'
 import Mission_List from '../Mission_List.vue'
@@ -14,6 +13,9 @@ import Mission_Feedback from '../mission_feedback.vue'
 // Registration flow
 import UserType from '@/composables/register/UserType.vue'
 import RegisterTester from "@/composables/register/RegisterTester.vue"
+import RegisterFounderAccount from "@/composables/register/founder/RegisterFounderAccount.vue"
+import RegisterFounderCompany from "@/composables/register/founder/RegisterFounderCompany.vue"
+
 
 
 // Firebase auth
@@ -33,7 +35,21 @@ const routes = [
   // Registration entry -> ALWAYS redirect to user type
   { path: '/register', redirect: '/register/type' },        
   { path: '/register/type', component: UserType, name: 'UserType' },
+  
   { path: "/register/tester", component: RegisterTester, name: "RegisterTester" },
+  { path: "/register/founder/account", component: RegisterFounderAccount, name: "RegisterFounderAccount" },
+  { path: "/register/founder/company", component: RegisterFounderCompany, name: "RegisterFounderCompany" },
+
+  {
+    path: "/register/founder/account",
+    component: () => import("@/composables/register/founder/RegisterFounderAccount.vue"),
+    name: "FounderAccount"
+  },
+  {
+    path: "/register/founder/company",
+    component: () => import("@/composables/register/founder/RegisterFounderCompany.vue"),
+    name: "FounderCompany"
+  },
 
   // Other pages
   { path: '/createMission', component: Create_Mission },

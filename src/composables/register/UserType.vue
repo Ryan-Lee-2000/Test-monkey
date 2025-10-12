@@ -6,10 +6,11 @@ import bananaUrl from "@/assets/welcome/banana.png"
 const router = useRouter()
 
 function pickFounder() {
-  router.push("/register/founder")         // or named route: { name: 'RegisterFounder1' }
+  router.push({ name: "RegisterFounderAccount" })
 }
+
 function pickTester() {
-  router.push("/register/tester")          // or named route: { name: 'RegisterTester' }
+  router.push("/register/tester")        
 }
 </script>
 
