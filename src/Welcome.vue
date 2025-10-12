@@ -1,35 +1,38 @@
 <script setup>
+// Global styles + Bootstrap
 import "bootstrap/dist/css/bootstrap.min.css"
 import "bootstrap"
-import { getAuth, onAuthStateChanged } from "firebase/auth";
-import { useRouter, useRoute } from 'vue-router'
-import { onMounted, ref } from "vue";
 
+// Vue + Firebase
+import { getAuth } from "firebase/auth"
+import { useRouter } from "vue-router"
+import { onMounted, ref } from "vue"
 
+// Local state
 const router = useRouter()
 const isLoading = ref(true)
 const showWelcome = ref(false)
 
+// Assets
 import monkeyUrl from "@/assets/welcome/monkey.png"
 import bananaUrl from "@/assets/welcome/banana.png"
 
+
 onMounted(() => {
-  const auth = getAuth();
-  if(auth.currentUser != null){
+  const auth = getAuth()
+  if (auth.currentUser != null) {
     showWelcome.value = false
     isLoading.value = true
-    router.push({path: '/Home'})
-  } else{
+    router.push({ path: "/Home" })
+  } else {
     showWelcome.value = true
     isLoading.value = false
   }
 })
-
-
-
 </script>
 
 <template>
+  <!-- Loading view -->
   <div v-if="isLoading" class="hero-section">
     <div class="container">
       <div class="row justify-content-center">
@@ -48,9 +51,10 @@ onMounted(() => {
     </div>
   </div>
 
+  <!-- Welcome view -->
   <div v-else-if="showWelcome" class="welcome-hero">
     <div class="welcome-card">
-      <!-- title -->
+      <!-- Left: title + actions -->
       <div class="welcome-left">
         <h1 class="welcome-title">
           Welcome to<br />
@@ -67,18 +71,19 @@ onMounted(() => {
         </div>
       </div>
 
-      <!-- monkey -->
+      <!-- Right: mascot -->
       <div class="welcome-right">
         <img :src="monkeyUrl" alt="Monkey" class="monkey-illust" />
       </div>
 
-      <!-- banana -->
+      <!-- Banana sticker -->
       <img :src="bananaUrl" alt="" class="banana-sticker" />
     </div>
   </div>
 </template>
 
 <style scoped>
+/* Page background gradient (top -> bottom) */
 .welcome-hero {
   min-height: 100vh;
   display: grid;
@@ -87,6 +92,7 @@ onMounted(() => {
   padding: 36px 16px;
 }
 
+/* Glass card container */
 .welcome-card {
   position: relative;
   max-width: 980px;
@@ -99,18 +105,18 @@ onMounted(() => {
   border-radius: 22px;
   background: rgba(255, 255, 255, 0.14);
   backdrop-filter: blur(8px);
-  border: var(--card-border) solid rgba(255, 255, 255, 0.45);
+  border: 1.5px solid rgba(255, 255, 255, 0.45);
   box-shadow:
     0 18px 40px rgba(0, 0, 0, 0.3),
     inset 0 0 50px rgba(255, 255, 255, 0.18);
 }
 
+/* Left column content */
 .welcome-left {
   align-self: center;
   color: #fff;
   text-shadow: 0 2px 4px rgba(0,0,0,0.15);
 }
-
 .welcome-title {
   font-size: 54px;
   line-height: 1.05;
@@ -118,11 +124,9 @@ onMounted(() => {
   letter-spacing: 0.2px;
   margin: 0 0 18px;
 }
-
 .welcome-title span {
   filter: drop-shadow(0 2px 6px rgba(0,0,0,0.25));
 }
-
 .welcome-desc {
   max-width: 520px;
   font-size: 16px;
@@ -131,12 +135,14 @@ onMounted(() => {
   margin: 0 0 26px;
 }
 
+/* Actions row */
 .welcome-actions {
   display: flex;
   gap: 16px;
   flex-wrap: wrap;
 }
 
+/* Buttons: shared */
 .btn-solid,
 .btn-ghost {
   display: inline-flex;
@@ -152,27 +158,48 @@ onMounted(() => {
   transition: transform 0.16s ease, box-shadow 0.16s ease, background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
 }
 
+/* Solid (Login) with black 25% shadows */
 .btn-solid {
   color: #fff;
   background: linear-gradient(180deg, #2e7d32 0%, #1b5e20 100%);
-  box-shadow: 0 6px 0 #163f16, 0 10px 24px rgba(21, 60, 21, 0.45);
   border: none;
+  box-shadow: 0 6px 0 rgba(0,0,0,.25), 0 10px 24px rgba(0,0,0,.25);
 }
 .btn-solid:hover {
   transform: translateY(-1px);
-  box-shadow: 0 6px 0 #163f16, 0 16px 30px rgba(21, 60, 21, 0.55);
+  box-shadow: 0 6px 0 rgba(0,0,0,.25), 0 16px 30px rgba(0,0,0,.25);
+}
+.btn-solid:active {
+  transform: translateY(0);
+  box-shadow: 0 4px 0 rgba(0,0,0,.25), 0 8px 18px rgba(0,0,0,.25);
 }
 
+/* Ghost (Create Account) with black 25% shadows */
 .btn-ghost {
   color: #234d22;
   background: rgba(255, 255, 255, 0.18);
   border: 2px solid rgba(35, 77, 34, 0.9);
   backdrop-filter: blur(4px);
+  box-shadow: 0 6px 0 rgba(0,0,0,.25), 0 10px 24px rgba(0,0,0,.25);
 }
 .btn-ghost:hover {
   background: rgba(255, 255, 255, 0.28);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 0 rgba(0,0,0,.25), 0 16px 30px rgba(0,0,0,.25);
+}
+.btn-ghost:active {
+  transform: translateY(0);
+  box-shadow: 0 4px 0 rgba(0,0,0,.25), 0 8px 18px rgba(0,0,0,.25);
 }
 
+/* Focus ring */
+.btn-solid:focus-visible,
+.btn-ghost:focus-visible {
+  outline: 3px solid rgba(35, 77, 34, 0.3);
+  outline-offset: 2px;
+}
+
+/* Right column (monkey) */
 .welcome-right {
   position: relative;
   display: grid;
@@ -186,6 +213,7 @@ onMounted(() => {
     drop-shadow(0 2px 6px rgba(0,0,0,0.2));
 }
 
+/* Banana sticker (keep your original offset) */
 .banana-sticker {
   position: absolute;
   right: 18px;
@@ -194,22 +222,62 @@ onMounted(() => {
   height: auto;
   opacity: 0.9;
   pointer-events: none;
-  z-index: 2;           
+  z-index: 2;
   transform: translate(0, 0) rotate(-3deg);
 }
 
-/* responsive */
+/* Responsive: center monkey + titles; one button per line */
 @media (max-width: 900px) {
   .welcome-card {
     grid-template-columns: 1fr;
-    padding: 28px 24px 40px;
+    padding: 24px 20px 32px;
+    justify-items: center; /* center grid items horizontally */
+    align-items: center;   /* center grid items vertically */
+    text-align: center;    /* center text */
   }
-  .welcome-right {
-    order: -1; 
-  }
-  .welcome-title { font-size: 40px; }
-  .monkey-illust { width: 200px; }
-  .banana-sticker { width: 66px; }
-}
 
+  /* Move monkey above the title only on small screens */
+  .welcome-right {
+    order: -1;
+  }
+
+  .monkey-illust {
+    width: min(200px, 70vw);
+    margin-bottom: 12px;
+  }
+
+  .welcome-left {
+    align-self: center;
+    text-align: center;
+  }
+
+  .welcome-title {
+    font-size: 40px;
+    line-height: 1.1;
+  }
+
+  .welcome-desc {
+    max-width: 36em;
+    margin: 0 0 18px;
+  }
+
+  .welcome-actions {
+    width: 100%;
+    max-width: 320px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column; /* stack vertically */
+    gap: 12px;
+  }
+
+  .btn-solid,
+  .btn-ghost {
+    width: 100%;  /* one button per line */
+    min-width: 0;
+  }
+
+  .banana-sticker {
+    width: 66px;
+  }
+}
 </style>
