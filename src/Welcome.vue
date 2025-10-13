@@ -61,8 +61,7 @@ onMounted(() => {
           <span>Test Monkey</span>
         </h1>
         <p class="welcome-desc">
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-          eiusmod tempor incididunt ut labore et dolore magna aliqua.
+          Test Smarter. Build Better.
         </p>
 
         <div class="welcome-actions">
@@ -88,7 +87,7 @@ onMounted(() => {
   min-height: 100vh;
   display: grid;
   place-items: center;
-  background: linear-gradient(180deg, #0f4d26 0%, #ea8a2f 50%, #d7e86d 100%);
+  background: linear-gradient(to bottom, #0f4d26 7%, #F97A02 26%, #FC9D05 54%, #FDC955 77%, #ABD453 90%);
   padding: 36px 16px;
 }
 

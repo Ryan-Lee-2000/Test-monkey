@@ -43,7 +43,7 @@ function logout(){
         v-if="show_navbar"
       >
         <div class="container">
-          <a class="navbar-brand" href="#">🐵 Test Monkey</a>
+          <a class="navbar-brand" id="navbar-brand-style" href="#">Test Monkey</a>
           <button
             class="navbar-toggler d-lg-none"
             type="button"
@@ -95,7 +95,7 @@ function logout(){
               </li> -->
             </ul>
             <button id="logout_btn" class="btn my-2 my-lg-0" @click="logout">
-              Logout
+            Logout
             </button>
           </div>
         </div>
@@ -103,28 +103,28 @@ function logout(){
 </template>
 
 <style>
-.navbar{
-  background-color: white;
-  border: 1px solid black;
-  border-top: 0.5px solid black;
-  border-right: 2px solid black;
-  border-bottom: 3px solid black;
-  width: fit-content;
-  border-radius: 25px;
-  margin-inline: auto;
-  margin-top: 10px;
-  padding-inline: 20px;
 
+.navbar{
+  background-color: #386641;
+  width: 100%;
+  margin-inline: auto;
+  padding-inline: 20px;
+  height: 9%;
   
 }
-#logout_btn{
-  background-color: #764ba2;
+
+#navbar-brand-style {
   color: white;
+  font-weight: bold;
+  font-size: 34px;
 }
-#logout_btn:hover{
-  background-color: #690fc3;
-  border: white 1px solid;
-  transition: .5s
+
+#logout_btn{
+  background-color: #EF8C37;
+  color: white;
+  box-shadow: 0 6px 0 rgba(0,0,0,.25), 0 10px 24px rgba(0,0,0,.25);
+  border-radius: 10px;
+  font-weight: bold;
 }
 
 a:hover{
@@ -137,13 +137,17 @@ a:hover{
   overflow: hidden;
   text-overflow: ellipsis;
   transition: transform 0.3s ease-out;
+  color: white;
+  font-size: 18px;
+  margin: 30px;
 }
 .link_text:hover{
-  color: #690fc3;
   transform: scale(1.1);
   transition: transform 0.3s ease-out;
   
 }
+
+
 
 
 </style>
