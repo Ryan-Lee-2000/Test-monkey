@@ -108,7 +108,7 @@ h1{
 }
 
 .page {
-  background: linear-gradient(to top, #0f4d26 7%, #F97A02 26%, #FC9D05 54%, #FDC955 77%, #ABD453 0%);
+  background: linear-gradient(to top, #0f4d26 7%, #F97A02 26%, #FC9D05 54%, #FDC955 77%, #ABD453 90%);
 }
 
 .empty-state .text-muted{
@@ -123,12 +123,11 @@ h1{
 
 .stats-num{
   font-weight: bold;
-  font-size: 40px;
 }
 
-small.text-muted{
+/* small.text-muted{
   font-size: 20px;
-}
+} */
 </style>
 
 <template>
@@ -271,7 +270,7 @@ small.text-muted{
           <i class="fas fa-inbox text-muted" style="font-size: 4rem; opacity: 0.3;"></i>
           <h4 class="mt-3 text-muted">No missions yet</h4>
           <p class="text-muted">Browse available missions and start earning bananas!</p>
-          <button class="btn btn-gradient mt-3 p-2">Browse Missions</button>
+          <button class="btn btn-gradient mt-3 px-3">Browse Missions</button>
         </div>
       </template>
     </div>

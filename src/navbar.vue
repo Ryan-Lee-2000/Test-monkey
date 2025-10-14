@@ -58,9 +58,9 @@ function logout(){
           <div class="collapse navbar-collapse" id="collapsibleNavId">
             <ul class="navbar-nav me-auto mt-2 mt-lg-0">
               <li class="nav-item">
-                <a class="nav-link" 
-                  :class="{ active_link: $route.path === '/Home' }"
-                  @click="router.push({ path: '/Home' })">
+                <a class="nav-link"
+                  :class="{ active_link: $route.path === '/Home' || $route.path === '/' }" 
+                  @click="router.push({ path: '/Home' })" aria-current="page">
                   <div class="link_text">Home</div>
                   <span class="visually-hidden">(current)</span></a
                 >
@@ -75,7 +75,6 @@ function logout(){
                 :class="{ active_link: $route.path === '/missionList' }"
                 @click="router.push({ path: '/missionList' })">
                 <div class="link_text">My Missions</div></a>
-                
               </li>
               <li class="nav-item">
                 <a class="nav-link " v-if="role" @click="router.push({path: '/dashboard'})"><div class="link_text">Dashboard</div></a>

@@ -6,6 +6,7 @@ import { getMissions } from "../Database/Monkey_Store";
 import { getAuth, onAuthStateChanged, signOut  } from "firebase/auth";
 import { getUserName } from "../Database/Monkey_Store";
 import Mission_Preview from "./Mission_Preview.vue";
+import homepageMonkeyURL from "@/assets/welcome/homepage_monkey.png";
 
 const missions = ref([])
 const isLoading = ref(false)
@@ -155,13 +156,14 @@ async function refreshMissions(){
 
 <template>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-  <div class="min-vh-100 bg-light">
+  <div class="min-vh-100 page">
     <!-- Header -->
-    <div class="dashboard-header text-white py-4 mb-4" style="padding-top: 100px;">
-      <div class="container">
+    <div class="dashboard-header py-4 mb-4" style="padding-top: 100px;">
+      <div class="container home-header">
         <h1 class="mb-2">{{ user_name }}'s Dashboard</h1>
-        <p class="mb-0 opacity-75">Missions are ready for you</p>
+        <p class="mb-0 opacity-75">Welcome back! Check out the latest missions.</p>
       </div>
+      <img :src="homepageMonkeyURL" class="header-image" alt="Header Monkey" />
     </div>
 
     <div class="container">
@@ -185,34 +187,34 @@ async function refreshMissions(){
         <!-- Stats Cards -->
         <div class="row g-3 mb-4">
           <div class="col-6 col-md-3">
-            <div class="card text-center shadow-sm">
+            <div class="card stats-card text-center shadow-sm">
               <div class="card-body">
-                <h2 class="text-primary mb-0">{{ stats.total }}</h2>
                 <small class="text-muted">Available Missions</small>
+                <h2 class="stats-num text-primary mb-0">{{ stats.total }}</h2>
               </div>
             </div>
           </div>
           <div class="col-6 col-md-3">
-            <div class="card text-center shadow-sm">
+            <div class="card stats-card text-center shadow-sm">
               <div class="card-body">
-                <h2 class="text-success mb-0">${{ stats.highestPayout }}</h2>
                 <small class="text-muted">Highest Payout</small>
+                <h2 class="stats-num text-success mb-0">${{ stats.highestPayout }}</h2>
               </div>
             </div>
           </div>
           <div class="col-6 col-md-3">
-            <div class="card text-center shadow-sm">
+            <div class="card stats-card text-center shadow-sm">
               <div class="card-body">
-                <h2 class="text-warning mb-0">${{ stats.avgPayout }}</h2>
                 <small class="text-muted">Avg Payout</small>
+                <h2 class="stats-num text-warning mb-0">${{ stats.avgPayout }}</h2>
               </div>
             </div>
           </div>
           <div class="col-6 col-md-3">
-            <div class="card text-center shadow-sm">
+            <div class="card stats-card text-center shadow-sm">
               <div class="card-body">
-                <h2 class="text-info mb-0">{{ stats.quickMissions }}</h2>
                 <small class="text-muted">Quick Missions (1 day)</small>
+                <h2 class="stats-num text-info mb-0">{{ stats.quickMissions }}</h2>
               </div>
             </div>
           </div>
@@ -291,8 +293,8 @@ async function refreshMissions(){
         <!-- No Results -->
         <div v-else class="text-center py-5 text-muted">
           <i class="fas fa-search fa-4x mb-3 opacity-50"></i>
-          <h4>No missions found</h4>
-          <p>Try adjusting your search criteria</p>
+          <h4 class="no-results">No missions found</h4>
+          <p class="no-results">Try adjusting your search criteria</p>
         </div>
       </template>
     </div>
@@ -315,9 +317,52 @@ async function refreshMissions(){
 </template>
 
 <style scoped>
+.page {
+  background: linear-gradient(to top, #0f4d26 7%, #F97A02 26%, #FC9D05 54%, #FDC955 77%, #ABD453 90%);
+}
+
 .dashboard-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   padding-top: 100px !important;
+  background: #FED16A;
+  color: black;
+  padding: 2rem 0;
+  position:relative;
+  overflow: visible;
+  height: 300px;
+}
+
+.dashboard-header h1{
+  color: #0A490A;
+  font-weight: bold;
+  font-size: 60px;
+}
+
+.home-header{
+  margin-left: 290px;
+  padding-top: 20px;
+}
+
+.header-image{
+  position: absolute;
+  bottom: -65px;
+  z-index: 10;
+  width: 335px;
+  height: auto;
+  transform: rotate(-24deg)
+}
+
+.no-results{
+  font-weight: bold;
+}
+
+.stats-card{
+  border-radius: 20px;
+  border: 4px solid #ff7700;
+  box-shadow: 0 6px 0 rgba(0,0,0,.25), 0 10px 24px rgba(0,0,0,.25);
+}
+
+.stats-num{
+  font-weight: bold;
 }
 
 .mission-card {
