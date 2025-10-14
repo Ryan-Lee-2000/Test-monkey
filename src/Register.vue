@@ -59,7 +59,7 @@ function finalize_register(){
 
 <style>
     .cool-bg{
-        background-image: linear-gradient(#0F2027, #203A43,#2C5364);
+    background: linear-gradient(to bottom, #0f4d26 7%, #F97A02 26%, #FC9D05 54%, #FDC955 77%, #ABD453 90%);
 
     }
 </style>

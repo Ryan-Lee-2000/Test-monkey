@@ -143,7 +143,7 @@ async function registerTester () {
   display:grid;
   place-items:center;
   padding:36px 16px;
-  background: linear-gradient(180deg, #0f4d26 0%, #ea8a2f 50%, #d7e86d 100%);
+  background: linear-gradient(to bottom, #0f4d26 7%, #F97A02 26%, #FC9D05 54%, #FDC955 77%, #ABD453 90%);
 }
 
 /* card */
@@ -285,18 +285,19 @@ async function registerTester () {
   border-radius: inherit;
   z-index: 20;
   backdrop-filter: blur(2px);
+  
 }
-
+/* min-width:220px; max-width:340px; */
 .modal {
   background: white;
-  padding: 18px 20px;
+  padding: 12px 20px;
   border-radius: 12px;
   box-shadow: 0 14px 32px rgba(0,0,0,0.25);
   display: grid;
   justify-items: center;
   gap: 12px;
-  min-width: 220px;
-  max-width: 340px;
+  width: 250px;
+  height: 100px;
 }
 .modal-img{width:40px;height:40px;object-fit:contain}
 .modal-text{color:#2b2b2b;font-weight:600}

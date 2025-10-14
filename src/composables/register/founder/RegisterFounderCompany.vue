@@ -117,7 +117,7 @@ async function registerFounder(){
 :global(html), :global(body) { font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Arial, "Helvetica Neue", sans-serif; }
 
 .page{ min-height:100vh; display:grid; place-items:center; padding:36px 16px;
-  background: linear-gradient(180deg, #0f4d26 0%, #ea8a2f 50%, #d7e86d 100%); }
+    background: linear-gradient(to bottom, #0f4d26 7%, #F97A02 26%, #FC9D05 54%, #FDC955 77%, #ABD453 90%); }
 
 .card{ position:relative; max-width: 980px; width:100%; min-height:560px; display:grid;
   grid-template-columns: 1.05fr 1px 1.2fr; gap:24px; padding:36px 40px; border-radius:22px;
@@ -191,8 +191,9 @@ async function registerFounder(){
   backdrop-filter: blur(2px);
   pointer-events: all;
 }
+
 .modal-card{
-  min-width:220px; max-width:340px; padding:18px 20px; border-radius:12px; background:#fff;
+  min-width:220px;max-width:340px;padding:18px 20px; border-radius:12px; background:#fff;
   box-shadow:0 14px 32px rgba(0,0,0,.25); display:grid; justify-items:center; gap:12px;
 }
 .modal-img{ width:40px; height:40px; object-fit:contain }

@@ -12,6 +12,10 @@ function pickFounder() {
 function pickTester() {
   router.push("/register/tester")        
 }
+
+function goBack () {
+  router.back()
+}
 </script>
 
 <template>
@@ -28,6 +32,8 @@ function pickTester() {
           Create an account to continue your journey with us.
         </p>
       </section>
+
+      <button class="back" aria-label="Back" @click="goBack">←</button>
 
       <!-- vertical divider -->
       <div class="auth-divider" aria-hidden="true"></div>
@@ -49,4 +55,11 @@ function pickTester() {
 </template>
 
 <style scoped>
+  .auth-hero{
+    background: linear-gradient(to bottom, #0f4d26 7%, #F97A02 26%, #FC9D05 54%, #FDC955 77%, #ABD453 90%);
+  }
+
+  .back{
+  position:absolute;top:16px;left:16px;background:transparent;border:none;color:#fff;font-size:28px;cursor:pointer
+  }
 </style>

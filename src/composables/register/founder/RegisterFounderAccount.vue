@@ -84,7 +84,7 @@ function nextStep () {
 :global(html), :global(body) { font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Arial, "Helvetica Neue", sans-serif; }
 
 .page{ min-height:100vh; display:grid; place-items:center; padding:36px 16px;
-  background: linear-gradient(180deg, #0f4d26 0%, #ea8a2f 50%, #d7e86d 100%); }
+    background: linear-gradient(to bottom, #0f4d26 7%, #F97A02 26%, #FC9D05 54%, #FDC955 77%, #ABD453 90%); }
 
 .card{ position:relative; max-width: 980px; width:100%; min-height:560px; display:grid;
   grid-template-columns: 1.05fr 1px 1.2fr; gap:24px; padding:36px 40px; border-radius:22px;

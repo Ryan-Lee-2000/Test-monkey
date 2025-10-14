@@ -52,6 +52,9 @@ function login () {
     })
 }
 
+function goBack () {
+  router.back()
+}
 </script>
 
 <template>
@@ -60,6 +63,7 @@ function login () {
       <div class="row justify-content-center">
         <div class="col-12">
           <div class="login-card">
+            <button class="back" aria-label="Back" @click="goBack">←</button>
             <!-- grid container -->
             <div class="row g-0 card-grid">
               <!-- Left: mascot + copy -->
@@ -183,7 +187,7 @@ function login () {
 
 /* Background */
 .cool-bg {
-  background: linear-gradient(180deg, #0f4d26 0%, #ea8a2f 50%, #d7e86d 100%);
+  background: linear-gradient(to bottom, #0f4d26 7%, #F97A02 26%, #FC9D05 54%, #FDC955 77%, #ABD453 90%);
   min-height: 100vh;
   display: flex;
   align-items: center;
@@ -380,4 +384,8 @@ function login () {
 .fade-enter-active, .fade-leave-active { transition: opacity .18s ease; }
 .fade-enter-from, .fade-leave-to { opacity: 0; }
 
+
+.back{
+  position:absolute;top:16px;left:16px;background:transparent;border:none;color:#fff;font-size:28px;cursor:pointer;z-index: 30;
+}
 </style>
