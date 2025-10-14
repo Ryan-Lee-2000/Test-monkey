@@ -42,7 +42,7 @@ function logout(){
         class="navbar navbar-expand-sm fixed-top navbar-light"
         v-if="show_navbar"
       >
-        <div class="container">
+        <div class="container-fluid">
           <a class="navbar-brand" id="navbar-brand-style" href="#">Test Monkey</a>
           <button
             class="navbar-toggler d-lg-none"
@@ -58,14 +58,23 @@ function logout(){
           <div class="collapse navbar-collapse" id="collapsibleNavId">
             <ul class="navbar-nav me-auto mt-2 mt-lg-0">
               <li class="nav-item">
-                <a class="nav-link active" @click="router.push({path: '/Home'})" aria-current="page"
-                  ><div class="link_text">Home</div>
+                <a class="nav-link" 
+                  :class="{ active_link: $route.path === '/Home' }"
+                  @click="router.push({ path: '/Home' })">
+                  <div class="link_text">Home</div>
                   <span class="visually-hidden">(current)</span></a
                 >
               </li>
               <li class="nav-item">
-                <a class="nav-link" id="createMission" v-if="role" @click="router.push({path: '/createMission'})"><div class="link_text">Create Mission</div></a>
-                <a class="nav-link" id="createMission" v-else @click="router.push({path: '/missionList'})"><div class="link_text">Mission List</div></a>
+                <a class="nav-link" id="createMission" v-if="role"
+                :class="{ active_link: $route.path === '/createMission' }"
+                @click="router.push({ path: '/createMission' })">
+                <div class="link_text">Create Mission</div></a>
+
+                <a class="nav-link" id="createMission" v-else
+                :class="{ active_link: $route.path === '/missionList' }"
+                @click="router.push({ path: '/missionList' })">
+                <div class="link_text">My Missions</div></a>
                 
               </li>
               <li class="nav-item">
@@ -139,15 +148,18 @@ a:hover{
   transition: transform 0.3s ease-out;
   color: white;
   font-size: 18px;
-  margin: 30px;
+  margin-left: 100px;
+  padding-top: 5px;
 }
+
+.active_link {
+  font-weight: bold;
+}
+
 .link_text:hover{
   transform: scale(1.1);
   transition: transform 0.3s ease-out;
   
 }
-
-
-
 
 </style>
