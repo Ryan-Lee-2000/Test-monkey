@@ -25,6 +25,9 @@ const bananasPayout = ref("")
 const selectedFile = ref(null)
 const fileName = ref("")
 const fileType = ref("html")
+
+const website = ref("")
+
 const totalCost = computed(() => (numberOfUsers.value && bananasPayout.value) 
   ? (numberOfUsers.value * bananasPayout.value).toLocaleString() 
   : '0')
@@ -125,6 +128,7 @@ function showMission(id){
       numberOfUsers.value = selectedFile.num_testers
       duration.value = selected_mission.duration
       bananasPayout.value = selected_mission.payout
+      website.value = selected_mission.website
       selectedFile.value = 'user_file'
       fileName.value = 'file_name'
       fileType.value = 'file_type'
@@ -305,9 +309,7 @@ async function refreshMissions(){
       :duration="duration"
       :bananasPayout="bananasPayout"
       :totalCost="totalCost"
-      :selectedFile="selectedFile"
-      :fileName="fileName"
-      :fileType="fileType"
+      :website="website"
       @close="showPreview = false"
       @refresh="refreshMissions()"
     />

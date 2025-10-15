@@ -14,11 +14,16 @@ const isSubmitting = ref(false)
 
 const showMoreDescription = ref(false)
 
-const fileUrl = ref('') // Add this for the iframe URL
+const website_view = ref('') // Add this for the iframe URL
+const website_link = ref('')
 
 onMounted(async () => {
   const missionId = route.params.missionId;
-  mission.value = await getMissionById(missionId);
+  const mission_data = await getMissionById(missionId);
+
+  website_link.value = mission_data.website
+
+  mission.value = mission_data
 
   if (mission.value && mission.value.questions) {
     answers.value = mission.value.questions.map(questionText => ({
@@ -28,8 +33,10 @@ onMounted(async () => {
   }
 
   isLoading.value = false;
-  fileUrl.value = await retrieveFile(missionId)
-  console.log('fileUrl',fileUrl.value)
+  //website_view.value = await retrieveFile(missionId)
+
+  
+  console.log('fileUrl',website_view.value)
 });
 
 async function handleSubmit() {
@@ -61,9 +68,17 @@ async function handleSubmit() {
     <navbar/>
     <div class="feedback-layout">
       <div class="website-panel"> 
-        <iframe 
+        <!-- <iframe 
           v-if="fileUrl"
           :src="fileUrl"
+          sandbox="allow-scripts allow-forms"
+          frameborder="0"
+          width="100%"
+          height="100%"
+        ></iframe> -->
+        <iframe 
+          v-if="website_link"
+          :src="website_link"
           sandbox="allow-scripts allow-forms"
           frameborder="0"
           width="100%"
