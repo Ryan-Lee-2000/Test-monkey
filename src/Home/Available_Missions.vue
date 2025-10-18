@@ -7,6 +7,9 @@ import { getAuth, onAuthStateChanged, signOut  } from "firebase/auth";
 import { getUserName } from "../Database/Monkey_Store";
 import Mission_Preview from "./Mission_Preview.vue";
 import homepageMonkeyURL from "@/assets/welcome/homepage_monkey.png";
+import missionImage from "@/assets/welcome/mission_image.webp"
+import bananaURL from "@/assets/welcome/banana.png"
+import peeledBananaURL from "@/assets/welcome/peeled_banana.png"
 
 const missions = ref([])
 const isLoading = ref(false)
@@ -190,7 +193,10 @@ async function refreshMissions(){
             <div class="card stats-card text-center shadow-sm">
               <div class="card-body">
                 <small class="text-muted">Available Missions</small>
-                <h2 class="stats-num text-primary mb-0">{{ stats.total }}</h2>
+                <div class="stats-row">
+                  <img :src="missionImage" class="mission-image"/>
+                  <h2 class="stats-num text-primary mb-0">{{ stats.total }}</h2>
+                </div>
               </div>
             </div>
           </div>
@@ -198,7 +204,10 @@ async function refreshMissions(){
             <div class="card stats-card text-center shadow-sm">
               <div class="card-body">
                 <small class="text-muted">Highest Payout</small>
-                <h2 class="stats-num text-success mb-0">${{ stats.highestPayout }}</h2>
+                <div class="highest-row">
+                  <img :src="bananaURL" class="banana-image"/>
+                  <h2 class="stats-num text-success mb-0">${{ stats.highestPayout }}</h2>
+                </div>
               </div>
             </div>
           </div>
@@ -206,7 +215,10 @@ async function refreshMissions(){
             <div class="card stats-card text-center shadow-sm">
               <div class="card-body">
                 <small class="text-muted">Avg Payout</small>
-                <h2 class="stats-num text-warning mb-0">${{ stats.avgPayout }}</h2>
+                <div class="avg-row">
+                  <img :src="peeledBananaURL" class="peeledBanana-image"/>
+                  <h2 class="stats-num text-warning mb-0">${{ stats.avgPayout }}</h2>
+                </div>
               </div>
             </div>
           </div>
@@ -221,7 +233,7 @@ async function refreshMissions(){
         </div>
 
         <!-- Search and Filters -->
-        <div class="card shadow-sm mb-4">
+        <!-- <div class="card shadow-sm mb-4">
           <div class="card-body">
             <div class="row g-3">
               <div class="col-md-8">
@@ -243,6 +255,26 @@ async function refreshMissions(){
                 </select>
               </div>
             </div>
+          </div>
+        </div> -->
+
+        <div class="d-flex align-items-center mb-4 border-0">
+          <div class="flex-grow-1 me-3">
+            <div class="search-bar-container">
+              <i class="fas fa-search search-icon"></i>
+              <input
+                type="text"
+                class="search-input"
+                placeholder="Search missions or keywords..."
+                v-model="searchQuery"
+              />
+            </div>
+          </div>
+    
+          <div>
+            <select class="form-select search-dropdown" v-model="selectedJobType">
+              <option value="all">All Missions</option>
+            </select>
           </div>
         </div>
 
@@ -351,6 +383,58 @@ async function refreshMissions(){
   transform: rotate(-24deg)
 }
 
+.stats-row,
+.highest-row,
+.avg-row{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.mission-image,
+.banana-image,
+.peeledBanana-image{
+  width: 45px;
+  height: 45px;
+}
+
+.search-bar-container {
+  display: flex;
+  align-items: center;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 50px;          /* makes it oval */
+  padding: 0.5rem 1rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease-in-out;
+  height: 45px;
+}
+
+.search-bar-container:focus-within {
+  border-color: #007bff;        /* blue border on focus */
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+}
+
+.search-icon {
+  color: #888;
+  font-size: 1rem;
+  margin-right: 0.75rem;
+}
+
+.search-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 1rem;
+  background: transparent;
+}
+
+.search-dropdown{
+  width: 200px;
+  height: 45px;
+  border-radius: 50px;
+}
+
 .no-results{
   font-weight: bold;
 }
@@ -359,6 +443,10 @@ async function refreshMissions(){
   border-radius: 20px;
   border: 4px solid #ff7700;
   box-shadow: 0 6px 0 rgba(0,0,0,.25), 0 10px 24px rgba(0,0,0,.25);
+}
+
+.stats-card .card-body {
+  padding: 0.5rem 1rem;
 }
 
 .stats-num{
