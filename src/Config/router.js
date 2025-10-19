@@ -9,6 +9,7 @@ import Create_Mission from '../CreateMission/Create_Mission.vue'
 import Mission_List from '../Mission_List.vue'
 import FounderDashboard from '../FounderDashboard.vue'
 import Mission_Feedback from '../mission_feedback.vue'
+import Gambling from '@/Gambling.vue'
 
 // Registration flow
 import UserType from '@/composables/register/UserType.vue'
@@ -52,11 +53,12 @@ const routes = [
   },
 
   // Other pages
-  { path: '/createMission', component: Create_Mission },
-  { path: '/missionList', component: Mission_List },
+  { path: '/createMission', component: Create_Mission , meta: { requiresAuth: true }},
+  { path: '/missionList', component: Mission_List , meta: { requiresAuth: true }},
 
   // Fallback
-  { path: '/:pathMatch(.*)*', redirect: '/' }
+  { path: '/:pathMatch(.*)*', redirect: '/' },
+  { path: '/gambling', component: Gambling, meta: { requiresAuth: true } },
 ]
 
 const router = createRouter({

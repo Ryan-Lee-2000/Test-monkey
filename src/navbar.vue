@@ -79,6 +79,9 @@ function logout(){
               <li class="nav-item">
                 <a class="nav-link " v-if="role" @click="router.push({path: '/dashboard'})"><div class="link_text">Dashboard</div></a>
               </li>
+              <li class="nav-item">
+                <a class="nav-link " @click="router.push({path: '/gambling'})"><div class="link_text">Gambling</div></a>
+              </li>
               <!-- <li class="nav-item dropdown ">
                 <a
                   class="nav-link dropdown-toggle"
