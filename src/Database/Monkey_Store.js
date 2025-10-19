@@ -41,7 +41,11 @@ export async function createUser(user_arr){
         try {
             await setDoc(doc(db, 'Founders',uid), {
                 User: uid,
-                Demographic: user_arr[2]
+                Demographic: user_arr[2],
+                bananaBalance: 0,
+                totalBananasAdded: 0,
+                totalBananasSpent: 0,
+                createdAt: serverTimestamp()
             });
             // console.log("Monkey Document written with ID: ", docRef.id);
             const userRef = doc(db, 'Users', uid);
@@ -56,11 +60,13 @@ export async function createUser(user_arr){
                 User: uid,
                 Demographic: user_arr[2],
                 active_missions: [],
-                mission_history: []
+                mission_history: [],
+                bananaBalance: 0,
+                totalBananasEarned: 0
             });
             // console.log("Monkey Document written with ID: ", docRef.id);
             const userRef = doc(db, 'Users', uid);
-            await updateDoc(userRef, { 
+            await updateDoc(userRef, {
               Data: "/TestMonkey/" + uid,
             });
         } catch (e) {
@@ -265,6 +271,104 @@ export async function getCompletedMissionsForFounder() {
 export async function retrieveFile(mission_id){
   const mission_ref = storageRef(storage,`mission/${mission_id}`)
   const download_url = await getDownloadURL(mission_ref)
-  
+
   return download_url
+}
+
+// Banana Balance Management Functions
+
+// Get banana balance for a user (Founder or TestMonkey)
+export async function getBananaBalance(uid, role) {
+  try {
+    const collectionName = role === 'Founder' ? 'Founders' : 'TestMonkey';
+    const userRef = doc(db, collectionName, uid);
+    const userDoc = await getDoc(userRef);
+
+    if (userDoc.exists()) {
+      return userDoc.data().bananaBalance || 0;
+    }
+    return 0;
+  } catch (e) {
+    console.error("Error getting banana balance: ", e);
+    return 0;
+  }
+}
+
+// Add bananas to founder account (simulated top-up)
+export async function addBananaBalance(uid, amount) {
+  try {
+    const founderRef = doc(db, 'Founders', uid);
+    const founderDoc = await getDoc(founderRef);
+
+    if (founderDoc.exists()) {
+      const currentBalance = founderDoc.data().bananaBalance || 0;
+      const currentTotal = founderDoc.data().totalBananasAdded || 0;
+
+      await updateDoc(founderRef, {
+        bananaBalance: currentBalance + amount,
+        totalBananasAdded: currentTotal + amount
+      });
+
+      console.log(`Added ${amount} bananas to founder ${uid}`);
+      return true;
+    }
+    return false;
+  } catch (e) {
+    console.error("Error adding banana balance: ", e);
+    throw e;
+  }
+}
+
+// Deduct bananas from founder account (when creating mission)
+export async function deductBananaBalance(uid, amount) {
+  try {
+    const founderRef = doc(db, 'Founders', uid);
+    const founderDoc = await getDoc(founderRef);
+
+    if (founderDoc.exists()) {
+      const currentBalance = founderDoc.data().bananaBalance || 0;
+      const currentSpent = founderDoc.data().totalBananasSpent || 0;
+
+      if (currentBalance < amount) {
+        throw new Error("Insufficient banana balance");
+      }
+
+      await updateDoc(founderRef, {
+        bananaBalance: currentBalance - amount,
+        totalBananasSpent: currentSpent + amount
+      });
+
+      console.log(`Deducted ${amount} bananas from founder ${uid}`);
+      return true;
+    }
+    return false;
+  } catch (e) {
+    console.error("Error deducting banana balance: ", e);
+    throw e;
+  }
+}
+
+// Add bananas to tester account (when mission is completed)
+export async function addBananaToTester(uid, amount) {
+  try {
+    const testerRef = doc(db, 'TestMonkey', uid);
+    const testerDoc = await getDoc(testerRef);
+
+    if (testerDoc.exists()) {
+      const currentBalance = testerDoc.data().bananaBalance || 0;
+      const currentEarned = testerDoc.data().totalBananasEarned || 0;
+
+      await updateDoc(testerRef, {
+        bananaBalance: currentBalance + amount,
+        totalBananasEarned: currentEarned + amount
+      });
+
+      console.log(`Added ${amount} bananas to tester ${uid}`);
+      return true;
+    }
+    return false;
+  } catch (e) {
+    console.error("Error adding bananas to tester: ", e);
+    throw e;
+  }
 }

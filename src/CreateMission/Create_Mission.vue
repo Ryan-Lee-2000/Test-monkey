@@ -4,15 +4,19 @@ import "bootstrap"
 import { ref, computed } from "vue"
 
 import Mission_Preview from "./Mission_Preview.vue"
-import { createMission } from "../Database/Monkey_Store"
+import { createMission, getBananaBalance, deductBananaBalance } from "../Database/Monkey_Store"
 import navbar from "@/navbar.vue";
 import { useRouter } from 'vue-router'
+import { getAuth } from 'firebase/auth'
 
 import QuestionsModal from "./QuestionsModal.vue"
+import InsufficientBalanceModal from "./InsufficientBalanceModal.vue"
 import { claude_getQuestions } from "@/Claude/ai"
 import { QueryFieldFilterConstraint } from "firebase/firestore"
 
 import monkeyUrl from "@/assets/welcome/monkey.png"
+
+const auth = getAuth()
 
 const missionName = ref("")
 const numberOfUsers = ref("")
@@ -30,6 +34,9 @@ const showPreview = ref(false)
 const showQuestions = ref(false)
 const generating = ref(true)
 const questions = ref([])
+const showInsufficientBalance = ref(false)
+const currentBalance = ref(0)
+const requiredAmount = ref(0)
 
 const router = useRouter()
 
@@ -49,12 +56,12 @@ const handleFileUpload = (event) => {
 }
 
 async function checkMission(){
-    const required = { 
-        'missionName': missionName.value, 
-        'description': description.value, 
-        'num_testers': numberOfUsers.value, 
-        'duration': duration.value, 
-        'payout': bananasPayout.value, 
+    const required = {
+        'missionName': missionName.value,
+        'description': description.value,
+        'num_testers': numberOfUsers.value,
+        'duration': duration.value,
+        'payout': bananasPayout.value,
         'website': website.value
     }
     const empty = Object.entries(required).find(([k, v]) => !v)
@@ -62,11 +69,23 @@ async function checkMission(){
         alert(`Please fill in: ${empty[0].replace(/([A-Z])/g, ' $1').trim()}`)
         return
     }
+
+    // Check banana balance BEFORE generating questions
+    const totalMissionCost = numberOfUsers.value * bananasPayout.value
+    const balance = await getBananaBalance(auth.currentUser.uid, 'Founder')
+
+    if (balance < totalMissionCost) {
+        // Show insufficient balance modal
+        currentBalance.value = balance
+        requiredAmount.value = totalMissionCost
+        showInsufficientBalance.value = true
+        return
+    }
+
+    // If balance is sufficient, proceed with question generation
     showQuestions.value = true
     await generateQuestions()
     generating.value = false
-    //createMission(required)
-    
 }
 
 function fileLoadSwitch(){
@@ -89,22 +108,40 @@ async function generateQuestions(){
 
 async function launchMission(){
       console.log(questions.value)
-      //Convert questions objet to plain array
-      const mission_questions_array = []
-      for(var index in questions.value){
-        mission_questions_array.push(questions.value[index].text)
+
+      // Calculate total cost
+      const totalMissionCost = numberOfUsers.value * bananasPayout.value
+
+      try {
+        //Convert questions object to plain array
+        const mission_questions_array = []
+        for(var index in questions.value){
+          mission_questions_array.push(questions.value[index].text)
+        }
+
+        const required = {
+          'missionName': missionName.value,
+          'description': description.value,
+          'num_testers': numberOfUsers.value,
+          'duration': duration.value,
+          'payout': bananasPayout.value,
+          'website': website.value,
+          'questions': mission_questions_array
+        }
+
+        // Create mission
+        await createMission(required)
+
+        // Deduct bananas from founder account
+        await deductBananaBalance(auth.currentUser.uid, totalMissionCost)
+
+        alert(`Mission created successfully!\n${totalMissionCost.toLocaleString()} bananas have been deducted from your account.`)
+        router.push({path: '/home'})
+
+      } catch (error) {
+        console.error('Error creating mission:', error)
+        alert('Failed to create mission. Please try again.')
       }
-      const required = { 
-        'missionName': missionName.value, 
-        'description': description.value, 
-        'num_testers': numberOfUsers.value, 
-        'duration': duration.value, 
-        'payout': bananasPayout.value, 
-        'website': website.value,
-        'questions': mission_questions_array
-      }
-      await createMission(required)
-      router.push({path: '/home'})
 }
 
 
@@ -135,14 +172,35 @@ async function launchMission(){
               <h5 class="card-title mb-4 form-title"><i class="fas fa-info-circle text-primary me-2"></i>Basic Information</h5>
               
               <div class="mb-3">
-                <label for="missionName" class="form-label fw-semibold">Mission Name <span class="text-danger">*</span></label>
-                <input type="text" class="form-control" id="missionName" placeholder="e.g. Mobile App Checkout Flow Test" v-model="missionName">
+                <label for="missionName" class="form-label fw-semibold">
+                  <i class="fas fa-file-signature me-2"></i>Mission Name <span class="text-danger">*</span>
+                </label>
+                <input
+                  type="text"
+                  class="form-control form-control-lg"
+                  id="missionName"
+                  placeholder="e.g. Mobile App Checkout Flow Test"
+                  v-model="missionName"
+                  maxlength="100"
+                >
               </div>
 
               <div class="mb-3">
-                <label for="description" class="form-label fw-semibold">Description <span class="text-danger">*</span></label>
-                <textarea class="form-control" id="description" rows="4" placeholder="Describe what testers should focus on..." v-model="description" maxlength="10000"></textarea>
-                <small class="text-muted float-end">{{ description.length }}/500</small>
+                <label for="description" class="form-label fw-semibold">
+                  <i class="fas fa-align-left me-2"></i>Description <span class="text-danger">*</span>
+                </label>
+                <textarea
+                  class="form-control"
+                  id="description"
+                  rows="5"
+                  placeholder="Describe what testers should focus on... Be specific about the features to test, user flows, or issues you want identified."
+                  v-model="description"
+                  maxlength="1000"
+                ></textarea>
+                <div class="d-flex justify-content-between mt-1">
+                  <small class="text-muted">Be clear and specific to get better feedback</small>
+                  <small class="text-muted">{{ description.length }}/1000</small>
+                </div>
               </div>
 
               <div class="row g-3">
@@ -164,25 +222,58 @@ async function launchMission(){
               </div>
 
               <div class="mt-3">
-                <label for="bananasPayout" class="form-label fw-semibold">Bananas Per Tester <span class="text-danger">*</span></label>
-                <input type="number" class="form-control banana-input" id="bananasPayout" placeholder="e.g. 100" min="1" v-model="bananasPayout">
+                <label for="bananasPayout" class="form-label fw-semibold">
+                  <i class="fas fa-coins me-2"></i>Bananas Per Tester <span class="text-danger">*</span>
+                </label>
+                <input type="number" class="form-control banana-input" id="bananasPayout" placeholder="e.g. 7" min="1" v-model="bananasPayout">
+                <small class="text-muted">Each tester will receive this amount upon mission completion</small>
               </div>
 
-              <div class="alert alert-info d-flex align-items-start mt-3" role="alert">
-                <i class="fas fa-lightbulb me-2 mt-1"></i>
-                <div><strong>Pricing Tip:</strong> Average missions offer 50-150 bananas per tester.</div>
+              <div class="alert alert-warning d-flex align-items-start mt-3 border-0 shadow-sm" role="alert">
+                <i class="fas fa-lightbulb me-2 mt-1 fs-5"></i>
+                <div>
+                  <strong>Pricing Guide:</strong>
+                  <div class="mt-1 small">
+                    💡 Recommended: <strong>5-10 bananas</strong> per tester<br>
+                    💰 100 bananas ≈ $10 SGD<br>
+                    ⚡ Quick tasks: 5 bananas | Complex tasks: 10+ bananas
+                  </div>
+                </div>
               </div>
             </div>
           </div>
 
-          <!-- File Upload -->
+          <!-- Website Link -->
           <div class="card shadow-sm border-0 rounded-4 card-style">
             <div class="card-body p-4">
-              <h5>Link Upload</h5>
-              <div class="col-md-12">
-                  <label for="websiteLink" class="form-label fw-semibold">Link to Website <span class="text-danger">*</span></label>
-                  <input type="text" class="form-control" id="websiteLink" placeholder="e.g. www.google.com" min="1" v-model="website">
+              <h5 class="card-title mb-4 form-title">
+                <i class="fas fa-link text-primary me-2"></i>Website to Test
+              </h5>
+              <div class="mb-3">
+                <label for="websiteLink" class="form-label fw-semibold">
+                  <i class="fas fa-globe me-2"></i>Website URL <span class="text-danger">*</span>
+                </label>
+                <div class="input-group input-group-lg">
+                  <span class="input-group-text bg-white">
+                    <i class="fas fa-external-link-alt text-muted"></i>
+                  </span>
+                  <input
+                    type="url"
+                    class="form-control"
+                    id="websiteLink"
+                    placeholder="https://www.example.com"
+                    v-model="website"
+                  >
                 </div>
+                <small class="text-muted">Enter the complete URL including https://</small>
+              </div>
+
+              <div class="alert alert-info border-0 shadow-sm d-flex align-items-start" role="alert">
+                <i class="fas fa-info-circle me-2 mt-1"></i>
+                <div class="small">
+                  <strong>AI-Powered Questions:</strong> Our AI will automatically generate relevant testing questions based on your mission description and website.
+                </div>
+              </div>
               <!-- <h5 class="card-title mb-4"><i class="fas fa-upload text-primary me-2"></i>Upload Test Page</h5>
               
               <div class="btn-group w-100 mb-3" role="group">
@@ -217,38 +308,65 @@ async function launchMission(){
         </div>
 
         <!-- Summary Sidebar -->
-        <div class="col-lg-4 ">
-          <div class="card shadow-sm border-0 rounded-4 sticky-top summary-style" style="top: 5rem;" >
+        <div class="col-lg-4">
+          <div class="card shadow-sm border-0 rounded-4 sticky-top summary-style" style="top: 5rem;">
             <div class="card-body p-4">
-              <h5 class="card-title mb-4 form-title"><i class="fas fa-calculator text-primary me-2"></i>Mission Summary</h5>
-              
-              <div class="bg-light rounded-3 p-3">
-                <div class="d-flex justify-content-between py-2 border-bottom">
-                  <span class="text-muted">Testers</span>
-                  <strong>{{ numberOfUsers || '0' }}</strong>
+              <h5 class="card-title mb-4 form-title">
+                <i class="fas fa-receipt text-primary me-2"></i>Mission Summary
+              </h5>
+
+              <div class="summary-box p-3 mb-3">
+                <div class="summary-item">
+                  <div class="d-flex align-items-center mb-2">
+                    <i class="fas fa-users text-primary me-2"></i>
+                    <span class="text-muted small">Number of Testers</span>
+                  </div>
+                  <div class="fs-4 fw-bold">{{ numberOfUsers || '0' }}</div>
                 </div>
-                <div class="d-flex justify-content-between py-2 border-bottom">
-                  <span class="text-muted">Duration</span>
-                  <strong>{{ duration ? duration + (duration == 1 ? ' Day' : ' Days') : '-' }}</strong>
+
+                <div class="summary-divider"></div>
+
+                <div class="summary-item">
+                  <div class="d-flex align-items-center mb-2">
+                    <i class="fas fa-clock text-primary me-2"></i>
+                    <span class="text-muted small">Duration</span>
+                  </div>
+                  <div class="fs-4 fw-bold">{{ duration ? duration + (duration == 1 ? ' Day' : ' Days') : 'Not set' }}</div>
                 </div>
-                <div class="d-flex justify-content-between py-2">
-                  <span class="text-muted">Bananas/Tester</span>
-                  <strong>🍌 {{ bananasPayout || '0' }}</strong>
-                </div>
-                
-                <div class="total-cost text-center mt-3">
-                  <div class="opacity-75 small">Total Cost</div>
-                  <h2 class="mb-0">🍌 {{ totalCost }}</h2>
+
+                <div class="summary-divider"></div>
+
+                <div class="summary-item">
+                  <div class="d-flex align-items-center mb-2">
+                    <i class="fas fa-coins text-warning me-2"></i>
+                    <span class="text-muted small">Bananas per Tester</span>
+                  </div>
+                  <div class="fs-4 fw-bold">{{ bananasPayout || '0' }} 🍌</div>
                 </div>
               </div>
 
-              <div class="alert alert-info mt-3 mb-0" role="alert">
-                <small>Bananas will be distributed automatically when testers complete your mission.</small>
+              <div class="total-cost-box text-center p-4 mb-3">
+                <div class="text-white-50 small mb-1">TOTAL COST</div>
+                <div class="display-5 fw-bold text-white mb-0">🍌 {{ totalCost }}</div>
+                <div class="text-white-50 small mt-2">
+                  ≈ ${{ ((numberOfUsers || 0) * (bananasPayout || 0) * 0.1).toFixed(2) }} SGD
+                </div>
               </div>
 
-              <div class="d-grid gap-2 mt-3">
-                <button class="btn btn-outline-primary" @click="showPreview = true"><i class="fas fa-eye me-2"></i>Preview</button>
-                <button class="btn btn-gradient" @click="checkMission"><i class="me-2"></i>Launch Mission</button>
+              <div class="alert alert-success border-0 shadow-sm mb-3" role="alert">
+                <div class="d-flex align-items-start">
+                  <i class="fas fa-magic me-2 mt-1"></i>
+                  <small>Bananas will be distributed automatically when testers complete your mission.</small>
+                </div>
+              </div>
+
+              <div class="d-grid gap-2">
+                <button class="btn btn-outline-success btn-lg" @click="showPreview = true">
+                  <i class="fas fa-eye me-2"></i>Preview Mission
+                </button>
+                <button class="btn btn-gradient btn-lg fw-bold" @click="checkMission">
+                  <i class="fas fa-rocket me-2"></i>Launch Mission
+                </button>
               </div>
             </div>
           </div>
@@ -266,12 +384,19 @@ async function launchMission(){
       :website="website"
       @close="showPreview = false"
     />
-    <QuestionsModal 
-    :show="showQuestions" 
+    <QuestionsModal
+    :show="showQuestions"
     :generating="generating"
     :questions="questions"
     @close="showQuestions = false"
     @launch="launchMission()"/>
+
+    <InsufficientBalanceModal
+      :show="showInsufficientBalance"
+      :currentBalance="currentBalance"
+      :requiredAmount="requiredAmount"
+      @close="showInsufficientBalance = false"
+    />
   </div>
 </template>
 
@@ -420,10 +545,39 @@ async function launchMission(){
   color: white;
 }
 
-.total-cost {
-  background: #0A490A;
+.total-cost-box {
+  background: linear-gradient(135deg, #0A490A 0%, #0f5a0f 100%);
   color: white;
+  border-radius: 1rem;
+  box-shadow: 0 4px 12px rgba(10, 73, 10, 0.3);
+}
+
+.summary-box {
+  background: #f8f9fa;
+  border-radius: 1rem;
+  border: 1px solid #e9ecef;
+}
+
+.summary-item {
+  padding: 0.5rem 0;
+}
+
+.summary-divider {
+  height: 1px;
+  background: linear-gradient(to right, transparent, #dee2e6, transparent);
+  margin: 0.75rem 0;
+}
+
+.form-control-lg {
   border-radius: 0.75rem;
-  padding: 1rem;
+}
+
+.input-group-text {
+  border-radius: 0.75rem 0 0 0.75rem;
+  border: 1px solid #ced4da;
+}
+
+.input-group .form-control {
+  border-radius: 0 0.75rem 0.75rem 0;
 }
 </style>

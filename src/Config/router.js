@@ -21,6 +21,7 @@ import RegisterFounderCompany from "@/composables/register/founder/RegisterFound
 
 // Firebase auth
 import { auth } from './api_services'
+import { getUserRole } from '../Database/Monkey_Store'
 
 const routes = [
   { path: '/', component: Welcome },
@@ -66,12 +67,29 @@ const router = createRouter({
   routes,
 })
 
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
+  // Check authentication first
   if (to.meta.requiresAuth && !auth.currentUser) {
     next('/login')
-  } else {
-    next()
+    return
   }
+
+  // Check role-based access for gambling route
+  if (to.path === '/gambling' && auth.currentUser) {
+    try {
+      const userRole = await getUserRole(auth.currentUser.uid)
+      if (userRole === 'Founder') {
+        // Founders cannot access gambling - redirect to home
+        alert('Gambling is only available for Test Monkeys. As a Founder, you can use bananas to create missions.')
+        next('/home')
+        return
+      }
+    } catch (error) {
+      console.error('Error checking user role:', error)
+    }
+  }
+
+  next()
 })
 
 export default router

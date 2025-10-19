@@ -53,7 +53,7 @@ function login () {
 }
 
 function goBack () {
-  router.back()
+  router.replace('/Welcome')
 }
 </script>
 

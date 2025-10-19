@@ -5,25 +5,40 @@ import { getAuth, signOut } from "firebase/auth";
 import { onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 
-import { getUserRole } from "./Database/Monkey_Store";
+import { getUserRole, getBananaBalance } from "./Database/Monkey_Store";
+import BananaTopUp from "./Bananas/BananaTopUp.vue";
+import { useBananaTopUp } from "./composables/useBananaTopUp";
 
+const { showTopUpModal, openTopUp, closeTopUp } = useBananaTopUp()
 
 const show_navbar = ref(true)
 const auth = getAuth();
 const router = useRouter()
-const role = ref(false) //true == 'testMonkey', false == 'Founder'
-onMounted(() => {
+const role = ref(false) //true == 'Founder', false == 'TestMonkey'
+const userRole = ref('')
+const bananaBalance = ref(0)
+
+onMounted(async () => {
   if(auth.currentUser){
     //show_navbar.value = true
-    getUserRole(auth.currentUser.uid).then(Response =>{
-    if(Response == 'Founder'){
+    const roleResponse = await getUserRole(auth.currentUser.uid)
+    userRole.value = roleResponse
+
+    if(roleResponse == 'Founder'){
         role.value = true
+        // Load banana balance for founders
+        bananaBalance.value = await getBananaBalance(auth.currentUser.uid, 'Founder')
     } else{
         role.value = false
     }
-    })
   }
 })
+
+async function refreshBalance() {
+  if (auth.currentUser && userRole.value === 'Founder') {
+    bananaBalance.value = await getBananaBalance(auth.currentUser.uid, 'Founder')
+  }
+}
 
 function logout(){
     signOut(auth).then(() => {
@@ -76,10 +91,10 @@ function logout(){
                 @click="router.push({ path: '/missionList' })">
                 <div class="link_text">My Missions</div></a>
               </li>
-              <li class="nav-item">
-                <a class="nav-link " v-if="role" @click="router.push({path: '/dashboard'})"><div class="link_text">Dashboard</div></a>
+              <li class="nav-item" v-if="role">
+                <a class="nav-link "  @click="router.push({path: '/dashboard'})"><div class="link_text">Dashboard</div></a>
               </li>
-              <li class="nav-item">
+              <li class="nav-item" v-else>
                 <a class="nav-link " @click="router.push({path: '/gambling'})"><div class="link_text">Gambling</div></a>
               </li>
               <!-- <li class="nav-item dropdown ">
@@ -105,12 +120,29 @@ function logout(){
                 </div>
               </li> -->
             </ul>
+            <!-- Banana Balance Display (Founders Only) -->
+            <div v-if="role" class="banana-balance-container">
+              <button class="banana-balance" @click="openTopUp">
+                <span class="banana-icon">🍌</span>
+                <span class="balance-amount">{{ bananaBalance.toLocaleString() }}</span>
+                <i class="fas fa-plus-circle add-icon"></i>
+              </button>
+            </div>
+
             <button id="logout_btn" class="btn my-2 my-lg-0" @click="logout">
             Logout
             </button>
           </div>
         </div>
       </nav>
+
+      <!-- Banana Top-Up Modal -->
+      <BananaTopUp
+        :show="showTopUpModal"
+        :currentBalance="bananaBalance"
+        @close="closeTopUp"
+        @success="refreshBalance"
+      />
 </template>
 
 <style>
@@ -120,22 +152,24 @@ function logout(){
   width: 100%;
   margin-inline: auto;
   padding-inline: 20px;
-  height: 9%;
-  
+  padding-block: 12px;
+
 }
 
 #navbar-brand-style {
   color: white;
   font-weight: bold;
-  font-size: 34px;
+  font-size: 28px;
 }
 
 #logout_btn{
   background-color: #EF8C37;
   color: white;
-  box-shadow: 0 6px 0 rgba(0,0,0,.25), 0 10px 24px rgba(0,0,0,.25);
-  border-radius: 10px;
-  font-weight: bold;
+  box-shadow: 0 4px 0 rgba(0,0,0,.2), 0 6px 16px rgba(0,0,0,.2);
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 16px;
+  padding: 8px 20px;
 }
 
 a:hover{
@@ -149,9 +183,8 @@ a:hover{
   text-overflow: ellipsis;
   transition: transform 0.3s ease-out;
   color: white;
-  font-size: 18px;
-  margin-left: 100px;
-  padding-top: 5px;
+  font-size: 20px;
+  font-weight: 500;
 }
 
 .active_link {
@@ -161,7 +194,61 @@ a:hover{
 .link_text:hover{
   transform: scale(1.1);
   transition: transform 0.3s ease-out;
-  
+
+}
+
+.navbar-nav .nav-item {
+  margin-left: 1.5rem;
+}
+
+.navbar-nav .nav-item:first-child {
+  margin-left: 0;
+}
+
+.banana-balance-container {
+  margin-right: 1rem;
+}
+
+.banana-balance {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #EF8C37;
+  border: none;
+  border-radius: 20px;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.banana-balance:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  background: linear-gradient(135deg, #FDC955 0%, #FED16A 100%);
+}
+
+.banana-icon {
+  font-size: 20px;
+}
+
+.balance-amount {
+  font-size: 18px;
+  font-weight: bold;
+  color: white;
+  min-width: 50px;
+  text-align: right;
+}
+
+.add-icon {
+  color: white;
+  font-size: 16px;
+  opacity: 0.8;
+  transition: opacity 0.2s;
+}
+
+.banana-balance:hover .add-icon {
+  opacity: 1;
 }
 
 </style>

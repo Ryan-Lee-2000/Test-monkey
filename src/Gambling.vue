@@ -1,17 +1,42 @@
 <script setup>
 import "bootstrap/dist/css/bootstrap.min.css"
 import "bootstrap"
-import { ref } from "vue"
+import { ref, onMounted } from "vue"
 import { getAuth} from "firebase/auth";
 import { useRouter } from 'vue-router'
 import navbar from "@/navbar.vue";
 import { Roulette } from "vue3-roulette";
+import { getUserRole } from "./Database/Monkey_Store";
 
 const user_name = ref("")
 const auth = getAuth();
 const router = useRouter()
 const wheel = ref(null);
 const showFireworks = ref(false);
+const isFounder = ref(false);
+const isLoading = ref(true);
+
+// Check user role on mount
+onMounted(async () => {
+  if (auth.currentUser) {
+    try {
+      const userRole = await getUserRole(auth.currentUser.uid)
+      isFounder.value = userRole === 'Founder'
+
+      // If founder, redirect to home
+      if (isFounder.value) {
+        alert('Gambling is only available for Test Monkeys. As a Founder, you can use bananas to create missions.')
+        router.push('/home')
+      }
+    } catch (error) {
+      console.error('Error checking user role:', error)
+    } finally {
+      isLoading.value = false
+    }
+  } else {
+    isLoading.value = false
+  }
+});
 
 const items = [
   { id: 1, name: "Banana", htmlContent: "🍌<br>Banana", textColor: "#000", background: "#FFD700" },
@@ -194,13 +219,30 @@ function createFireworkBurst(container) {
 <template>
   <navbar/>
   <div class="casino-bg position-relative overflow-hidden" style="padding-top: 30px;">
-    <!-- Corner decorations -->
-    <div class="corner-decoration position-absolute top-0 start-0 m-3 border-end-0 border-bottom-0"></div>
-    <div class="corner-decoration position-absolute top-0 end-0 m-3 border-start-0 border-bottom-0"></div>
-    <div class="corner-decoration position-absolute bottom-0 start-0 m-3 border-end-0 border-top-0"></div>
-    <div class="corner-decoration position-absolute bottom-0 end-0 m-3 border-start-0 border-top-0"></div>
-    
-    <div class="container py-5">
+    <!-- Loading State -->
+    <div v-if="isLoading" class="container py-5 text-center">
+      <div class="spinner-border text-warning" style="width: 3rem; height: 3rem;"></div>
+      <p class="text-white mt-3">Loading...</p>
+    </div>
+
+    <!-- Access Denied for Founders -->
+    <div v-else-if="isFounder" class="container py-5 text-center">
+      <div class="alert alert-warning d-inline-block" role="alert">
+        <i class="fas fa-exclamation-triangle fa-3x mb-3"></i>
+        <h3>Access Restricted</h3>
+        <p class="mb-0">Gambling is only available for Test Monkeys. As a Founder, you can use bananas to create missions.</p>
+      </div>
+    </div>
+
+    <!-- Casino Content (Test Monkeys Only) -->
+    <div v-else>
+      <!-- Corner decorations -->
+      <div class="corner-decoration position-absolute top-0 start-0 m-3 border-end-0 border-bottom-0"></div>
+      <div class="corner-decoration position-absolute top-0 end-0 m-3 border-start-0 border-bottom-0"></div>
+      <div class="corner-decoration position-absolute bottom-0 start-0 m-3 border-end-0 border-top-0"></div>
+      <div class="corner-decoration position-absolute bottom-0 end-0 m-3 border-start-0 border-top-0"></div>
+
+      <div class="container py-5">
       <div class="text-center mb-5">
         <h1 class="casino-title mb-3">🎰 BANANA CASINO 🎰</h1>
         <div class="banana-balance fs-4 fw-bold">🍌 Your Bananas: 1,000</div>
@@ -229,9 +271,10 @@ function createFireworkBurst(container) {
           </div>
         </div>
       </div>
+
+      <!-- Fireworks container -->
+      <div v-if="showFireworks" class="fireworks-container"></div>
     </div>
-    
-    <!-- Fireworks container -->
-    <div v-if="showFireworks" class="fireworks-container"></div>
+    </div>
   </div>
 </template>
