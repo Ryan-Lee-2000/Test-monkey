@@ -3,6 +3,7 @@ import { createApp } from 'vue'
 import App from './App.vue'
 import router from './Config/router'
 import { auth, db, storage, claude } from './Config/api_services'
+import "@/styles/global.css"
 
 const app = createApp(App)
 

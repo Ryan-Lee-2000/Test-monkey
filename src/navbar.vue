@@ -42,8 +42,8 @@ function logout(){
         class="navbar navbar-expand-sm fixed-top navbar-light"
         v-if="show_navbar"
       >
-        <div class="container">
-          <a class="navbar-brand" href="#">🐵 Test Monkey</a>
+        <div class="container-fluid">
+          <a class="navbar-brand" id="navbar-brand-style" href="#">Test Monkey</a>
           <button
             class="navbar-toggler d-lg-none"
             type="button"
@@ -58,15 +58,23 @@ function logout(){
           <div class="collapse navbar-collapse" id="collapsibleNavId">
             <ul class="navbar-nav me-auto mt-2 mt-lg-0">
               <li class="nav-item">
-                <a class="nav-link active" @click="router.push({path: '/Home'})" aria-current="page"
-                  ><div class="link_text">Home</div>
+                <a class="nav-link"
+                  :class="{ active_link: $route.path === '/Home' || $route.path === '/' }" 
+                  @click="router.push({ path: '/Home' })" aria-current="page">
+                  <div class="link_text">Home</div>
                   <span class="visually-hidden">(current)</span></a
                 >
               </li>
               <li class="nav-item">
-                <a class="nav-link" id="createMission" v-if="role" @click="router.push({path: '/createMission'})"><div class="link_text">Create Mission</div></a>
-                <a class="nav-link" id="createMission" v-else @click="router.push({path: '/missionList'})"><div class="link_text">Mission List</div></a>
-                
+                <a class="nav-link" id="createMission" v-if="role"
+                :class="{ active_link: $route.path === '/createMission' }"
+                @click="router.push({ path: '/createMission' })">
+                <div class="link_text">Create Mission</div></a>
+
+                <a class="nav-link" id="createMission" v-else
+                :class="{ active_link: $route.path === '/missionList' }"
+                @click="router.push({ path: '/missionList' })">
+                <div class="link_text">My Missions</div></a>
               </li>
               <li class="nav-item">
                 <a class="nav-link " v-if="role" @click="router.push({path: '/dashboard'})"><div class="link_text">Dashboard</div></a>
@@ -95,7 +103,7 @@ function logout(){
               </li> -->
             </ul>
             <button id="logout_btn" class="btn my-2 my-lg-0" @click="logout">
-              Logout
+            Logout
             </button>
           </div>
         </div>
@@ -103,28 +111,28 @@ function logout(){
 </template>
 
 <style>
-.navbar{
-  background-color: white;
-  border: 1px solid black;
-  border-top: 0.5px solid black;
-  border-right: 2px solid black;
-  border-bottom: 3px solid black;
-  width: fit-content;
-  border-radius: 25px;
-  margin-inline: auto;
-  margin-top: 10px;
-  padding-inline: 20px;
 
+.navbar{
+  background-color: #386641;
+  width: 100%;
+  margin-inline: auto;
+  padding-inline: 20px;
+  height: 9%;
   
 }
-#logout_btn{
-  background-color: #764ba2;
+
+#navbar-brand-style {
   color: white;
+  font-weight: bold;
+  font-size: 34px;
 }
-#logout_btn:hover{
-  background-color: #690fc3;
-  border: white 1px solid;
-  transition: .5s
+
+#logout_btn{
+  background-color: #EF8C37;
+  color: white;
+  box-shadow: 0 6px 0 rgba(0,0,0,.25), 0 10px 24px rgba(0,0,0,.25);
+  border-radius: 10px;
+  font-weight: bold;
 }
 
 a:hover{
@@ -137,13 +145,20 @@ a:hover{
   overflow: hidden;
   text-overflow: ellipsis;
   transition: transform 0.3s ease-out;
+  color: white;
+  font-size: 18px;
+  margin-left: 100px;
+  padding-top: 5px;
 }
+
+.active_link {
+  font-weight: bold;
+}
+
 .link_text:hover{
-  color: #690fc3;
   transform: scale(1.1);
   transition: transform 0.3s ease-out;
   
 }
-
 
 </style>

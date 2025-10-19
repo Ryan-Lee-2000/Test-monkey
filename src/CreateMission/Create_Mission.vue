@@ -12,6 +12,8 @@ import QuestionsModal from "./QuestionsModal.vue"
 import { claude_getQuestions } from "@/Claude/ai"
 import { QueryFieldFilterConstraint } from "firebase/firestore"
 
+import monkeyUrl from "@/assets/welcome/monkey.png"
+
 const missionName = ref("")
 const numberOfUsers = ref("")
 const description = ref("")
@@ -112,12 +114,15 @@ async function launchMission(){
 <template>
   <navbar/>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-  <div class="min-vh-100 bg-light">
+  <div class="min-vh-100 page">
     <!-- Header -->
     <div class="hero-header" style="padding-top: 75px;">
-      <div class="container">
-        <h1><i class="fas fa-rocket me-2"></i>Create New Mission</h1>
-        <p class="opacity-75 mb-0">Set up a testing mission for your web application</p>
+      <div class="container-fluid header-flex">
+        <img :src="monkeyUrl" alt="Monkey" class="brand-monkey" />
+        <div class="header-text">
+          <h1><i class="me-2"></i>Create New Mission</h1>
+          <p class="opacity-75 mb-0">Set up a testing mission for your web application</p>
+        </div>
       </div>
     </div>
 
@@ -125,9 +130,9 @@ async function launchMission(){
       <div class="row g-4">
         <!-- Main Form -->
         <div class="col-lg-8">
-          <div class="card shadow-sm border-0 rounded-4 mb-4">
+          <div class="card shadow-sm border-0 rounded-4 mb-4 card-style">
             <div class="card-body p-4">
-              <h5 class="card-title mb-4"><i class="fas fa-info-circle text-primary me-2"></i>Basic Information</h5>
+              <h5 class="card-title mb-4 form-title"><i class="fas fa-info-circle text-primary me-2"></i>Basic Information</h5>
               
               <div class="mb-3">
                 <label for="missionName" class="form-label fw-semibold">Mission Name <span class="text-danger">*</span></label>
@@ -171,7 +176,7 @@ async function launchMission(){
           </div>
 
           <!-- File Upload -->
-          <div class="card shadow-sm border-0 rounded-4">
+          <div class="card shadow-sm border-0 rounded-4 card-style">
             <div class="card-body p-4">
               <h5>Link Upload</h5>
               <div class="col-md-12">
@@ -182,9 +187,9 @@ async function launchMission(){
               
               <div class="btn-group w-100 mb-3" role="group">
                 <input type="radio" class="btn-check" name="fileType" id="htmlType" value="html" v-model="fileType" checked>
-                <label class="btn btn-outline-primary" for="htmlType"><i class="fab fa-html5 me-2"></i>HTML</label>
+                <label class="btn btn-outline btn-custom" for="htmlType"><i class="fab fa-html5 me-2"></i>HTML</label>
                 <input type="radio" class="btn-check" name="fileType" id="jsType" value="js" v-model="fileType">
-                <label class="btn btn-outline-primary" for="jsType"><i class="fab fa-js me-2"></i>JavaScript</label>
+                <label class="btn btn-outline btn-custom" for="jsType"><i class="fab fa-js me-2"></i>JavaScript</label>
               </div>
 
               <div  :class="['file-upload', { active: fileLoaded }]" @click="$refs.fileInput.click()">
@@ -203,7 +208,7 @@ async function launchMission(){
                 } ">X</button>
               </div>
 
-              <div class="alert alert-secondary d-flex align-items-start mt-3" role="alert">
+              <div class="alert alert-secondary d-flex align-items-start mt-3 security" role="alert">
                 <i class="fas fa-shield-alt me-2 mt-1"></i>
                 <div><strong>Security:</strong> Your code is securely stored and sandboxed during testing.</div>
               </div> -->
@@ -213,9 +218,9 @@ async function launchMission(){
 
         <!-- Summary Sidebar -->
         <div class="col-lg-4 ">
-          <div class="card shadow-sm border-0 rounded-4 sticky-top" style="top: 5rem;" >
+          <div class="card shadow-sm border-0 rounded-4 sticky-top summary-style" style="top: 5rem;" >
             <div class="card-body p-4">
-              <h5 class="card-title mb-4"><i class="fas fa-calculator text-primary me-2"></i>Mission Summary</h5>
+              <h5 class="card-title mb-4 form-title"><i class="fas fa-calculator text-primary me-2"></i>Mission Summary</h5>
               
               <div class="bg-light rounded-3 p-3">
                 <div class="d-flex justify-content-between py-2 border-bottom">
@@ -243,7 +248,7 @@ async function launchMission(){
 
               <div class="d-grid gap-2 mt-3">
                 <button class="btn btn-outline-primary" @click="showPreview = true"><i class="fas fa-eye me-2"></i>Preview</button>
-                <button class="btn btn-gradient" @click="checkMission"><i class="fas fa-rocket me-2"></i>Launch Mission</button>
+                <button class="btn btn-gradient" @click="checkMission"><i class="me-2"></i>Launch Mission</button>
               </div>
             </div>
           </div>
@@ -271,10 +276,110 @@ async function launchMission(){
 </template>
 
 <style scoped>
-.hero-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+.page{
+  background: linear-gradient(to top, #0f4d26 7%, #F97A02 26%, #FC9D05 54%, #FDC955 77%, #ABD453 90%);
+}
+
+.header-text h1{
+  color: #0A490A;
+  font-weight: bold;
+  font-size: 60px;
+  margin-bottom: 0.2rem;
+}
+
+.header-text p{
+  color: black;
+  margin-top: 0;
+  margin-left: 15px;
+}
+
+.brand-monkey{
+  width: 150px;
+  height: auto;
+  margin-left: 20px;
+  filter: drop-shadow(0 6px 12px rgba(0,0,0,.25));
+}
+
+.header-flex{
+  display: flex;
+  align-items: center;
+}
+
+.header-text{
+  display: flex;
+  flex-direction: column;
+  padding: 25px 0;
+  margin-left: 10px;
+}
+
+.card-style{
+  position: relative;
+  --card-border: 1.5px; 
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(8px);
+  border: var(--card-border) solid rgba(255, 255, 255, 0.45);
+  box-shadow:
+  0 18px 40px rgba(0, 0, 0, 0.30),
+  inset 0 0 50px rgba(255, 255, 255, 0.18);
+  border-radius: 22px;
+  overflow: hidden;
+  max-width: 980px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.summary-style{
+  --card-border: 1.5px; 
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(8px);
+  border: var(--card-border) solid rgba(255, 255, 255, 0.45);
+  box-shadow:
+  0 18px 40px rgba(0, 0, 0, 0.30),
+  inset 0 0 50px rgba(255, 255, 255, 0.18);
+  border-radius: 22px;
+  overflow: hidden;
+  max-width: 980px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.form-title{
+  font-weight: bold;
+  color: #0A490A;
+  font-size: 23px;
+}
+
+.form-control{
+  border-radius: 20px;
+  box-shadow: 0 2px 0 rgba(0,0,0,.15), 0 6px 12px rgba(0,0,0,.15);
+
+}
+
+.btn-custom{
+  color: black;             
+  background-color: white;     
+  transition: all 0.3s ease;
+  border-radius: 10px;
+  font-weight: bold;
+}
+
+.btn-custom:hover {
+  background-color:rgb(222, 222, 222);
+  color: black;
+}
+
+.btn-check:checked + .btn-custom {
+  background-color:#0A490AC7;
   color: white;
-  padding: 2rem 0;
+}
+
+.security{
+  background-color: white;
+}
+
+.hero-header {
+  background: #FED16A;
+  padding-bottom:10px;
 }
 
 .form-control:focus, .form-select:focus {
@@ -304,7 +409,7 @@ async function launchMission(){
 }
 
 .btn-gradient {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #0A490AEB;
   border: none;
   color: white;
 }
@@ -316,7 +421,7 @@ async function launchMission(){
 }
 
 .total-cost {
-  background: #667eea;
+  background: #0A490A;
   color: white;
   border-radius: 0.75rem;
   padding: 1rem;

@@ -5,7 +5,8 @@ import { onMounted, computed, ref } from "vue"
 import navbar from "@/navbar.vue";
 import { getAuth} from "firebase/auth";
 import { get_user_missions } from "./Database/Monkey_Store";
-import { useRouter } from 'vue-router'
+import { useRouter } from 'vue-router';
+import homepageMonkeyURL from "@/assets/welcome/homepage_monkey.png";
 
 const missions = ref([])
 const isLoading = ref(true)
@@ -55,10 +56,33 @@ const avgProgress = computed(() => {
 </script>
 
 <style scoped>
+h1{
+  color: #0A490A;
+  font-weight: bold;
+  font-size: 60px;
+}
+
 .hero-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  background: #FED16A;
+  color: black;
   padding: 2rem 0;
+  position:relative;
+  overflow: visible;
+  height: 300px;
+}
+
+.header-image{
+  position: absolute;
+  bottom: -65px;
+  z-index: 10;
+  width: 335px;
+  height: auto;
+  transform: rotate(-24deg)
+}
+
+.ml-header{
+  margin-left: 200px;
+  padding-top: 20px;
 }
 
 .mission-card {
@@ -75,20 +99,45 @@ const avgProgress = computed(() => {
 }
 
 .btn-gradient {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background-color: #0A490A;
   border: none;
   color: white;
+  box-shadow: 0 6px 0 rgba(0,0,0,.25), 0 10px 24px rgba(0,0,0,.25);
+  border-radius: 10px;
+
 }
+
+.page {
+  background: linear-gradient(to top, #0f4d26 7%, #F97A02 26%, #FC9D05 54%, #FDC955 77%, #ABD453 90%);
+}
+
+.empty-state .text-muted{
+  font-weight: bold;
+}
+
+.card{
+  border-radius: 20px;
+  border: 4px solid #ff7700;
+  box-shadow: 0 6px 0 rgba(0,0,0,.25), 0 10px 24px rgba(0,0,0,.25);
+}
+
+.stats-num{
+  font-weight: bold;
+}
+
+/* small.text-muted{
+  font-size: 20px;
+} */
 </style>
 
 <template>
   <navbar/>
-  <div class="min-vh-100 bg-light">
+  <div class="min-vh-100 page">
     <!-- Header -->
     <div class="hero-header" style="padding-top: 100px;">
       <div class="container">
         <div class="d-flex justify-content-between align-items-center">
-          <div>
+          <div class="ml-header">
             <h1><i class="fas fa-tasks me-2"></i>My Missions</h1>
             <p class="opacity-75 mb-0">Track and manage your accepted testing missions</p>
           </div>
@@ -98,6 +147,7 @@ const avgProgress = computed(() => {
           </div>
         </div>
       </div>
+      <img :src="homepageMonkeyURL" class="header-image" alt="Header Monkey" />
     </div>
 
     <div class="container py-4">
@@ -113,34 +163,31 @@ const avgProgress = computed(() => {
         <!-- Stats -->
         <div class="row g-3 mb-4">
           <div class="col-md-3 col-6">
-            <div class="card text-center shadow-sm border-0">
+            <div class="card text-center shadow-sm">
               <div class="card-body">
-                <h3 class="text-primary mb-0">{{ activeMissions.length }}</h3>
                 <small class="text-muted">Active</small>
-              </div>
+                <h3 class="stats-num text-primary mb-0">{{ activeMissions.length }}</h3>              </div>
             </div>
           </div>
           <div class="col-md-3 col-6">
-            <div class="card text-center shadow-sm border-0">
+            <div class="card text-center shadow-sm">
               <div class="card-body">
-                <h3 class="text-success mb-0">{{ completedMissions.length }}</h3>
                 <small class="text-muted">Completed</small>
-              </div>
+                <h3 class="stats-num text-success mb-0">{{ completedMissions.length }}</h3>              </div>
             </div>
           </div>
           <div class="col-md-3 col-6">
-            <div class="card text-center shadow-sm border-0">
+            <div class="card text-center shadow-sm">
               <div class="card-body">
-                <h3 class="text-warning mb-0">{{ avgProgress }}%</h3>
                 <small class="text-muted">Avg Progress</small>
-              </div>
+                <h3 class="stats-num text-warning mb-0">{{ avgProgress }}%</h3>              </div>
             </div>
           </div>
           <div class="col-md-3 col-6">
-            <div class="card text-center shadow-sm border-0">
+            <div class="card text-center shadow-sm">
               <div class="card-body">
-                <h3 class="text-info mb-0">🍌{{ totalEarned }}</h3>
                 <small class="text-muted">Earned</small>
+                <h3 class="stats-num text-info mb-0">🍌{{ totalEarned }}</h3>
               </div>
             </div>
           </div>
@@ -219,11 +266,11 @@ const avgProgress = computed(() => {
         </div>
 
         <!-- Empty State -->
-        <div v-if="activeMissions.length === 0 && completedMissions.length === 0" class="text-center py-5">
+        <div v-if="activeMissions.length === 0 && completedMissions.length === 0" class="text-center py-5 empty-state">
           <i class="fas fa-inbox text-muted" style="font-size: 4rem; opacity: 0.3;"></i>
           <h4 class="mt-3 text-muted">No missions yet</h4>
           <p class="text-muted">Browse available missions and start earning bananas!</p>
-          <button class="btn btn-gradient mt-3">Browse Missions</button>
+          <button class="btn btn-gradient mt-3 px-3">Browse Missions</button>
         </div>
       </template>
     </div>
