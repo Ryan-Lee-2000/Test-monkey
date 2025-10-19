@@ -1,7 +1,7 @@
 import {claude} from '@/Config/api_services'
 import Anthropic from '@anthropic-ai/sdk'
 
-export async function claude_getQuestions(description){
+export async function claude_getQuestions(description, website){
     const msg = await claude.messages.create({
         model: "claude-sonnet-4-5",
         max_tokens: 1000,
@@ -13,7 +13,7 @@ export async function claude_getQuestions(description){
         "content": [
                 {
                     "type": "text",
-                    "text": description
+                    "text": description + "\n This is the link to the website: " + website
                 }
             ]
       }

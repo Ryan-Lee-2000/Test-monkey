@@ -22,6 +22,7 @@ const bananasPayout = ref("")
 const selectedFile = ref(null)
 const fileName = ref("")
 const fileType = ref("html")
+const website =ref("")
 
 const fileLoaded = ref(false)
 const showPreview = ref(false)
@@ -54,7 +55,7 @@ async function checkMission(){
         'num_testers': numberOfUsers.value, 
         'duration': duration.value, 
         'payout': bananasPayout.value, 
-        'file': selectedFile.value
+        'website': website.value
     }
     const empty = Object.entries(required).find(([k, v]) => !v)
     if (empty) {
@@ -77,7 +78,7 @@ function fileLoadSwitch(){
 }
 
 async function generateQuestions(){
-    const questions_arr = await claude_getQuestions(description.value)
+    const questions_arr = await claude_getQuestions(description.value, website.value)
     const new_arr = []
     for(var index in questions_arr){
         new_arr.push({id:index,text:questions_arr[index]})
@@ -99,7 +100,7 @@ async function launchMission(){
         'num_testers': numberOfUsers.value, 
         'duration': duration.value, 
         'payout': bananasPayout.value, 
-        'file': selectedFile.value,
+        'website': website.value,
         'questions': mission_questions_array
       }
       await createMission(required)
@@ -177,7 +178,12 @@ async function launchMission(){
           <!-- File Upload -->
           <div class="card shadow-sm border-0 rounded-4 card-style">
             <div class="card-body p-4">
-              <h5 class="card-title mb-4 form-title"><i class="fas fa-upload text-primary me-2"></i>Upload Test Page</h5>
+              <h5>Link Upload</h5>
+              <div class="col-md-12">
+                  <label for="websiteLink" class="form-label fw-semibold">Link to Website <span class="text-danger">*</span></label>
+                  <input type="text" class="form-control" id="websiteLink" placeholder="e.g. www.google.com" min="1" v-model="website">
+                </div>
+              <!-- <h5 class="card-title mb-4"><i class="fas fa-upload text-primary me-2"></i>Upload Test Page</h5>
               
               <div class="btn-group w-100 mb-3" role="group">
                 <input type="radio" class="btn-check" name="fileType" id="htmlType" value="html" v-model="fileType" checked>
@@ -205,7 +211,7 @@ async function launchMission(){
               <div class="alert alert-secondary d-flex align-items-start mt-3 security" role="alert">
                 <i class="fas fa-shield-alt me-2 mt-1"></i>
                 <div><strong>Security:</strong> Your code is securely stored and sandboxed during testing.</div>
-              </div>
+              </div> -->
             </div>
           </div>
         </div>
@@ -257,9 +263,7 @@ async function launchMission(){
       :duration="duration"
       :bananasPayout="bananasPayout"
       :totalCost="totalCost"
-      :selectedFile="selectedFile"
-      :fileName="fileName"
-      :fileType="fileType"
+      :website="website"
       @close="showPreview = false"
     />
     <QuestionsModal 

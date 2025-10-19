@@ -115,19 +115,20 @@ export async function createMission(mission_detail){
         duration: mission_detail.duration,
         payout: mission_detail.payout,
         questions: mission_detail.questions,
+        website: mission_detail.website,
         owner: uid,
         active_testers: [],
         status: 'Active'
     });
 
     //Upload File
-    const mission_ref = storageRef(storage,`mission/${docRef.id}`)
-    try{
-      const snapshot = await uploadBytes(mission_ref, file);
-      console.log('Uploaded a blob or file!');
-    } catch(error){
-      console.error("Error uploading file:", error);
-    }
+    // const mission_ref = storageRef(storage,`mission/${docRef.id}`)
+    // try{
+    //   const snapshot = await uploadBytes(mission_ref, file);
+    //   console.log('Uploaded a blob or file!');
+    // } catch(error){
+    //   console.error("Error uploading file:", error);
+    // }
 
   } catch (e){
     console.error("Error adding mission: ", e);
