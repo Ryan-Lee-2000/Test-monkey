@@ -30,13 +30,19 @@ onMounted(async () => {
         bananaBalance.value = await getBananaBalance(auth.currentUser.uid, 'Founder')
     } else{
         role.value = false
+        // Load banana balance for testers
+        bananaBalance.value = await getBananaBalance(auth.currentUser.uid, 'TestMonkey')
     }
   }
 })
 
 async function refreshBalance() {
-  if (auth.currentUser && userRole.value === 'Founder') {
-    bananaBalance.value = await getBananaBalance(auth.currentUser.uid, 'Founder')
+  if (auth.currentUser) {
+    if (userRole.value === 'Founder') {
+      bananaBalance.value = await getBananaBalance(auth.currentUser.uid, 'Founder')
+    } else {
+      bananaBalance.value = await getBananaBalance(auth.currentUser.uid, 'TestMonkey')
+    }
   }
 }
 
@@ -120,13 +126,20 @@ function logout(){
                 </div>
               </li> -->
             </ul>
-            <!-- Banana Balance Display (Founders Only) -->
-            <div v-if="role" class="banana-balance-container">
-              <button class="banana-balance" @click="openTopUp">
+            <!-- Banana Balance Display -->
+            <div class="banana-balance-container">
+              <!-- Founder: Clickable with top-up -->
+              <button v-if="role" class="banana-balance clickable" @click="openTopUp">
                 <span class="banana-icon">🍌</span>
                 <span class="balance-amount">{{ bananaBalance.toLocaleString() }}</span>
                 <i class="fas fa-plus-circle add-icon"></i>
               </button>
+
+              <!-- TestMonkey: Display only -->
+              <div v-else class="banana-balance readonly">
+                <span class="banana-icon">🍌</span>
+                <span class="balance-amount">{{ bananaBalance.toLocaleString() }}</span>
+              </div>
             </div>
 
             <button id="logout_btn" class="btn my-2 my-lg-0" @click="logout">
@@ -217,15 +230,23 @@ a:hover{
   border: none;
   border-radius: 20px;
   padding: 8px 16px;
-  cursor: pointer;
   transition: all 0.3s ease;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
-.banana-balance:hover {
+.banana-balance.clickable {
+  cursor: pointer;
+}
+
+.banana-balance.clickable:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
   background: linear-gradient(135deg, #FDC955 0%, #FED16A 100%);
+}
+
+.banana-balance.readonly {
+  cursor: default;
+  background-color: #6A994E;
 }
 
 .banana-icon {

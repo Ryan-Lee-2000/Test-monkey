@@ -61,14 +61,23 @@ export async function createUser(user_arr){
                 Demographic: user_arr[2],
                 active_missions: [],
                 mission_history: [],
-                bananaBalance: 0,
-                totalBananasEarned: 0
+                bananaBalance: 50, // Start with 50 bananas for one free gacha roll
+                totalBananasEarned: 0,
+                pityCounter: 0, // For gacha pity system
+                vouchers: []
             });
             // console.log("Monkey Document written with ID: ", docRef.id);
             const userRef = doc(db, 'Users', uid);
             await updateDoc(userRef, {
               Data: "/TestMonkey/" + uid,
             });
+            const date = new Date()
+            date.setDate(date.getDate() - 1);
+            await addDoc(collection(db, "DailySpins"), {
+              userId: uid,     
+              claimedAt: date
+            });
+
         } catch (e) {
             console.error("Error adding document: ", e);
             return
@@ -229,6 +238,13 @@ export async function submitMissionFeedback(submissionData) {
     console.log("Feedback document created successfully!");
 
     await updateUserMissionStatus(submissionData.testerId, submissionData.missionId);
+
+    // Award bananas to tester based on mission payout
+    const mission = await getMissionById(submissionData.missionId);
+    if (mission && mission.payout) {
+      await addBananaToTester(submissionData.testerId, mission.payout);
+      console.log(`Awarded ${mission.payout} bananas to tester ${submissionData.testerId}`);
+    }
 
   } catch (e) {
     console.error("Error submitting feedback: ", e);

@@ -9,7 +9,8 @@ import Create_Mission from '../CreateMission/Create_Mission.vue'
 import Mission_List from '../Mission_List.vue'
 import FounderDashboard from '../FounderDashboard.vue'
 import Mission_Feedback from '../mission_feedback.vue'
-import Gambling from '@/Gambling.vue'
+import Gambling from '@/Gambling/Gambling.vue'
+import VoucherInventory from '@/Gambling/VoucherInventory.vue'
 
 // Registration flow
 import UserType from '@/composables/register/UserType.vue'
@@ -57,9 +58,12 @@ const routes = [
   { path: '/createMission', component: Create_Mission , meta: { requiresAuth: true }},
   { path: '/missionList', component: Mission_List , meta: { requiresAuth: true }},
 
+  // Gambling and voucher routes
+  { path: '/gambling', component: Gambling, meta: { requiresAuth: true } },
+  { path: '/voucher-inventory', component: VoucherInventory, meta: { requiresAuth: true } },
+
   // Fallback
   { path: '/:pathMatch(.*)*', redirect: '/' },
-  { path: '/gambling', component: Gambling, meta: { requiresAuth: true } },
 ]
 
 const router = createRouter({
@@ -74,13 +78,13 @@ router.beforeEach(async (to, from, next) => {
     return
   }
 
-  // Check role-based access for gambling route
-  if (to.path === '/gambling' && auth.currentUser) {
+  // Check role-based access for gambling and voucher routes
+  if ((to.path === '/gambling' || to.path === '/voucher-inventory') && auth.currentUser) {
     try {
       const userRole = await getUserRole(auth.currentUser.uid)
       if (userRole === 'Founder') {
-        // Founders cannot access gambling - redirect to home
-        alert('Gambling is only available for Test Monkeys. As a Founder, you can use bananas to create missions.')
+        // Founders cannot access gambling/vouchers - redirect to home
+        alert('Gambling and vouchers are only available for Test Monkeys. As a Founder, you can use bananas to create missions.')
         next('/home')
         return
       }
