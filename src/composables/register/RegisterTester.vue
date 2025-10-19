@@ -3,6 +3,7 @@
 import { ref } from "vue"
 import { useRouter } from "vue-router"
 import { getAuth, createUserWithEmailAndPassword, updateProfile } from "firebase/auth"
+import { createUser } from "@/Database/Monkey_Store"
 
 // assets
 import monkeyUrl from "@/assets/welcome/monkey.png"
@@ -49,6 +50,7 @@ async function registerTester () {
     const auth = getAuth()
     const cred = await createUserWithEmailAndPassword(auth, email.value, pwd.value)
     await updateProfile(cred.user, { displayName: name.value })
+    await createUser([cred.user.uid, name.value, [], false])
 
     dialogMode.value = "success"
     dialogText.value = "Account Created!"
