@@ -13,7 +13,7 @@ const props = defineProps({
   website: String
 })
 
-const emit = defineEmits(['close'])
+const emit = defineEmits(['close', 'launch'])
 
 const getPlaceholderImage = computed(() => {
   const colors = ['4285f4', 'ea4335', 'fbbc05', '34a853']
@@ -134,7 +134,7 @@ const getPlaceholderImage = computed(() => {
         
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" @click="emit('close')">Close</button>
-          <button type="button" class="btn btn-primary">Looks Good - Launch Mission</button>
+          <button type="button" class="btn btn-primary" @click="emit('launch')">Looks Good - Launch Mission</button>
         </div>
       </div>
     </div>

@@ -1,7 +1,7 @@
 <script setup>
 import "bootstrap/dist/css/bootstrap.min.css"
 import "bootstrap"
-import { computed, onMounted, ref } from "vue"
+import { computed, onMounted, ref, watch, nextTick } from "vue"
 
 
 const props = defineProps({
@@ -14,15 +14,37 @@ const props = defineProps({
 
 const emit = defineEmits(['close', 'confirm', 'launch'])
 
-const addQuestion = () => {
-  questions.value.push({
-    id: Date.now(),
+// Create a local copy of questions that we can modify
+const localQuestions = ref([])
+
+// Watch for changes in props.questions
+watch(() => props.questions, (newQuestions) => {
+  if (newQuestions && newQuestions.length > 0) {
+    localQuestions.value = newQuestions.map(q => ({...q}))
+  }
+}, { immediate: true })
+
+const addQuestion = async () => {
+  const newId = Date.now()
+  localQuestions.value.push({
+    id: newId,
     text: ""
   })
+
+  // Wait for DOM to update, then scroll to and focus the new question
+  await nextTick()
+  const newQuestionElement = document.querySelector(`[data-question-id="${newId}"]`)
+  if (newQuestionElement) {
+    newQuestionElement.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    const textarea = newQuestionElement.querySelector('textarea')
+    if (textarea) {
+      textarea.focus()
+    }
+  }
 }
 
 const removeQuestion = (id) => {
-  questions.value = questions.value.filter(q => q.id !== id)
+  localQuestions.value = localQuestions.value.filter(q => q.id !== id)
 }
 
 // const regenerate = () => {
@@ -40,18 +62,15 @@ const removeQuestion = (id) => {
 // }
 
 const confirm = () => {
-  emit('confirm', questions.value)
+  emit('confirm', localQuestions.value)
   emit('close')
 }
 
-onMounted(async ()=>{
-    // const questions_arr = await claude_getQuestions(props.description)
-    // const new_arr = []
-    // for(var x in questions_arr){
-    //     console.log(x)
-    // }
+const handleLaunch = () => {
+  // Pass the modified questions back to parent before launching
+  emit('launch', localQuestions.value)
+}
 
-})
 
 computed(()=>props.show ? console.log('showing questions') : console.log("not showing questions"))
 
@@ -126,7 +145,7 @@ computed(()=>props.show ? console.log('showing questions') : console.log("not sh
 
             <div class="mb-3">
               <div class="d-flex justify-content-between align-items-center mb-3">
-                <h6 class="mb-0"><i class="fas fa-list-ol me-2"></i>Questions ({{ questions.length }})</h6>
+                <h6 class="mb-0"><i class="fas fa-list-ol me-2"></i>Questions ({{ localQuestions.length }})</h6>
                 <div>
                   <!-- <button class="btn btn-sm btn-outline-secondary me-2" @click="regenerate">
                     <i class="fas fa-sync-alt me-1"></i>Regenerate
@@ -137,29 +156,29 @@ computed(()=>props.show ? console.log('showing questions') : console.log("not sh
                 </div>
               </div>
 
-              <div v-for="(question, index) in questions" :key="question.id" class="question-item">
+              <div v-for="(question, index) in localQuestions" :key="question.id" class="question-item" :data-question-id="question.id">
                 <div class="d-flex gap-3">
                   <div class="question-number">{{ index + 1 }}</div>
-                  
+
                   <div class="flex-grow-1">
                     <div class="row g-2 mb-2">
                       <div class="col-md-12">
-                        <textarea 
-                          v-model="question.text" 
-                          class="form-control" 
-                          rows="2" 
+                        <textarea
+                          v-model="question.text"
+                          class="form-control"
+                          rows="2"
                           placeholder="Enter question text"
                         ></textarea>
                       </div>
                     </div>
-                    
+
                     <div class="d-flex justify-content-between align-items-center">
                       <small class="text-muted">
                       </small>
-                      <button 
-                        class="btn btn-sm btn-outline-danger" 
+                      <button
+                        class="btn btn-sm btn-outline-danger"
                         @click="removeQuestion(question.id)"
-                        :disabled="questions.length === 1"
+                        :disabled="localQuestions.length === 1"
                       >
                         <i class="fas fa-trash"></i>
                       </button>
@@ -177,7 +196,7 @@ computed(()=>props.show ? console.log('showing questions') : console.log("not sh
         
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" @click="emit('close')">Cancel</button>
-          <button type="button" class="btn btn-gradient" @click="emit('launch')" :disabled="generating">
+          <button type="button" class="btn btn-gradient" @click="handleLaunch" :disabled="generating">
             <i class="fas fa-check me-2"></i>Confirm & Launch Mission
           </button>
         </div>
