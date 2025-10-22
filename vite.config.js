@@ -22,6 +22,6 @@ export default defineConfig({
   },
     // Preserve certain modules from reloading
   optimizeDeps: {
-    exclude: ['firebase/auth', 'firebase/app', 'firebase/firestore', 'firebase/storage']
+    exclude: ['firebase/auth', 'firebase/app', 'firebase/firestore', 'firebase/storage', 'firebase/functions']
   },
 })

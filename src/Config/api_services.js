@@ -4,6 +4,8 @@ import { getAuth, setPersistence, browserSessionPersistence } from 'firebase/aut
 import { getFirestore } from 'firebase/firestore'
 import { getStorage } from "firebase/storage";
 import Anthropic from "@anthropic-ai/sdk";
+import { getFunctions } from "firebase/functions";
+import 'firebase/functions';
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_KEY,
@@ -19,6 +21,7 @@ const firebase_app = initializeApp(firebaseConfig);
 export const db = getFirestore(firebase_app);
 export const auth = getAuth(firebase_app);
 export const storage = getStorage(firebase_app);
+export const functions = getFunctions(firebase_app);
 
 setPersistence(auth, browserSessionPersistence);
 

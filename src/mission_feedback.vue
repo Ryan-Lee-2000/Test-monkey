@@ -190,6 +190,7 @@ async function handleSubmit() {
 .description-text.expanded {
   display: block;
   -webkit-line-clamp: unset;
+  line-clamp: 2;
   max-height: 100vh;
 }
 

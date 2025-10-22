@@ -1,56 +1,104 @@
 <script setup>
 import { ref, onMounted } from 'vue';
-import { getCompletedMissionsForFounder } from '@/Database/Monkey_Store';
 import navbar from './navbar.vue';
+import { db } from './Config/api_services.js';
+import { collection, query, where, onSnapshot } from "firebase/firestore";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
 
 const missions = ref([]);
 const isLoading = ref(true);
 
-onMounted(async () => {
-  missions.value = await getCompletedMissionsForFounder();
-  isLoading.value = false;
+onMounted(() => {
+  const auth = getAuth();
+  onAuthStateChanged(auth, (user) => {
+
+    if (user) {
+
+      const q = query(collection(db, "Missions"), where("owner", "==", user.uid));
+      
+      onSnapshot(q, (snapshot) => {
+        missions.value = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        isLoading.value = false;
+      }, (error) => {
+        console.error("Error fetching missions in real-time:", error);
+        isLoading.value = false;
+      });
+
+    } else {
+      // User is signed out.
+      missions.value = [];
+      isLoading.value = false;
+    }
+  });
 });
+
+const getStatusClass = (status) => {
+  switch (status) {
+    case 'Completed':
+      return 'badge bg-success';
+    case 'Active':
+      return 'badge bg-secondary';
+    case 'In Progress':
+      return 'badge bg-warning text-dark';
+    default:
+      return 'badge bg-secondary';
+  }
+};
 </script>
 
 <template>
   <navbar/>
   <div class="container mt-5" style="padding-top: 80px;">
     <h1 class="mb-4">Founder Dashboard</h1>
-    <p class="text-muted">Review the AI-generated summaries for your completed missions.</p>
+    <p class="text-muted">Review and manage all your feedback missions.</p>
 
     <div v-if="isLoading" class="text-center">
       <div class="spinner-border" role="status"></div>
-      <p class="mt-2">Loading completed missions...</p>
+      <p class="mt-2">Loading missions...</p>
     </div>
 
     <div v-else-if="missions.length === 0" class="alert alert-info">
-      You have no completed missions with summaries yet.
+      You have not created any missions yet.
     </div>
 
-    <div v-else class="accordion" id="missionAccordion">
-      <div v-for="mission in missions" :key="mission.id" class="accordion-item">
-        <h2 class="accordion-header" :id="'heading-' + mission.id">
-          <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" :data-bs-target="'#collapse-' + mission.id">
-            <strong>{{ mission.name }}</strong>
-          </button>
-        </h2>
-        <div :id="'collapse-' + mission.id" class="accordion-collapse collapse" data-bs-parent="#missionAccordion">
-          <div class="accordion-body">
-            <h5>AI Feedback Summary:</h5>
-            <div class="summary-content" v-html="mission.feedbackSummary?.replace(/\n/g, '<br>') || 'No summary available.'"></div>
-          </div>
-        </div>
-      </div>
-    </div>
+    <table v-else class="table table-hover align-middle">
+      <thead>
+        <tr>
+          <th scope="col">Mission Name</th>
+          <th scope="col">Progress</th>
+          <th scope="col">Status</th>
+          <th scope="col">Days Left</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="mission in missions" :key="mission.id">
+          <td>
+            <router-link :to="'/dashboard/' + mission.id">
+              <strong>{{ mission.name || 'Unnamed Mission' }}</strong>
+            </router-link>
+          </td>
+          <td>
+            <span class="badge bg-primary rounded-pill">
+              {{ mission.submissionCount || 0 }} / {{ mission.num_testers }}
+            </span>
+          </td>
+          <td>
+            <span :class="getStatusClass(mission.status)">
+              {{ mission.status }}
+            </span>
+          </td>
+          <td>{{ mission.duration ? `${mission.duration} day(s)` : 'N/A' }}</td>
+        </tr>
+      </tbody>
+    </table>
   </div>
 </template>
 
 <style scoped>
-.summary-content {
-  background-color: #f8f9fa;
-  border-left: 4px solid #667eea;
-  padding: 1rem;
-  border-radius: 4px;
-  white-space: pre-wrap; 
+.table a {
+  text-decoration: none;
+}
+.table a:hover {
+  text-decoration: underline;
 }
 </style>

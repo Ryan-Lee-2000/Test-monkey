@@ -11,6 +11,7 @@ import FounderDashboard from '../FounderDashboard.vue'
 import Mission_Feedback from '../mission_feedback.vue'
 import Gambling from '@/Gambling/Gambling.vue'
 import VoucherInventory from '@/Gambling/VoucherInventory.vue'
+import MissionReportView from '../MissionReportView.vue'
 
 // Registration flow
 import UserType from '@/composables/register/UserType.vue'
@@ -64,6 +65,22 @@ const routes = [
 
   // Fallback
   { path: '/:pathMatch(.*)*', redirect: '/' },
+
+  {
+    path: '/dashboard/:missionId',
+    name: 'missionReport',
+    component: MissionReportView,
+    props: true, // This passes the :missionId from the URL as a prop
+    meta: { requiresAuth: true }
+  },
+
+  {
+  path: '/dashboard/:missionId',
+  name: 'missionReport',
+  component: MissionReportView, // Make sure to import this component
+  props: true,
+  meta: { requiresAuth: true }
+  }
 ]
 
 const router = createRouter({
