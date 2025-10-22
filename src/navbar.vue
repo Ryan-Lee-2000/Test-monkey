@@ -17,6 +17,11 @@ const router = useRouter()
 const role = ref(false) //true == 'Founder', false == 'TestMonkey'
 const userRole = ref('')
 const bananaBalance = ref(0)
+const isMobileMenuOpen = ref(false)
+
+function go(path) {
+  router.push({ path })
+}
 
 onMounted(async () => {
   if(auth.currentUser){
@@ -64,18 +69,16 @@ function logout(){
         v-if="show_navbar"
       >
         <div class="container-fluid">
-          <a class="navbar-brand" id="navbar-brand-style" href="#">Test Monkey</a>
           <button
-            class="navbar-toggler d-lg-none"
-            type="button"
-            data-bs-toggle="collapse"
-            data-bs-target="#collapsibleNavId"
-            aria-controls="collapsibleNavId"
-            aria-expanded="false"
-            aria-label="Toggle navigation"
+            class="menu-toggle d-lg-none"
+            @click="isMobileMenuOpen = !isMobileMenuOpen"
+            aria-label="Toggle menu"
           >
-            <span class="navbar-toggler-icon"></span>
+            <i class="fas fa-bars fa-lg"></i>
           </button>
+
+          <a class="navbar-brand" id="navbar-brand-style" href="#">Test Monkey</a>
+
           <div class="collapse navbar-collapse" id="collapsibleNavId">
             <ul class="navbar-nav me-auto mt-2 mt-lg-0">
               <li class="nav-item">
@@ -126,7 +129,10 @@ function logout(){
                 </div>
               </li> -->
             </ul>
-            <!-- Banana Balance Display -->
+          </div>
+
+          <!-- Banana Balance Display -->
+          <div class="right-actions">
             <div class="banana-balance-container">
               <!-- Founder: Clickable with top-up -->
               <button v-if="role" class="banana-balance clickable" @click="openTopUp">
@@ -141,12 +147,48 @@ function logout(){
                 <span class="balance-amount">{{ bananaBalance.toLocaleString() }}</span>
               </div>
             </div>
+          </div>
 
             <button id="logout_btn" class="btn my-2 my-lg-0" @click="logout">
             Logout
             </button>
-          </div>
+            
         </div>
+
+        <!-- Mobile Sidebar -->
+        <transition name="slide">
+          <div v-if="isMobileMenuOpen" class="mobile-sidebar">
+          <!-- Sidebar Header -->
+          <div class="mobile-sidebar-header d-flex justify-content-between align-items-center px-4 py-3 border-bottom">
+            <h2 class="sidebar-title mb-0">Test Monkey</h2>
+            <button class="close-btn" @click="isMobileMenuOpen = false" aria-label="Close menu">
+              &times;
+            </button>
+          </div>
+
+          <!-- Sidebar Navigation -->
+          <ul class="list-unstyled m-0 p-0 mt-2">
+            <li class="py-3 px-4 border-bottom" @click="go('/Home'); isMobileMenuOpen = false">Home</li>
+            <li class="py-3 px-4 border-bottom" v-if="role" @click="go('/createMission'); isMobileMenuOpen = false">Create Mission</li>
+            <li class="py-3 px-4 border-bottom" v-else @click="go('/missionList'); isMobileMenuOpen = false">My Missions</li>
+            <li class="py-3 px-4 border-bottom" @click="go(role ? '/dashboard' : '/gambling'); isMobileMenuOpen = false">
+              {{ role ? 'Dashboard' : 'Gambling' }}
+            </li>
+          </ul>
+          
+        </div>
+
+        </transition>
+        
+
+        <!-- Background overlay (must be outside transition) -->
+        <div
+          v-if="isMobileMenuOpen"
+          class="mobile-overlay"
+          @click="isMobileMenuOpen = false">
+        </div>
+
+
       </nav>
 
       <!-- Banana Top-Up Modal -->
@@ -168,6 +210,27 @@ function logout(){
   padding-block: 12px;
 
 }
+
+/* Keep Test Monkey fixed to the left edge on small screens */
+@media (max-width: 576px) {
+  .navbar {
+    padding-inline: 12px; 
+  }
+
+  #navbar-brand-style {
+    position: absolute;
+    left: 16px;
+    top: 12px;
+    transform: none;
+  }
+
+  .menu-toggle {
+    position: absolute;
+    right: 16px;
+    top: 14px;
+  }
+}
+
 
 #navbar-brand-style {
   color: white;
@@ -271,5 +334,77 @@ a:hover{
 .banana-balance:hover .add-icon {
   opacity: 1;
 }
+
+/* Hide normal nav links and show hamburger under 992px */
+@media (max-width: 992px) {
+  .navbar-nav,
+  .banana-balance-container,
+  #logout_btn {
+    display: none !important;
+  }
+
+  .menu-toggle {
+    display: block;
+    color: white;
+  }
+}
+
+/* On desktop (≥992px), hide the hamburger */
+@media (min-width: 992px) {
+  .menu-toggle {
+    display: none;
+  }
+}
+
+/* ===== Mobile Sidebar ===== */
+.mobile-sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  width: 240px;
+  background-color: #386641;
+  color: white;
+  z-index: 999;
+  padding-top: 0px;
+  box-shadow: 4px 0 20px rgba(0, 0, 0, 0.4);
+  transition: transform 0.3s ease;
+}
+
+.mobile-sidebar ul li {
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.mobile-sidebar ul li:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Slide-in / slide-out animation */
+.slide-enter-active,
+.slide-leave-active {
+  transition: all 0.3s ease;
+}
+.slide-enter-from {
+  transform: translateX(-100%);
+}
+.slide-leave-to {
+  transform: translateX(-100%);
+}
+
+/* ===== Overlay behind mobile sidebar ===== */
+.mobile-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 998;
+  backdrop-filter: blur(1px);
+}
+
 
 </style>
