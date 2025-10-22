@@ -11,6 +11,7 @@ import { getAuth } from 'firebase/auth'
 
 import QuestionsModal from "./QuestionsModal.vue"
 import InsufficientBalanceModal from "./InsufficientBalanceModal.vue"
+import MissionSuccessModal from "./MissionSuccessModal.vue"
 import { claude_getQuestions } from "@/Claude/ai"
 import { QueryFieldFilterConstraint } from "firebase/firestore"
 
@@ -23,9 +24,6 @@ const numberOfUsers = ref("")
 const description = ref("")
 const duration = ref("")
 const bananasPayout = ref("")
-const selectedFile = ref(null)
-const fileName = ref("")
-const fileType = ref("html")
 const website =ref("")
 
 const fileLoaded = ref(false)
@@ -37,6 +35,7 @@ const questions = ref([])
 const showInsufficientBalance = ref(false)
 const currentBalance = ref(0)
 const requiredAmount = ref(0)
+const showSuccessModal = ref(false)
 
 const router = useRouter()
 
@@ -106,7 +105,12 @@ async function generateQuestions(){
     generating.value = false
 }
 
-async function launchMission(){
+async function launchMission(updatedQuestions){
+      // Use the updated questions from the modal
+      if (updatedQuestions) {
+        questions.value = updatedQuestions
+      }
+
       console.log(questions.value)
 
       // Calculate total cost
@@ -135,8 +139,8 @@ async function launchMission(){
         // Deduct bananas from founder account
         await deductBananaBalance(auth.currentUser.uid, totalMissionCost)
 
-        alert(`Mission created successfully!\n${totalMissionCost.toLocaleString()} bananas have been deducted from your account.`)
-        router.push({path: '/home'})
+        // Show success modal
+        showSuccessModal.value = true
 
       } catch (error) {
         console.error('Error creating mission:', error)
@@ -144,6 +148,26 @@ async function launchMission(){
       }
 }
 
+
+function reset(){
+  missionName.value = ""
+  numberOfUsers.value = ""
+  description.value = ""
+  duration.value = ""
+  bananasPayout.value = ""
+  website.value = ""
+
+  fileLoaded.value = false
+  showPreview.value = false
+
+  showQuestions.value = false
+  generating.value = false
+  questions.value = []
+  showInsufficientBalance.value = false
+  currentBalance.value = 0
+  requiredAmount.value = 0
+  showSuccessModal.value = false
+}
 
 </script>
 
@@ -383,19 +407,27 @@ async function launchMission(){
       :totalCost="totalCost"
       :website="website"
       @close="showPreview = false"
+      @launch="{{showPreview = false; checkMission()}}"
     />
     <QuestionsModal
     :show="showQuestions"
     :generating="generating"
     :questions="questions"
-    @close="showQuestions = false"
-    @launch="launchMission()"/>
+    @close="{{ showQuestions = false; generating = true; questions = [] }}"
+    @launch="launchMission"/>
 
     <InsufficientBalanceModal
       :show="showInsufficientBalance"
       :currentBalance="currentBalance"
       :requiredAmount="requiredAmount"
       @close="showInsufficientBalance = false"
+    />
+
+    <MissionSuccessModal
+      :show="showSuccessModal"
+      :missionName="missionName"
+      :totalCost="totalCost"
+      @close="{{ showSuccessModal = false; reset() }}"
     />
   </div>
 </template>
