@@ -163,14 +163,18 @@ async function refreshMissions(){
 
 <template>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-  <div class="min-vh-100 page">
+  <div class="w-100 h-100 page">
     <!-- Header -->
-    <div class="dashboard-header py-4 mb-4" style="padding-top: 100px;">
-      <div class="container home-header">
-        <h1 class="mb-2">{{ user_name }}'s Dashboard</h1>
-        <p class="mb-0 opacity-75">Welcome back! Check out the latest missions.</p>
+    <div class="dashboard-header h-100 py-4 mb-4">
+      <div class="container">
+        <div class="header-content">
+          <img :src="homepageMonkeyURL" class="header-image " alt="Header Monkey" />
+          <div class="header-text">
+            <h1 class="mb-2">{{ user_name }}'s Dashboard</h1>
+            <p class="mb-0 opacity-75">Welcome back! Check out the latest missions.</p>
+          </div>
+        </div>
       </div>
-      <img :src="homepageMonkeyURL" class="header-image" alt="Header Monkey" />
     </div>
 
     <div class="container">
@@ -353,36 +357,58 @@ async function refreshMissions(){
 <style scoped>
 .page {
   background: linear-gradient(to top, #0f4d26 7%, #F97A02 26%, #FC9D05 54%, #FDC955 77%, #ABD453 90%);
+  min-height: 100vh;
+  padding-bottom: 2rem;
 }
 
 .dashboard-header {
   padding-top: 100px !important;
-  background: #FED16A;
+  background: transparent;
   color: black;
-  padding: 2rem 0;
-  position:relative;
+  padding: 2rem 0 3rem 0;
   overflow: visible;
-  height: 300px;
 }
 
-.dashboard-header h1{
+.header-content {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.header-image {
+  width: clamp(150px, 25vw, 300px);
+  height: auto;
+  transform: rotate(-24deg);
+  flex-shrink: 0;
+}
+
+.header-text {
+  flex: 1;
+  min-width: 250px;
+}
+
+.dashboard-header h1 {
   color: #0A490A;
   font-weight: bold;
-  font-size: 60px;
+  font-size: clamp(28px, 5vw, 60px);
 }
 
-.home-header{
-  margin-left: 290px;
-  padding-top: 20px;
-}
+@media (max-width: 767px) {
+  .header-content {
+    flex-direction: column;
+    text-align: center;
+    gap: 1rem;
+  }
 
-.header-image{
-  position: absolute;
-  bottom: -65px;
-  z-index: 10;
-  width: 335px;
-  height: auto;
-  transform: rotate(-24deg)
+  .header-image {
+    order: 2;
+    transform: rotate(-15deg);
+  }
+
+  .header-text {
+    order: 1;
+  }
 }
 
 .stats-row,

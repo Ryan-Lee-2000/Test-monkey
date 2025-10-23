@@ -331,15 +331,15 @@ function goToInventory() {
 
 <style scoped>
 .gacha-page {
-  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+  background: linear-gradient(to top, #0f4d26 7%, #F97A02 26%, #FC9D05 54%, #0f4d26);
   min-height: 100vh;
-  padding-top: 30px;
+  padding-top: 100px;
 }
 
 .gacha-title {
   font-size: 3.5rem;
   font-weight: bold;
-  background: linear-gradient(45deg, #FFD700, #FFA500, #FFD700);
+  background: linear-gradient(45deg, #FDC955, #FC9D05, #F97A02);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   letter-spacing: 3px;
@@ -372,18 +372,18 @@ function goToInventory() {
 }
 
 .banana-card {
-  border-color: #FFD700;
-  background: linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(255, 165, 0, 0.2));
+  border-color: #ff7700;
+  background: linear-gradient(135deg, rgba(253, 201, 85, 0.2), rgba(249, 122, 2, 0.2));
 }
 
 .pity-card {
-  border-color: #9333ea;
-  background: linear-gradient(135deg, rgba(147, 51, 234, 0.2), rgba(168, 85, 247, 0.2));
+  border-color: #FC9D05;
+  background: linear-gradient(135deg, rgba(252, 157, 5, 0.2), rgba(253, 201, 85, 0.2));
 }
 
 .free-card {
-  border-color: #28a745;
-  background: linear-gradient(135deg, rgba(40, 167, 69, 0.2), rgba(52, 195, 143, 0.2));
+  border-color: #ABD453;
+  background: linear-gradient(135deg, rgba(171, 212, 83, 0.2), rgba(15, 77, 38, 0.2));
 }
 
 .stat-icon {
@@ -420,24 +420,24 @@ function goToInventory() {
 }
 
 .standard-pack {
-  border: 3px solid #667eea;
+  border: 3px solid #ff7700;
 }
 
 .free-pack-card {
-  border: 3px solid #28a745;
+  border: 3px solid #ABD453;
 }
 
 .free-badge {
   position: absolute;
   top: -15px;
   right: 20px;
-  background: linear-gradient(135deg, #28a745, #20c997);
+  background: linear-gradient(135deg, #ABD453, #0f4d26);
   color: white;
   padding: 0.5rem 1.5rem;
   border-radius: 50px;
   font-weight: bold;
   font-size: 1.1rem;
-  box-shadow: 0 5px 15px rgba(40, 167, 69, 0.4);
+  box-shadow: 0 5px 15px rgba(171, 212, 83, 0.4);
 }
 
 .pack-icon-large {
@@ -465,7 +465,7 @@ function goToInventory() {
 }
 
 .pack-cost-display {
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: linear-gradient(135deg, #F97A02, #FC9D05);
   border-radius: 50px;
   padding: 1rem 2rem;
   display: inline-flex;
@@ -475,7 +475,7 @@ function goToInventory() {
 }
 
 .free-cost {
-  background: linear-gradient(135deg, #28a745, #20c997);
+  background: linear-gradient(135deg, #ABD453, #0f4d26);
 }
 
 .banana-icon {
@@ -539,8 +539,9 @@ function goToInventory() {
 }
 
 .rate-rarity.legendary {
-  background: linear-gradient(135deg, #fbbf24, #f59e0b);
-  color: #000;
+  background: linear-gradient(135deg, #FDC955, #FC9D05);
+  color: #0A490A;
+  font-weight: bold;
 }
 
 .rate-rarity.legendary-disabled {
@@ -578,7 +579,7 @@ function goToInventory() {
 }
 
 .claimed-notice {
-  color: #28a745;
+  color: #ABD453;
 }
 
 /* Info Cards */

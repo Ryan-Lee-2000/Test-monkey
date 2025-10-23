@@ -59,30 +59,57 @@ const avgProgress = computed(() => {
 h1{
   color: #0A490A;
   font-weight: bold;
-  font-size: 60px;
+  font-size: clamp(28px, 5vw, 60px);
 }
 
 .hero-header {
-  background: #FED16A;
   color: black;
-  padding: 2rem 0;
-  position:relative;
   overflow: visible;
-  height: 300px;
 }
 
-.header-image{
-  position: absolute;
-  bottom: -65px;
-  z-index: 10;
-  width: 335px;
+.header-content {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.header-image {
+  width: clamp(150px, 25vw, 300px);
   height: auto;
-  transform: rotate(-24deg)
+  transform: rotate(-24deg);
+  flex-shrink: 0;
 }
 
-.ml-header{
-  margin-left: 200px;
-  padding-top: 20px;
+.header-text {
+  flex: 1;
+  min-width: 250px;
+}
+
+.header-stats {
+  text-align: right;
+  flex-shrink: 0;
+}
+
+@media (max-width: 767px) {
+  .header-content {
+    flex-direction: column;
+    text-align: center;
+    gap: 1rem;
+  }
+
+  .header-image {
+    order: 2;
+    transform: rotate(-15deg);
+  }
+
+  .header-text {
+    order: 1;
+  }
+
+  .header-stats {
+    order: 3;
+    text-align: center;
+  }
 }
 
 .mission-card {
@@ -109,6 +136,8 @@ h1{
 
 .page {
   background: linear-gradient(to top, #0f4d26 7%, #F97A02 26%, #FC9D05 54%, #FDC955 77%, #ABD453 90%);
+  min-height: 100vh;
+  padding-bottom: 2rem;
 }
 
 .empty-state .text-muted{
@@ -132,22 +161,22 @@ h1{
 
 <template>
   <navbar/>
-  <div class="min-vh-100 page">
+  <div class="min-vh-100 page" style="padding-top: 100px;">
     <!-- Header -->
-    <div class="hero-header" style="padding-top: 100px;">
+    <div class="hero-header">
       <div class="container">
-        <div class="d-flex justify-content-between align-items-center">
-          <div class="ml-header">
+        <div class="header-content">
+          <img :src="homepageMonkeyURL" class="header-image" alt="Header Monkey" />
+          <div class="header-text">
             <h1><i class="fas fa-tasks me-2"></i>My Missions</h1>
             <p class="opacity-75 mb-0">Track and manage your accepted testing missions</p>
           </div>
-          <div>
+          <div class="header-stats">
             <h3 class="mb-0">🍌 {{ totalEarned }}</h3>
             <small class="opacity-75">Total Earned</small>
           </div>
         </div>
       </div>
-      <img :src="homepageMonkeyURL" class="header-image" alt="Header Monkey" />
     </div>
 
     <div class="container py-4">
