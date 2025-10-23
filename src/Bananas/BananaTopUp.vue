@@ -269,6 +269,19 @@ function closeModal() {
   transition: all 0.3s ease;
 }
 
+.payment-method-card .card-body {
+  flex-direction: column;
+  justify-content: center;
+  text-align: center;
+  white-space: normal; 
+  word-break: break-word; 
+}
+
+.payment-method-card .card-body span {
+  font-size: 14px;
+  line-height: 1.3;
+}
+
 .package-card:hover,
 .payment-method-card:hover {
   transform: translateY(-4px);
@@ -280,6 +293,7 @@ function closeModal() {
   transform: translateY(-6px) scale(1.02);
   box-shadow: 0 8px 20px rgba(25, 135, 84, 0.3);
 }
+
 
 .success-animation {
   animation: scaleIn 0.5s ease-out;
