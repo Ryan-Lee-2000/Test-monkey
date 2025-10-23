@@ -2,7 +2,7 @@
 import "bootstrap/dist/css/bootstrap.min.css"
 import "bootstrap"
 import { getAuth, signOut } from "firebase/auth";
-import { onMounted, ref } from "vue";
+import { onMounted, onUnmounted, ref } from "vue";
 import { useRouter } from "vue-router";
 
 import { getUserRole, getBananaBalance } from "./Database/Monkey_Store";
@@ -23,6 +23,13 @@ function go(path) {
   router.push({ path })
 }
 
+// Close sidebar when viewport goes past lg breakpoint
+function handleResize() {
+  if (window.innerWidth >= 992) { // lg breakpoint is 992px
+    isMobileMenuOpen.value = false
+  }
+}
+
 onMounted(async () => {
   if(auth.currentUser){
     //show_navbar.value = true
@@ -39,6 +46,14 @@ onMounted(async () => {
         bananaBalance.value = await getBananaBalance(auth.currentUser.uid, 'TestMonkey')
     }
   }
+
+  // Add resize event listener
+  window.addEventListener('resize', handleResize)
+})
+
+onUnmounted(() => {
+  // Clean up resize event listener
+  window.removeEventListener('resize', handleResize)
 })
 
 async function refreshBalance() {
@@ -66,15 +81,18 @@ function logout(){
 <template>
     <nav
         class="navbar navbar-expand-sm fixed-top navbar-light"
+        style="height: 8vh; "
         v-if="show_navbar"
       >
-        <div class="container-fluid">
+        <div class="container h-100 py-2" 
+        style="display: flex; justify-content: center; align-items: center;">
           <button
-            class="menu-toggle d-lg-none"
+            class="menu-toggle d-lg-none order-last mt-lg-0 mt-2"
+            style="background-color: transparent; border: 0;"
             @click="isMobileMenuOpen = !isMobileMenuOpen"
             aria-label="Toggle menu"
           >
-            <i class="fas fa-bars fa-lg"></i>
+            <i class="fas fa-bars fa-2xl"></i>
           </button>
 
           <a class="navbar-brand" id="navbar-brand-style" href="#">Test Monkey</a>
@@ -156,25 +174,43 @@ function logout(){
         </div>
 
         <!-- Mobile Sidebar -->
-        <transition name="slide">
-          <div v-if="isMobileMenuOpen" class="mobile-sidebar">
+        <transition name="slide" class="d-lg-none">
+          <div v-if="isMobileMenuOpen" class="mobile-sidebar w-50" style="min-width: 200px;">
           <!-- Sidebar Header -->
-          <div class="mobile-sidebar-header d-flex justify-content-between align-items-center px-4 py-3 border-bottom">
-            <h2 class="sidebar-title mb-0">Test Monkey</h2>
-            <button class="close-btn" @click="isMobileMenuOpen = false" aria-label="Close menu">
-              &times;
-            </button>
-          </div>
+            <div class="mobile-sidebar-header d-flex justify-content-between align-items-center px-4 py-3 border-bottom">
+              <h2 class="sidebar-title mb-0">Test Monkey</h2>
+              <button class="close-btn"
+              style="background-color: transparent; border: 1px white solid; 
+              width: 40px; height: 40px; text-align: center; background-color: white;
+              display: flex; justify-content: center;
+              color: #386641; font-weight: 900; font-size: x-large; border-radius: 100%;"
+              @click="isMobileMenuOpen = false" aria-label="Close menu">
+                &times;
+              </button>
+            </div>
 
-          <!-- Sidebar Navigation -->
-          <ul class="list-unstyled m-0 p-0 mt-2">
-            <li class="py-3 px-4 border-bottom" @click="go('/Home'); isMobileMenuOpen = false">Home</li>
-            <li class="py-3 px-4 border-bottom" v-if="role" @click="go('/createMission'); isMobileMenuOpen = false">Create Mission</li>
-            <li class="py-3 px-4 border-bottom" v-else @click="go('/missionList'); isMobileMenuOpen = false">My Missions</li>
-            <li class="py-3 px-4 border-bottom" @click="go(role ? '/dashboard' : '/gambling'); isMobileMenuOpen = false">
-              {{ role ? 'Dashboard' : 'Gambling' }}
-            </li>
-          </ul>
+            <!-- Sidebar Navigation -->
+            <ul class="list-unstyled m-0 p-0">
+              <li class="py-3 px-4 border-bottom" @click="go('/Home'); isMobileMenuOpen = false">Home</li>
+              <li class="py-3 px-4 border-bottom" v-if="role" @click="go('/createMission'); isMobileMenuOpen = false">Create Mission</li>
+              <li class="py-3 px-4 border-bottom" v-else @click="go('/missionList'); isMobileMenuOpen = false">My Missions</li>
+              <li class="py-3 px-4 border-bottom" @click="go(role ? '/dashboard' : '/gambling'); isMobileMenuOpen = false">
+                {{ role ? 'Dashboard' : 'Gambling' }}
+              </li>
+            </ul>
+            <ul class="list-unstyled m-0 p-0 fixed-bottom" >
+              <li class="py-3 px-4 border-bottom border-top w-50" style="min-width: 200px;">
+                <button v-if="role" class="banana-balance clickable" @click="openTopUp">
+                  <span class="banana-icon">🍌</span>
+                  <span class="balance-amount">{{ bananaBalance.toLocaleString() }}</span>
+                  <i class="fas fa-plus-circle add-icon"></i>
+                </button>
+              </li>
+              <li class="py-3 px-4  w-50" style="min-width: 200px;">
+                <button class="banana-balance clickable" @click="logout">
+                  <span style="color: white;">Logout</span></button>
+              </li>
+            </ul>
           
         </div>
 
