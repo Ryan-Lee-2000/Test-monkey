@@ -4,12 +4,11 @@ import { ref } from "vue"
 import { useRouter } from "vue-router"
 import { getAuth, createUserWithEmailAndPassword, updateProfile } from "firebase/auth"
 import { createUser } from "@/Database/Monkey_Store"
+import RegistrationModal from "./RegistrationModal.vue"
 
 // assets
 import monkeyUrl from "@/assets/welcome/monkey.png"
 import bananaUrl from "@/assets/welcome/banana.png"
-import loadingImg from "@/assets/welcome/loading.png"
-import successImg from "@/assets/welcome/green-tick.png"
 
 const router = useRouter()
 
@@ -21,7 +20,7 @@ const cPwd = ref("")
 
 // ui state (modal)
 const showDialog = ref(false)
-const dialogMode = ref("loading")
+const dialogMode = ref("loading") // "loading" | "success" | "error"
 const dialogText = ref("Creating account...")
 const submitting = ref(false)
 
@@ -56,16 +55,21 @@ async function registerTester () {
     dialogText.value = "Account Created!"
     setTimeout(() => router.replace("/home"), 900)
   } catch (e) {
-    showDialog.value = false
-    console.error(e?.code || e)
-    alert(e?.message || "Registration failed.")
-  } finally {
+    dialogMode.value = "error"
+    dialogText.value = e?.message || "Registration failed."
     submitting.value = false
   }
 }
 </script>
 
 <template>
+  <!-- modal -->
+      <RegistrationModal
+        :show="showDialog"
+        :mode="dialogMode"
+        :message="dialogText"
+        @close="showDialog = false"
+      />
   <div class="page">
     <div class="card">
       <!-- back arrow -->
@@ -118,16 +122,8 @@ async function registerTester () {
       <!-- banana -->
       <img :src="bananaUrl" class="banana" alt="" />
 
-      <!-- modal -->
-      <transition name="fade">
-        <div v-if="showDialog" class="modal-mask" role="dialog" aria-modal="true">
-          <div class="modal" role="status" aria-live="assertive">
-            <img :src="dialogMode === 'loading' ? loadingImg : successImg" class="modal-img" alt="" />
-            <p class="modal-text">{{ dialogText }}</p>
-          </div>
-        </div>
-      </transition>
       
+
     </div>
   </div>
 </template>
@@ -277,34 +273,6 @@ async function registerTester () {
   pointer-events:none;
   transform: rotate(-3deg);
 }
-
-.modal-mask {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  background: rgba(0,0,0,0.35);
-  border-radius: inherit;
-  z-index: 20;
-  backdrop-filter: blur(2px);
-  
-}
-/* min-width:220px; max-width:340px; */
-.modal {
-  background: white;
-  padding: 12px 20px;
-  border-radius: 12px;
-  box-shadow: 0 14px 32px rgba(0,0,0,0.25);
-  display: grid;
-  justify-items: center;
-  gap: 12px;
-  width: 250px;
-  height: 100px;
-}
-.modal-img{width:40px;height:40px;object-fit:contain}
-.modal-text{color:#2b2b2b;font-weight:600}
-.fade-enter-active,.fade-leave-active{transition:opacity .18s ease}
-.fade-enter-from,.fade-leave-to{opacity:0}
 
 /* responsive */
 @media (max-width: 900px){

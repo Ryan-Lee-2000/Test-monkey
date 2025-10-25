@@ -3,11 +3,10 @@ import { ref, onMounted } from "vue"
 import { useRouter } from "vue-router"
 import { getAuth, createUserWithEmailAndPassword, updateProfile } from "firebase/auth"
 import { createUser } from "@/Database/Monkey_Store"
+import RegistrationModal from "../RegistrationModal.vue"
 
 import monkeyUrl from "@/assets/welcome/monkey.png"
 import bananaUrl from "@/assets/welcome/banana.png"
-import loadingImg from "@/assets/welcome/loading.png"
-import successImg from "@/assets/welcome/green-tick.png"
 
 const router = useRouter()
 
@@ -16,7 +15,7 @@ const companyName = ref("")
 const logoFile = ref(null)
 
 const showDialog = ref(false)
-const dialogMode = ref("loading")   // "loading" | "success"
+const dialogMode = ref("loading")   // "loading" | "success" | "error"
 const dialogText = ref("Creating account…")
 const submitting = ref(false)
 
@@ -31,7 +30,12 @@ onMounted(() => {
 
 async function registerFounder(){
   if (submitting.value) return
-  if (!companyName.value.trim()) return alert("Please enter company name (you can change later).")
+  if (!companyName.value.trim()) {
+    dialogMode.value = "error"
+    dialogText.value = "Please enter company name (you can change later)."
+    showDialog.value = true
+    return
+  }
 
   submitting.value = true
   showDialog.value = true
@@ -51,10 +55,8 @@ async function registerFounder(){
     sessionStorage.removeItem("founderReg")
     setTimeout(() => router.replace("/dashboard"), 1000)
   } catch (e) {
-    showDialog.value = false
-    console.error(e?.code || e)
-    alert(e?.message || "Registration failed.")
-  } finally {
+    dialogMode.value = "error"
+    dialogText.value = e?.message || "Registration failed."
     submitting.value = false
   }
 }
@@ -63,16 +65,14 @@ async function registerFounder(){
 <template>
   <div class="page">
     <div class="card">
-        <!-- modal-->
-          <transition name="fade">
-            <div v-if="showDialog" class="modal-mask" role="dialog" aria-modal="true">
-              <div class="modal-card" role="status" aria-live="assertive">
-                <img :src="dialogMode === 'loading' ? loadingImg : successImg" class="modal-img" alt="" />
-                <p class="modal-text">{{ dialogText }}</p>
-              </div>
-            </div>
-          </transition>
-          
+      <!-- modal -->
+      <RegistrationModal
+        :show="showDialog"
+        :mode="dialogMode"
+        :message="dialogText"
+        @close="showDialog = false"
+      />
+
       <button class="back" aria-label="Back" @click="goBack">←</button>
 
       <!-- LEFT -->
@@ -178,28 +178,6 @@ async function registerFounder(){
 /* Banana */
 .banana{ position:absolute; right:calc(-1 * var(--card-border)); bottom:calc(-1 * var(--card-border));
   width:86px; height:auto; opacity:.95; pointer-events:none; transform: rotate(-3deg) }
-
-/* ===== Modal ===== */
-.modal-mask {
-  position: absolute;
-  inset: 0; /* full size of parent */
-  background: rgba(0, 0, 0, 0.35);
-  display: grid;
-  place-items: center;
-  z-index: 10; 
-  border-radius: inherit; /* match .card border radius */
-  backdrop-filter: blur(2px);
-  pointer-events: all;
-}
-
-.modal-card{
-  min-width:220px;max-width:340px;padding:18px 20px; border-radius:12px; background:#fff;
-  box-shadow:0 14px 32px rgba(0,0,0,.25); display:grid; justify-items:center; gap:12px;
-}
-.modal-img{ width:40px; height:40px; object-fit:contain }
-.modal-text{ color:#2b2b2b; font-weight:600 }
-.fade-enter-active, .fade-leave-active { transition: opacity .18s ease; }
-.fade-enter-from, .fade-leave-to { opacity: 0; }
 
 @media (max-width: 900px){ .card{ grid-template-columns:1fr; padding:28px 20px 36px } .divider{ display:none } .banana{ width:66px } }
 </style>

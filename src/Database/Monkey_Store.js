@@ -33,8 +33,8 @@ export async function createUser(user_arr){
         });
         // console.log("User Document written with ID: ", uid);
     } catch (e) {
-        console.error("Error adding document: ", e);
-        return
+        //console.error("Error adding document: ", e);
+        return e
     }
 
     if(role){ //If user is founder
@@ -51,8 +51,8 @@ export async function createUser(user_arr){
             const userRef = doc(db, 'Users', uid);
             await updateDoc(userRef, { Data: "/Founders/" + uid });
         } catch (e) {
-            console.error("Error adding document: ", e);
-            return
+            //console.error("Error adding document: ", e);
+            return e
         }
     } else{ // User is a Test Monkey
         try {
@@ -79,8 +79,8 @@ export async function createUser(user_arr){
             });
 
         } catch (e) {
-            console.error("Error adding document: ", e);
-            return
+            //console.error("Error adding document: ", e);
+            return e
         }
     }
 
@@ -146,7 +146,8 @@ export async function createMission(mission_detail){
     // }
 
   } catch (e){
-    console.error("Error adding mission: ", e);
+    //console.error("Error adding mission: ", e);
+    return e
   }
 
 }
@@ -206,9 +207,9 @@ export async function get_user_missions(uid){
   const snapshot = await getDocs(query(collection(db,'Missions'),where("active_testers", "array-contains", uid)))
   snapshot.forEach((doc)=>{
     const missionData = doc.data();
-    console.log('doc', doc.data())
+    //console.log('doc', doc.data())
     if(doc.data().status == 'Active'){
-      console.log('pushing')
+      //console.log('pushing')
       active_missions.push({ id: doc.id, ...missionData });
     }
   })
@@ -224,7 +225,7 @@ export async function getMissionById(missionId) {
   if (missionSnap.exists()) {
     return missionSnap.data();
   } else {
-    console.error("No such mission found!");
+    //console.error("No such mission found!");
     return null;
   }
 }
@@ -235,7 +236,7 @@ export async function submitMissionFeedback(submissionData) {
       ...submissionData,
       submittedAt: serverTimestamp()
     });
-    console.log("Feedback document created successfully!");
+    //console.log("Feedback document created successfully!");
 
     await updateUserMissionStatus(submissionData.testerId, submissionData.missionId);
 
@@ -243,11 +244,11 @@ export async function submitMissionFeedback(submissionData) {
     const mission = await getMissionById(submissionData.missionId);
     if (mission && mission.payout) {
       await addBananaToTester(submissionData.testerId, mission.payout);
-      console.log(`Awarded ${mission.payout} bananas to tester ${submissionData.testerId}`);
+      //console.log(`Awarded ${mission.payout} bananas to tester ${submissionData.testerId}`);
     }
 
   } catch (e) {
-    console.error("Error submitting feedback: ", e);
+    //console.error("Error submitting feedback: ", e);
     throw e;
   }
 }
@@ -260,10 +261,10 @@ async function updateUserMissionStatus(userId, missionId) {
       active_missions: arrayRemove(missionId),
       mission_history: arrayUnion(missionId)
     });
-    console.log(`User ${userId} status updated for mission ${missionId}`);
+    //console.log(`User ${userId} status updated for mission ${missionId}`);
   } catch (e) {
-    console.error("Error updating user mission status: ", e);
-
+    //console.error("Error updating user mission status: ", e);
+    return e
   }
 }
 
@@ -305,7 +306,7 @@ export async function getBananaBalance(uid, role) {
     }
     return 0;
   } catch (e) {
-    console.error("Error getting banana balance: ", e);
+    //console.error("Error getting banana balance: ", e);
     return 0;
   }
 }
@@ -325,12 +326,12 @@ export async function addBananaBalance(uid, amount) {
         totalBananasAdded: currentTotal + amount
       });
 
-      console.log(`Added ${amount} bananas to founder ${uid}`);
+      //console.log(`Added ${amount} bananas to founder ${uid}`);
       return true;
     }
     return false;
   } catch (e) {
-    console.error("Error adding banana balance: ", e);
+    //console.error("Error adding banana balance: ", e);
     throw e;
   }
 }
@@ -354,12 +355,12 @@ export async function deductBananaBalance(uid, amount) {
         totalBananasSpent: currentSpent + amount
       });
 
-      console.log(`Deducted ${amount} bananas from founder ${uid}`);
+      //console.log(`Deducted ${amount} bananas from founder ${uid}`);
       return true;
     }
     return false;
   } catch (e) {
-    console.error("Error deducting banana balance: ", e);
+    //console.error("Error deducting banana balance: ", e);
     throw e;
   }
 }
@@ -379,12 +380,12 @@ export async function addBananaToTester(uid, amount) {
         totalBananasEarned: currentEarned + amount
       });
 
-      console.log(`Added ${amount} bananas to tester ${uid}`);
+      //console.log(`Added ${amount} bananas to tester ${uid}`);
       return true;
     }
     return false;
   } catch (e) {
-    console.error("Error adding bananas to tester: ", e);
+    //console.error("Error adding bananas to tester: ", e);
     throw e;
   }
 }

@@ -1,6 +1,7 @@
 <script setup>
 import { ref } from "vue"
 import { useRouter } from "vue-router"
+import RegistrationModal from "../RegistrationModal.vue"
 
 import monkeyUrl from "@/assets/welcome/monkey.png"
 import bananaUrl from "@/assets/welcome/banana.png"
@@ -12,20 +13,29 @@ const email = ref("")
 const pwd = ref("")
 const cPwd = ref("")
 
+// modal state
+const showDialog = ref(false)
+const dialogText = ref("")
+
 function goBack(){ router.back() }
 
+function showError(message) {
+  dialogText.value = message
+  showDialog.value = true
+}
+
 function nextStep () {
-  if (!name.value.trim()) return alert("Please enter your name.")
-  if (!email.value.trim()) return alert("Please enter your email.")
-  if (pwd.value.length < 6) return alert("Password must be at least 6 characters.")
-  if (pwd.value !== cPwd.value) return alert("Passwords do not match.")
+  if (!name.value.trim()) return showError("Please enter your name.")
+  if (!email.value.trim()) return showError("Please enter your email.")
+  if (pwd.value.length < 6) return showError("Password must be at least 6 characters.")
+  if (pwd.value !== cPwd.value) return showError("Passwords do not match.")
 
   // stash in sessionStorage
   sessionStorage.setItem("founderReg", JSON.stringify({
     name: name.value, email: email.value, pwd: pwd.value
   }))
 
-  router.push({ name: "RegisterFounderCompany" }) 
+  router.push({ name: "RegisterFounderCompany" })
 }
 </script>
 
@@ -75,6 +85,15 @@ function nextStep () {
       </section>
 
       <img :src="bananaUrl" class="banana" alt="" />
+
+      <!-- error modal -->
+      <RegistrationModal
+        :show="showDialog"
+        mode="error"
+        :message="dialogText"
+        @close="showDialog = false"
+      />
+
     </div>
   </div>
 </template>
