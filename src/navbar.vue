@@ -227,6 +227,11 @@ function logout(){
                   <span class="balance-amount">{{ bananaBalance.toLocaleString() }}</span>
                   <i class="fas fa-plus-circle add-icon"></i>
                 </button>
+                <!-- Banana balance display for testers-->
+                <div v-else class="banana-balance readonly" style="display: inline-flex;">
+                  <span class="banana-icon">🍌</span>
+                  <span class="balance-amount">{{ bananaBalance.toLocaleString() }}</span>
+                </div>
               </li>
               <li class="py-3 px-4  w-50" style="min-width: 200px;">
                 <button class="banana-balance clickable" @click="logout">
