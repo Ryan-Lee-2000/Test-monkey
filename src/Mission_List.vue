@@ -161,7 +161,7 @@ h1{
 
 <template>
   <navbar/>
-  <div class="min-vh-100 page" style="padding-top: 100px;">
+  <div class="min-vh-100 page" style="padding-top: 70px;">
     <!-- Header -->
     <div class="hero-header">
       <div class="container">

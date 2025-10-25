@@ -165,7 +165,7 @@ async function refreshMissions(){
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <div class="w-100 h-100 page">
     <!-- Header -->
-    <div class="dashboard-header h-100 py-4 mb-4">
+    <div class="dashboard-header h-100 py-1 mb-4">
       <div class="container">
         <div class="header-content">
           <img :src="homepageMonkeyURL" class="header-image " alt="Header Monkey" />
@@ -362,7 +362,8 @@ async function refreshMissions(){
 }
 
 .dashboard-header {
-  padding-top: 100px !important;
+  /* padding-top: 100px !important; */
+  padding-top: 70px !important;
   background: transparent;
   color: black;
   padding: 2rem 0 3rem 0;
@@ -372,7 +373,7 @@ async function refreshMissions(){
 .header-content {
   display: flex;
   align-items: center;
-  gap: 2rem;
+  /* gap: 2rem; */
   flex-wrap: wrap;
 }
 

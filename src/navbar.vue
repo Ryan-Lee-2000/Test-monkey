@@ -84,7 +84,7 @@ function logout(){
         style="height: 8vh; "
         v-if="show_navbar"
       >
-        <div class="container h-100 py-2" 
+        <div class="container-fluid h-100 py-2" 
         style="display: flex; justify-content: center; align-items: center;">
           <button
             class="menu-toggle d-lg-none order-last mt-lg-0 mt-2"
@@ -119,10 +119,14 @@ function logout(){
                 <div class="link_text">My Missions</div></a>
               </li>
               <li class="nav-item" v-if="role">
-                <a class="nav-link "  @click="router.push({path: '/dashboard'})"><div class="link_text">Dashboard</div></a>
+                <a class="nav-link "
+                :class="{ active_link: $route.path === '/dashboard' }"
+                @click="router.push({path: '/dashboard'})"><div class="link_text">Dashboard</div></a>
               </li>
               <li class="nav-item" v-else>
-                <a class="nav-link " @click="router.push({path: '/gambling'})"><div class="link_text">Gambling</div></a>
+                <a class="nav-link "
+                :class="{ active_link: $route.path === '/gambling' }"
+                @click="router.push({path: '/gambling'})"><div class="link_text">Gambling</div></a>
               </li>
               <!-- <li class="nav-item dropdown ">
                 <a
@@ -272,6 +276,7 @@ function logout(){
   color: white;
   font-weight: bold;
   font-size: 28px;
+  margin-right: 85px;
 }
 
 #logout_btn{
@@ -297,9 +302,10 @@ a:hover{
   color: white;
   font-size: 20px;
   font-weight: 500;
+  padding-right: 15px;
 }
 
-.active_link {
+.active_link .link_text {
   font-weight: bold;
 }
 
