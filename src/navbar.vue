@@ -2,22 +2,25 @@
 import "bootstrap/dist/css/bootstrap.min.css"
 import "bootstrap"
 import { getAuth, signOut } from "firebase/auth";
-import { onMounted, onUnmounted, ref } from "vue";
+import { computed, onMounted, onUnmounted, ref } from "vue";
 import { useRouter } from "vue-router";
 
 import { getUserRole, getBananaBalance } from "./Database/Monkey_Store";
 import BananaTopUp from "./Bananas/BananaTopUp.vue";
 import { useBananaTopUp } from "./composables/useBananaTopUp";
+import { useUserData } from "./composables/useUserData";
 
 const { showTopUpModal, openTopUp, closeTopUp } = useBananaTopUp()
 
 const show_navbar = ref(true)
 const auth = getAuth();
 const router = useRouter()
-const role = ref(false) //true == 'Founder', false == 'TestMonkey'
-const userRole = ref('')
-const bananaBalance = ref(0)
+// const role = ref(false) //true == 'Founder', false == 'TestMonkey'
+// const userRole = ref('')
+// const bananaBalance = ref(0)
 const isMobileMenuOpen = ref(false)
+const { userRole, bananaBalance, loadUserData, refreshBalance, resetUserData } = useUserData()
+const role = computed(() => userRole.value === 'Founder')
 
 function go(path) {
   router.push({ path })
@@ -31,50 +34,65 @@ function handleResize() {
 }
 
 onMounted(async () => {
-  if(auth.currentUser){
-    //show_navbar.value = true
-    const roleResponse = await getUserRole(auth.currentUser.uid)
-    userRole.value = roleResponse
-
-    if(roleResponse == 'Founder'){
-        role.value = true
-        // Load banana balance for founders
-        bananaBalance.value = await getBananaBalance(auth.currentUser.uid, 'Founder')
-    } else{
-        role.value = false
-        // Load banana balance for testers
-        bananaBalance.value = await getBananaBalance(auth.currentUser.uid, 'TestMonkey')
-    }
-  }
-
-  // Add resize event listener
+  await loadUserData() // This now loads everything
   window.addEventListener('resize', handleResize)
 })
+
+// onMounted(async () => {
+//   if(auth.currentUser){
+//     //show_navbar.value = true
+//     const roleResponse = await getUserRole(auth.currentUser.uid)
+//     userRole.value = roleResponse
+
+//     if(roleResponse == 'Founder'){
+//         role.value = true
+//         // Load banana balance for founders
+//         bananaBalance.value = await getBananaBalance(auth.currentUser.uid, 'Founder')
+//     } else{
+//         role.value = false
+//         // Load banana balance for testers
+//         bananaBalance.value = await getBananaBalance(auth.currentUser.uid, 'TestMonkey')
+//     }
+//   }
+
+//   // Add resize event listener
+//   window.addEventListener('resize', handleResize)
+// })
 
 onUnmounted(() => {
   // Clean up resize event listener
   window.removeEventListener('resize', handleResize)
 })
 
-async function refreshBalance() {
-  if (auth.currentUser) {
-    if (userRole.value === 'Founder') {
-      bananaBalance.value = await getBananaBalance(auth.currentUser.uid, 'Founder')
-    } else {
-      bananaBalance.value = await getBananaBalance(auth.currentUser.uid, 'TestMonkey')
-    }
-  }
-}
+// async function refreshBalance() {
+//   if (auth.currentUser) {
+//     if (userRole.value === 'Founder') {
+//       bananaBalance.value = await getBananaBalance(auth.currentUser.uid, 'Founder')
+//     } else {
+//       bananaBalance.value = await getBananaBalance(auth.currentUser.uid, 'TestMonkey')
+//     }
+//   }
+// }
 
 function logout(){
     signOut(auth).then(() => {
-        // Sign-out successful.
+        resetUserData() // Add this to clear the cached data
         router.push({path: '/'})
     }).catch((error) => {
     // An error happened.
         alert(error.message)
     });
 }
+
+// function logout(){
+//     signOut(auth).then(() => {
+//         // Sign-out successful.
+//         router.push({path: '/'})
+//     }).catch((error) => {
+//     // An error happened.
+//         alert(error.message)
+//     });
+// }
 
 </script>
 
