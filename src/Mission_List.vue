@@ -98,12 +98,7 @@ h1{
   }
 
   .header-image {
-    order: 2;
     transform: rotate(-15deg);
-  }
-
-  .header-text {
-    order: 1;
   }
 
   .header-stats {

@@ -470,6 +470,4 @@ a:hover{
   z-index: 998;
   backdrop-filter: blur(1px);
 }
-
-
 </style>

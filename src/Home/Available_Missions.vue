@@ -403,12 +403,7 @@ async function refreshMissions(){
   }
 
   .header-image {
-    order: 2;
     transform: rotate(-15deg);
-  }
-
-  .header-text {
-    order: 1;
   }
 }
 
