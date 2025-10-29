@@ -3,7 +3,6 @@ import { initializeApp } from 'firebase/app';
 import { getAuth, setPersistence, browserSessionPersistence } from 'firebase/auth'
 import { getFirestore } from 'firebase/firestore'
 import { getStorage } from "firebase/storage";
-import Anthropic from "@anthropic-ai/sdk";
 import { getFunctions } from "firebase/functions";
 import 'firebase/functions';
 
@@ -24,8 +23,3 @@ export const storage = getStorage(firebase_app);
 export const functions = getFunctions(firebase_app);
 
 setPersistence(auth, browserSessionPersistence);
-
-export const claude = new Anthropic({
-  apiKey: import.meta.env.VITE_ANTHROPIC_API_KEY, 
-  dangerouslyAllowBrowser: true
-});

@@ -2,7 +2,7 @@
 import { createApp } from 'vue'
 import App from './App.vue'
 import router from './Config/router'
-import { auth, db, storage, claude } from './Config/api_services'
+import { auth, db, storage } from './Config/api_services'
 import "@/styles/global.css"
 
 import { Roulette } from 'vue3-roulette'
@@ -12,7 +12,6 @@ const app = createApp(App)
 app.provide('auth', auth)
 app.provide('db', db)
 app.provide('storage', storage)
-app.provide('claude', claude)
 
 app.component("roulette", Roulette)
 

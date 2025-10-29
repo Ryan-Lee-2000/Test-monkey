@@ -144,7 +144,7 @@ function logout(){
               <li class="nav-item" v-else>
                 <a class="nav-link "
                 :class="{ active_link: $route.path === '/gambling' }"
-                @click="router.push({path: '/gambling'})"><div class="link_text">Gambling</div></a>
+                @click="router.push({path: '/gambling'})"><div class="link_text">Gacha</div></a>
               </li>
               <!-- <li class="nav-item dropdown ">
                 <a

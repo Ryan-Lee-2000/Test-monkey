@@ -17,7 +17,6 @@ import { getDownloadURL, ref as storageRef, uploadBytes } from 'firebase/storage
 import { getAuth } from "firebase/auth";
 
 
-import {claude_getQuestions} from '@/Claude/ai'
 
 export async function createUser(user_arr){
     var uid = user_arr[0]

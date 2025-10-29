@@ -8,11 +8,12 @@ import { createMission, getBananaBalance, deductBananaBalance } from "../Databas
 import navbar from "@/navbar.vue";
 import { useRouter } from 'vue-router'
 import { getAuth } from 'firebase/auth'
+import { httpsCallable } from 'firebase/functions'
+import { functions } from '@/Config/api_services'
 
 import QuestionsModal from "./QuestionsModal.vue"
 import InsufficientBalanceModal from "./InsufficientBalanceModal.vue"
 import MissionSuccessModal from "./MissionSuccessModal.vue"
-import { claude_getQuestions } from "@/Claude/ai"
 import { QueryFieldFilterConstraint } from "firebase/firestore"
 
 import monkeyUrl from "@/assets/welcome/monkey.png"
@@ -96,13 +97,31 @@ function fileLoadSwitch(){
 }
 
 async function generateQuestions(){
-    const questions_arr = await claude_getQuestions(description.value, website.value)
-    const new_arr = []
-    for(var index in questions_arr){
-        new_arr.push({id:index,text:questions_arr[index]})
+    try {
+        const generateMissionQuestions = httpsCallable(functions, 'generateMissionQuestions')
+        const result = await generateMissionQuestions({
+            description: description.value,
+            website: website.value
+        })
+
+        if (result.data.error) {
+            console.error('Error generating questions:', result.data.error)
+            alert('Failed to generate questions. Please try again.')
+            return
+        }
+
+        const questions_arr = result.data.questions
+        const new_arr = []
+        for(var index in questions_arr){
+            new_arr.push({id:index,text:questions_arr[index]})
+        }
+        questions.value = new_arr
+        generating.value = false
+    } catch (error) {
+        console.error('Error calling Cloud Function:', error)
+        alert('Failed to generate questions. Please try again.')
+        generating.value = false
     }
-    questions.value = new_arr
-    generating.value = false
 }
 
 async function launchMission(updatedQuestions){
@@ -177,7 +196,7 @@ function reset(){
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <div class="min-vh-100 page">
     <!-- Header -->
-    <div class="hero-header" style="padding-top: 75px;">
+    <div class="hero-header" style="padding-top: 100px;">
       <div class="container-fluid header-flex">
         <img :src="monkeyUrl" alt="Monkey" class="brand-monkey" />
         <div class="header-text">
@@ -535,7 +554,6 @@ function reset(){
 }
 
 .hero-header {
-  background: #FED16A;
   padding-bottom:10px;
 }
 

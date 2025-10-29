@@ -132,7 +132,7 @@ export const generateMissionReport = onCall({ secrets: [anthropicKey] }, async (
   }
 
   logger.info(`Generating on-demand report for mission: ${missionId}`);
-  
+
   try {
     const submissionsRef = db.collection("Submissions");
     const q = submissionsRef.where("missionId", "==", missionId);
@@ -152,11 +152,11 @@ export const generateMissionReport = onCall({ secrets: [anthropicKey] }, async (
         });
       }
     });
-    
+
     logger.info("Successfully aggregated feedback for on-demand report.");
-    
+
     const anthropic = new Anthropic({
-      apiKey: anthropicKey.value(), 
+      apiKey: anthropicKey.value(),
     });
 
     const prompt = `You are an expert product feedback analyst. Based on the raw, aggregated user feedback provided below, perform the following tasks:
@@ -179,11 +179,11 @@ export const generateMissionReport = onCall({ secrets: [anthropicKey] }, async (
 
     await db.collection("Missions").doc(missionId).update({
       aiReport: parsedReport,
-      status: "Completed" 
+      status: "Completed"
     });
 
     logger.info(`Successfully generated and saved AI report for mission ${missionId}`);
-  
+
 
     return {
       success: true,
@@ -193,5 +193,54 @@ export const generateMissionReport = onCall({ secrets: [anthropicKey] }, async (
   } catch (error) {
     logger.error("Error generating on-demand report:", error);
     return { error: "Failed to generate report." };
+  }
+});
+
+export const generateMissionQuestions = onCall({ secrets: [anthropicKey] }, async (request) => {
+  const { description, website } = request.data;
+
+  if (!description || !website) {
+    logger.error("Missing required parameters: description and website");
+    return { error: "Description and website URL are required." };
+  }
+
+  logger.info(`Generating questions for website: ${website}`);
+
+  try {
+    const anthropic = new Anthropic({
+      apiKey: anthropicKey.value(),
+    });
+
+    const msg = await anthropic.messages.create({
+      model: "claude-sonnet-4-5",
+      max_tokens: 1000,
+      temperature: 1,
+      system: 'You are a Business Analysis that is helping a client to create a feedback form for new testers to test their website from a summary of their website. The feedback form should only include open ended questions. Keep the number of questions as minimal as possible, but ensure every question will get the best answers from the testers. Ensure that your response is in a format that can be split into an array by a javascript function using |||. As your response will only be read by the javascript function, do not include anything unnecessary.',
+      messages: [
+        {
+          role: "user",
+          content: [
+            {
+              type: "text",
+              text: description + "\n This is the link to the website: " + website
+            }
+          ]
+        }
+      ]
+    });
+
+    const questionText = msg.content[0].text;
+    const questionArr = questionText.split("|||");
+
+    logger.info(`Successfully generated ${questionArr.length} questions`);
+
+    return {
+      success: true,
+      questions: questionArr
+    };
+
+  } catch (error) {
+    logger.error("Error generating mission questions:", error);
+    return { error: "Failed to generate questions." };
   }
 });
