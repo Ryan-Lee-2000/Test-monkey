@@ -163,9 +163,9 @@ async function refreshMissions(){
 
 <template>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-  <div class="w-100 h-100 page">
+  <div class="w-100 page">
     <!-- Header -->
-    <div class="dashboard-header h-100 py-1 mb-4">
+    <div class="dashboard-header py-1 mb-4">
       <div class="container">
         <div class="header-content">
           <img :src="homepageMonkeyURL" class="header-image " alt="Header Monkey" />
@@ -358,7 +358,10 @@ async function refreshMissions(){
 .page {
   background: linear-gradient(to top, #0f4d26 7%, #F97A02 26%, #FC9D05 54%, #FDC955 77%, #ABD453 90%);
   min-height: 100vh;
+  width: 100%;
   padding-bottom: 2rem;
+  background-attachment: fixed;
+  background-size: 100% 100%;
 }
 
 .dashboard-header {

@@ -17,4 +17,3 @@ const router = useRouter()
   <navbar/>
   <missions/>
 </template>
-

@@ -268,10 +268,12 @@ function logout(){
 .navbar{
   background-color: #386641;
   width: 100%;
+  max-width: 100vw;
+  left: 0;
+  right: 0;
   margin-inline: auto;
   padding-inline: 20px;
   padding-block: 12px;
-
 }
 
 /* Keep Test Monkey fixed to the left edge on small screens */
