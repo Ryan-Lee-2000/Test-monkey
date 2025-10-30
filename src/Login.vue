@@ -7,6 +7,7 @@ import "bootstrap"
 import { ref } from "vue"
 import { getAuth, signInWithEmailAndPassword } from "firebase/auth"
 import { useRouter } from "vue-router"
+import { useAlert } from "@/composables/useAlert"
 
 // Form state
 const email = ref("")
@@ -21,6 +22,7 @@ const dialogMode = ref("loading")  // "loading" | "success"
 const dialogText = ref("Logging in…")
 
 const router = useRouter()
+const { showError } = useAlert()
 
 // Assets
 import monkeyUrl from "@/assets/welcome/monkey.png"
@@ -45,7 +47,7 @@ function login () {
     .catch((error) => {
       showDialog.value = false
       console.log(error.code)
-      alert(error.message)
+      showError(error.message, 'Login Error')
     })
     .finally(() => {
       loading.value = false

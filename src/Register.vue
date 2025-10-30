@@ -4,8 +4,11 @@ import "bootstrap"
 import { ref } from "vue"
 import { getAuth, createUserWithEmailAndPassword, updateProfile, signInWithEmailAndPassword } from "firebase/auth"
 import { useRouter, useRoute } from 'vue-router'
+import { useAlert } from "@/composables/useAlert"
 
 import {createUser } from "./Database/Monkey_Store"
+
+const { showError } = useAlert()
 
 const username = ref("")
 const email = ref("")
@@ -45,12 +48,12 @@ function finalize_register(){
             // An error occurred
             // ...
             console.log(error.code)
-            alert(error.message)
+            showError(error.message, 'Registration Error')
         });
     }).catch((error) => {
         //There's an error when creating user
         console.log(error.code)
-        alert(error.message)
+        showError(error.message, 'Registration Error')
     })
 }
 

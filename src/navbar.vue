@@ -7,10 +7,13 @@ import { useRouter } from "vue-router";
 
 import { getUserRole, getBananaBalance } from "./Database/Monkey_Store";
 import BananaTopUp from "./Bananas/BananaTopUp.vue";
+import AlertModal from "./components/AlertModal.vue";
 import { useBananaTopUp } from "./composables/useBananaTopUp";
 import { useUserData } from "./composables/useUserData";
+import { useAlert } from "./composables/useAlert";
 
 const { showTopUpModal, openTopUp, closeTopUp } = useBananaTopUp()
+const { showAlert, alertConfig, closeAlert, handleConfirm, handleCancel, showError } = useAlert()
 
 const show_navbar = ref(true)
 const auth = getAuth();
@@ -80,7 +83,7 @@ function logout(){
         router.push({path: '/'})
     }).catch((error) => {
     // An error happened.
-        alert(error.message)
+        showError(error.message, 'Logout Error')
     });
 }
 
@@ -260,6 +263,20 @@ function logout(){
         :currentBalance="bananaBalance"
         @close="closeTopUp"
         @success="refreshBalance"
+      />
+
+      <!-- Alert Modal -->
+      <AlertModal
+        :show="showAlert"
+        :title="alertConfig.title"
+        :message="alertConfig.message"
+        :type="alertConfig.type"
+        :confirmText="alertConfig.confirmText"
+        :showCancel="alertConfig.showCancel"
+        :cancelText="alertConfig.cancelText"
+        @close="closeAlert"
+        @confirm="handleConfirm"
+        @cancel="handleCancel"
       />
 </template>
 

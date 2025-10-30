@@ -10,6 +10,7 @@ import { useRouter } from 'vue-router'
 import { getAuth } from 'firebase/auth'
 import { httpsCallable } from 'firebase/functions'
 import { functions } from '@/Config/api_services'
+import { useAlert } from '@/composables/useAlert'
 
 import QuestionsModal from "./QuestionsModal.vue"
 import InsufficientBalanceModal from "./InsufficientBalanceModal.vue"
@@ -19,6 +20,7 @@ import { QueryFieldFilterConstraint } from "firebase/firestore"
 import monkeyUrl from "@/assets/welcome/monkey.png"
 
 const auth = getAuth()
+const { showWarning, showError } = useAlert()
 
 const missionName = ref("")
 const numberOfUsers = ref("")
@@ -66,7 +68,7 @@ async function checkMission(){
     }
     const empty = Object.entries(required).find(([k, v]) => !v)
     if (empty) {
-        alert(`Please fill in: ${empty[0].replace(/([A-Z])/g, ' $1').trim()}`)
+        showWarning(`Please fill in: ${empty[0].replace(/([A-Z])/g, ' $1').trim()}`, 'Missing Information')
         return
     }
 
@@ -106,7 +108,7 @@ async function generateQuestions(){
 
         if (result.data.error) {
             console.error('Error generating questions:', result.data.error)
-            alert('Failed to generate questions. Please try again.')
+            showError('Failed to generate questions. Please try again.', 'Generation Error')
             return
         }
 
@@ -119,7 +121,7 @@ async function generateQuestions(){
         generating.value = false
     } catch (error) {
         console.error('Error calling Cloud Function:', error)
-        alert('Failed to generate questions. Please try again.')
+        showError('Failed to generate questions. Please try again.', 'Generation Error')
         generating.value = false
     }
 }
@@ -163,7 +165,7 @@ async function launchMission(updatedQuestions){
 
       } catch (error) {
         console.error('Error creating mission:', error)
-        alert('Failed to create mission. Please try again.')
+        showError('Failed to create mission. Please try again.', 'Mission Creation Error')
       }
 }
 

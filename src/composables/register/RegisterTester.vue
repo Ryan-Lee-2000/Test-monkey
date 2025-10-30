@@ -5,12 +5,14 @@ import { useRouter } from "vue-router"
 import { getAuth, createUserWithEmailAndPassword, updateProfile } from "firebase/auth"
 import { createUser } from "@/Database/Monkey_Store"
 import RegistrationModal from "./RegistrationModal.vue"
+import { useAlert } from "@/composables/useAlert"
 
 // assets
 import monkeyUrl from "@/assets/welcome/monkey.png"
 import bananaUrl from "@/assets/welcome/banana.png"
 
 const router = useRouter()
+const { showWarning } = useAlert()
 
 // form state
 const name = ref("")
@@ -29,10 +31,10 @@ function goBack () {
 }
 
 function validate () {
-  if (!name.value.trim()) { alert("Please enter your name."); return false }
-  if (!email.value.trim()) { alert("Please enter your email."); return false }
-  if (pwd.value.length < 6) { alert("Password must be at least 6 characters."); return false }
-  if (pwd.value !== cPwd.value) { alert("Passwords do not match."); return false }
+  if (!name.value.trim()) { showWarning("Please enter your name.", "Validation Error"); return false }
+  if (!email.value.trim()) { showWarning("Please enter your email.", "Validation Error"); return false }
+  if (pwd.value.length < 6) { showWarning("Password must be at least 6 characters.", "Validation Error"); return false }
+  if (pwd.value !== cPwd.value) { showWarning("Passwords do not match.", "Validation Error"); return false }
   return true
 }
 

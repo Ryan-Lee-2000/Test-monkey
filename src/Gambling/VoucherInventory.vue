@@ -3,8 +3,10 @@ import { ref, onMounted, computed } from 'vue'
 import { getUserVouchers, redeemVoucher, removeExpiredVouchers } from '@/Database/GachaSystem'
 import { getAuth } from 'firebase/auth'
 import navbar from '@/navbar.vue'
+import { useAlert } from '@/composables/useAlert'
 
 const auth = getAuth()
+const { showError, showSuccess } = useAlert()
 
 const vouchers = ref([])
 const isLoading = ref(true)
@@ -90,7 +92,7 @@ async function confirmRedeem() {
     closeRedeemModal()
   } catch (error) {
     console.error('Error redeeming voucher:', error)
-    alert(error.message || 'Failed to redeem voucher')
+    showError(error.message || 'Failed to redeem voucher', 'Redemption Failed')
   }
 }
 
@@ -108,7 +110,7 @@ function getDaysUntilExpiry(voucher) {
 
 function copyCode(code) {
   navigator.clipboard.writeText(code)
-  alert('Voucher code copied to clipboard!')
+  showSuccess('Voucher code copied to clipboard!', 'Copied')
 }
 
 onMounted(() => {

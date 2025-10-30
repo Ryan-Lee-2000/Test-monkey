@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { getMissionById, submitMissionFeedback,retrieveFile } from '@/Database/Monkey_Store'
 import { getAuth } from "firebase/auth";
 import navbar from './navbar.vue';
+import { useAlert } from '@/composables/useAlert';
 
 const route = useRoute()
 const mission = ref(null)
@@ -11,6 +12,7 @@ const answers = ref([])
 const isLoading = ref(true)
 const router = useRouter()
 const isSubmitting = ref(false)
+const { showSuccess, showError } = useAlert()
 
 const showMoreDescription = ref(false)
 
@@ -47,18 +49,20 @@ async function handleSubmit() {
       missionId: route.params.missionId,
       testerId: auth.currentUser.uid,
       testerName: auth.currentUser.displayName,
-      answers: answers.value 
+      answers: answers.value
     };
 
     await submitMissionFeedback(submissionData);
-    
-    alert("Feedback submitted successfully! You will now be returned to your mission list.");
-    router.push('/missionList');
+
+    showSuccess("Feedback submitted successfully! You will now be returned to your mission list.", "Submission Complete");
+    setTimeout(() => {
+      router.push('/missionList');
+    }, 1500);
 
   } catch (error) {
-    alert("There was an error submitting your feedback. Please try again.");
+    showError("There was an error submitting your feedback. Please try again.", "Submission Failed");
   } finally {
-    isSubmitting.value = false; 
+    isSubmitting.value = false;
   }
 }
 </script>

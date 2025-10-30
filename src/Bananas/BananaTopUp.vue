@@ -5,6 +5,7 @@ import { ref, computed } from 'vue'
 import { addBananaBalance } from '@/Database/Monkey_Store'
 import { getAuth } from 'firebase/auth'
 import paypalLogo from '@/assets/paypal.png'
+import { useAlert } from '@/composables/useAlert'
 
 const props = defineProps({
   show: Boolean,
@@ -12,6 +13,8 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['close', 'success'])
+
+const { showWarning, showError } = useAlert()
 
 const selectedPackage = ref({ id: 0, bananas: 0, price: 0, popular: false })
 const customAmount = ref(0)
@@ -63,7 +66,7 @@ function selectCustom() {
 
 async function processPurchase() {
   if (!totalAmount.value || totalAmount.value <= 0) {
-    alert('Please select a package or enter a custom amount')
+    showWarning('Please select a package or enter a custom amount')
     return
   }
 
@@ -86,7 +89,7 @@ async function processPurchase() {
 
   } catch (error) {
     console.error('Error processing purchase:', error)
-    alert('Failed to process purchase. Please try again.')
+    showError('Failed to process purchase. Please try again.')
   } finally {
     isProcessing.value = false
   }

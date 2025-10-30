@@ -25,6 +25,13 @@ import RegisterFounderCompany from "@/composables/register/founder/RegisterFound
 import { auth } from './api_services'
 import { getUserRole } from '../Database/Monkey_Store'
 
+// For showing alerts from router
+let showAlertFromRouter = null
+
+export function setRouterAlertFunction(fn) {
+  showAlertFromRouter = fn
+}
+
 const routes = [
   { path: '/', component: Welcome },
 
@@ -101,7 +108,9 @@ router.beforeEach(async (to, from, next) => {
       const userRole = await getUserRole(auth.currentUser.uid)
       if (userRole === 'Founder') {
         // Founders cannot access gambling/vouchers - redirect to home
-        alert('Gambling and vouchers are only available for Test Monkeys. As a Founder, you can use bananas to create missions.')
+        if (showAlertFromRouter) {
+          showAlertFromRouter('Gambling and vouchers are only available for Test Monkeys. As a Founder, you can use bananas to create missions.', { type: 'info', title: 'Access Restricted' })
+        }
         next('/home')
         return
       }

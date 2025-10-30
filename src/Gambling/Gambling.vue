@@ -9,9 +9,11 @@ import { getUserRole, getBananaBalance } from "../Database/Monkey_Store"
 import { canClaimFreePack, getPityCounter, GACHA_CONSTANTS } from "../Database/GachaSystem"
 import VoucherPackModal from './VoucherPackModal.vue'
 import RecentWinnersFeed from "./RecentWinnersFeed.vue"
+import { useAlert } from "@/composables/useAlert"
 
 const auth = getAuth()
 const router = useRouter()
+const { showInfo, showWarning } = useAlert()
 
 const isFounder = ref(false)
 const isLoading = ref(true)
@@ -30,7 +32,7 @@ onMounted(async () => {
 
       // If founder, redirect to home
       if (isFounder.value) {
-        alert('Gambling is only available for Test Monkeys. As a Founder, you can use bananas to create missions.')
+        showInfo('Gambling is only available for Test Monkeys. As a Founder, you can use bananas to create missions.', 'Access Restricted')
         router.push('/home')
         return
       }
@@ -68,7 +70,7 @@ const pityProgress = computed(() => Math.min((pityCounter.value / pityThreshold.
 
 function openPaidPack() {
   if (bananaBalance.value < packCost.value) {
-    alert(`You need ${packCost.value} bananas to open a pack. You have ${bananaBalance.value}.`)
+    showWarning(`You need ${packCost.value} bananas to open a pack. You have ${bananaBalance.value}.`, 'Insufficient Bananas')
     return
   }
 
@@ -78,7 +80,7 @@ function openPaidPack() {
 
 function openFreePack() {
   if (!canClaimFree.value) {
-    alert('You have already claimed your free pack today!')
+    showInfo('You have already claimed your free pack today!', 'Free Pack Claimed')
     return
   }
 
