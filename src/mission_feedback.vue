@@ -169,7 +169,10 @@ async function handleSubmit() {
 /* Main Layout */
 .page {
   background: linear-gradient(to top, #0f4d26 7%, #F97A02 26%, #FC9D05 54%, #FDC955 77%, #ABD453 90%);
-  overflow-y: hidden;
+  overflow: hidden;
+  position: fixed;
+  width: 100%;
+  height: 100vh;
 }
 
 .feedback-layout {
@@ -177,6 +180,7 @@ async function handleSubmit() {
   height: calc(100vh - 70px);
   width: 100%;
   margin-top: 70px;
+  overflow: hidden;
 }
 
 /* Website Preview Panel */
@@ -186,9 +190,15 @@ async function handleSubmit() {
   border-right: 3px solid #ff7700;
   background: white;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  position: relative;
 }
-::-webkit-scrollbar {
-    display: none;
+
+.website-panel iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  display: block;
 }
 
 /* Form Panel */
@@ -199,11 +209,31 @@ async function handleSubmit() {
   flex-direction: column;
   background: transparent;
   overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* Custom scrollbar for form panel */
+.form-panel::-webkit-scrollbar {
+  width: 12px;
+}
+
+.form-panel::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+}
+
+.form-panel::-webkit-scrollbar-thumb {
+  background: rgba(255, 119, 0, 0.6);
+  border-radius: 10px;
+}
+
+.form-panel::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 119, 0, 0.8);
 }
 
 .form-content {
   padding: 2rem;
-  overflow-y: auto;
+  flex: 1;
 }
 
 /* Mission Header Card */
@@ -349,20 +379,31 @@ async function handleSubmit() {
 
 /* Responsive Design */
 @media (max-width: 992px) {
+  .page {
+    position: relative;
+    height: auto;
+    min-height: 100vh;
+  }
+
   .feedback-layout {
     flex-direction: column;
     height: auto;
     min-height: calc(100vh - 70px);
+    overflow: visible;
   }
 
   .website-panel {
-    height: 50vh;
+    height: 60vh;
+    min-height: 400px;
     border-right: none;
     border-bottom: 3px solid #ff7700;
+    position: relative;
   }
 
   .form-panel {
     height: auto;
+    overflow-y: visible;
+    overflow-x: hidden;
   }
 
   .form-content {

@@ -4,9 +4,8 @@ import { createWebHistory, createRouter } from 'vue-router'
 // Pages
 import Welcome from '../Welcome.vue'
 import Login from '../Login.vue'
-import Home from '../Home/Home.vue'
+import TesterDashboard from '../Home/TesterDashboard.vue'
 import Create_Mission from '../CreateMission/Create_Mission.vue'
-import Mission_List from '../Mission_List.vue'
 import FounderDashboard from '../FounderDashboard.vue'
 import Mission_Feedback from '../mission_feedback.vue'
 import Gambling from '@/Gambling/Gambling.vue'
@@ -36,7 +35,7 @@ const routes = [
   { path: '/', component: Welcome },
 
   // Auth-protected pages
-  { path: '/home', component: Home, meta: { requiresAuth: true } },
+  { path: '/home', component: TesterDashboard, meta: { requiresAuth: true } },
   { path: '/mission/feedback/:missionId', component: Mission_Feedback, meta: { requiresAuth: true } },
   { path: '/dashboard', component: FounderDashboard, meta: { requiresAuth: true } },
 
@@ -64,7 +63,7 @@ const routes = [
 
   // Other pages
   { path: '/createMission', component: Create_Mission , meta: { requiresAuth: true }},
-  { path: '/missionList', component: Mission_List , meta: { requiresAuth: true }},
+  { path: '/missionList', redirect: '/home' }, // Redirect old route to new unified dashboard
 
   // Gambling and voucher routes
   { path: '/gambling', component: Gambling, meta: { requiresAuth: true } },

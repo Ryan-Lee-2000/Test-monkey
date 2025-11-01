@@ -2,9 +2,11 @@
 <script setup>
 import { ref } from "vue"
 import { useRouter } from "vue-router"
-import { getAuth, createUserWithEmailAndPassword, updateProfile } from "firebase/auth"
+import { getAuth, createUserWithEmailAndPassword, updateProfile, signOut } from "firebase/auth"
+import { getFunctions, httpsCallable } from "firebase/functions"
 import { createUser } from "@/Database/Monkey_Store"
 import RegistrationModal from "./RegistrationModal.vue"
+import EmailVerification from "./EmailVerification.vue"
 import { useAlert } from "@/composables/useAlert"
 
 // assets
@@ -13,6 +15,7 @@ import bananaUrl from "@/assets/welcome/banana.png"
 
 const router = useRouter()
 const { showWarning } = useAlert()
+const functions = getFunctions()
 
 // form state
 const name = ref("")
@@ -25,6 +28,12 @@ const showDialog = ref(false)
 const dialogMode = ref("loading") // "loading" | "success" | "error"
 const dialogText = ref("Creating account...")
 const submitting = ref(false)
+
+// verification state
+const showVerification = ref(false)
+const userUid = ref("")
+const userEmail = ref("")
+const verificationDevCode = ref("")
 
 function goBack () {
   router.back()
@@ -53,26 +62,62 @@ async function registerTester () {
     await updateProfile(cred.user, { displayName: name.value })
     await createUser([cred.user.uid, name.value, [], false])
 
-    dialogMode.value = "success"
-    dialogText.value = "Account Created!"
-    setTimeout(() => router.replace("/home"), 900)
+    // Create verification code
+    const createVerificationCode = httpsCallable(functions, 'createVerificationCode')
+    const result = await createVerificationCode({
+      email: email.value,
+      uid: cred.user.uid
+    })
+
+    // Sign out the user (they must verify email before logging in)
+    await signOut(auth)
+
+    // Store user info for verification screen
+    userUid.value = cred.user.uid
+    userEmail.value = email.value
+
+    // If in development mode, store the code
+    if (result.data.devCode) {
+      verificationDevCode.value = result.data.devCode
+    }
+
+    // Close registration modal and show verification screen
+    showDialog.value = false
+    showVerification.value = true
+    submitting.value = false
+
   } catch (e) {
     dialogMode.value = "error"
-    dialogText.value = e?.message || "Registration failed."
+    if (e?.code === 'auth/email-already-in-use') {
+      dialogText.value = "This email is already registered. Please check your email to continue your registration, or use a different email address."
+    } else {
+      dialogText.value = e?.message || "Registration failed."
+    }
     submitting.value = false
   }
 }
 </script>
 
 <template>
-  <!-- modal -->
-      <RegistrationModal
-        :show="showDialog"
-        :mode="dialogMode"
-        :message="dialogText"
-        @close="showDialog = false"
-      />
-  <div class="page">
+  <!-- Show verification screen if account created -->
+  <EmailVerification
+    v-if="showVerification"
+    :email="userEmail"
+    :uid="userUid"
+    :devCode="verificationDevCode"
+    userRole="TestMonkey"
+  />
+
+  <!-- Registration form -->
+  <div v-else>
+    <!-- modal -->
+    <RegistrationModal
+      :show="showDialog"
+      :mode="dialogMode"
+      :message="dialogText"
+      @close="showDialog = false"
+    />
+    <div class="page">
     <div class="card">
       <!-- back arrow -->
       <button class="back" aria-label="Back" @click="goBack">←</button>
@@ -124,9 +169,8 @@ async function registerTester () {
       <!-- banana -->
       <img :src="bananaUrl" class="banana" alt="" />
 
-      
-
     </div>
+  </div>
   </div>
 </template>
 

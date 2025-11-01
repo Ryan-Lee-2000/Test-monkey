@@ -1,15 +1,275 @@
 import { onSchedule } from "firebase-functions/v2/scheduler";
-import { onCall } from "firebase-functions/v2/https";
+import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { onDocumentCreated } from "firebase-functions/v2/firestore";
 import { defineSecret } from "firebase-functions/params";
 import * as logger from "firebase-functions/logger";
 import { Anthropic } from "@anthropic-ai/sdk";
-import admin from "firebase-admin"; 
+import admin from "firebase-admin";
+import nodemailer from "nodemailer"; 
 
 admin.initializeApp();
 const db = admin.firestore();
 const { FieldValue } = admin.firestore;
 const anthropicKey = defineSecret("ANTHROPIC_KEY");
+
+// CORS configuration
+const corsOptions = {
+  origin: true, // Allow all origins in development
+  credentials: true,
+};
+
+// Email verification helpers
+function generateVerificationCode() {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+}
+
+async function sendVerificationEmail(email, code) {
+  // For development: Log the code to console
+  logger.info(`Verification code for ${email}: ${code}`);
+
+  // In production, you would use a service like SendGrid, Mailgun, or Firebase Extensions
+  // For now, we'll use nodemailer with a test account for development
+  try {
+    // Create a test account (or use your SMTP credentials in production)
+    const isDevelopment = process.env.NODE_ENV !== 'production';
+
+    if (isDevelopment) {
+      // For development, just log the code
+      logger.info(`DEV MODE: Verification code for ${email}: ${code}`);
+      return { success: true, code }; // Return code in dev mode for testing
+    }
+
+    // Production email sending would go here
+    // Example with nodemailer:
+    // const transporter = nodemailer.createTransport({
+    //   service: 'gmail',
+    //   auth: {
+    //     user: process.env.EMAIL_USER,
+    //     pass: process.env.EMAIL_PASSWORD
+    //   }
+    // });
+    //
+    // await transporter.sendMail({
+    //   from: '"Test Monkey" <noreply@testmonkey.com>',
+    //   to: email,
+    //   subject: 'Verify Your Email - Test Monkey',
+    //   html: `
+    //     <h2>Welcome to Test Monkey!</h2>
+    //     <p>Your verification code is:</p>
+    //     <h1 style="color: #4A90E2; font-size: 32px; letter-spacing: 4px;">${code}</h1>
+    //     <p>This code will expire in 1 hour.</p>
+    //     <p>If you didn't request this code, please ignore this email.</p>
+    //   `
+    // });
+
+    return { success: true };
+  } catch (error) {
+    logger.error('Error sending verification email:', error);
+    throw error;
+  }
+}
+
+// Create verification code for a user
+export const createVerificationCode = onCall({ cors: corsOptions }, async (request) => {
+  const { email, uid } = request.data;
+
+  if (!email || !uid) {
+    return { error: "Email and UID are required." };
+  }
+
+  try {
+    const code = generateVerificationCode();
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour from now
+
+    await db.collection("EmailVerifications").doc(uid).set({
+      email,
+      code,
+      createdAt: FieldValue.serverTimestamp(),
+      expiresAt,
+      verified: false,
+      attempts: 0
+    });
+
+    await sendVerificationEmail(email, code);
+
+    logger.info(`Verification code created for ${email}`);
+
+    // In development, return the code for easy testing
+    const isDevelopment = process.env.NODE_ENV !== 'production';
+    if (isDevelopment) {
+      return { success: true, devCode: code };
+    }
+
+    return { success: true };
+  } catch (error) {
+    logger.error("Error creating verification code:", error);
+    return { error: "Failed to create verification code." };
+  }
+});
+
+// Verify the code entered by user
+export const verifyEmailCode = onCall({ cors: corsOptions }, async (request) => {
+  const { uid, code } = request.data;
+
+  if (!uid || !code) {
+    return { error: "UID and code are required." };
+  }
+
+  try {
+    const verificationDoc = await db.collection("EmailVerifications").doc(uid).get();
+
+    if (!verificationDoc.exists) {
+      return { error: "Verification not found." };
+    }
+
+    const verificationData = verificationDoc.data();
+
+    // Check if already verified
+    if (verificationData.verified) {
+      return { success: true, message: "Email already verified." };
+    }
+
+    // Check expiration
+    const now = new Date();
+    const expiresAt = verificationData.expiresAt.toDate();
+    if (now > expiresAt) {
+      return { error: "Verification code has expired." };
+    }
+
+    // Check attempts (max 5)
+    if (verificationData.attempts >= 5) {
+      return { error: "Too many attempts. Please request a new code." };
+    }
+
+    // Verify code
+    if (verificationData.code !== code) {
+      // Increment attempts
+      await db.collection("EmailVerifications").doc(uid).update({
+        attempts: FieldValue.increment(1)
+      });
+      return { error: "Invalid verification code." };
+    }
+
+    // Mark as verified
+    await db.collection("EmailVerifications").doc(uid).update({
+      verified: true,
+      verifiedAt: FieldValue.serverTimestamp()
+    });
+
+    logger.info(`Email verified for user ${uid}`);
+    return { success: true, message: "Email verified successfully." };
+
+  } catch (error) {
+    logger.error("Error verifying email code:", error);
+    return { error: "Failed to verify email." };
+  }
+});
+
+// Resend verification code
+export const resendVerificationCode = onCall({ cors: corsOptions }, async (request) => {
+  const { uid, email } = request.data;
+
+  if (!uid || !email) {
+    return { error: "UID and email are required." };
+  }
+
+  try {
+    const verificationDoc = await db.collection("EmailVerifications").doc(uid).get();
+
+    if (verificationDoc.exists) {
+      const verificationData = verificationDoc.data();
+      if (verificationData.verified) {
+        return { error: "Email already verified." };
+      }
+    }
+
+    const code = generateVerificationCode();
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
+
+    await db.collection("EmailVerifications").doc(uid).set({
+      email,
+      code,
+      createdAt: FieldValue.serverTimestamp(),
+      expiresAt,
+      verified: false,
+      attempts: 0
+    });
+
+    await sendVerificationEmail(email, code);
+
+    logger.info(`Verification code resent for ${email}`);
+    return { success: true };
+  } catch (error) {
+    logger.error("Error resending verification code:", error);
+    return { error: "Failed to resend verification code." };
+  }
+});
+
+// Scheduled function to delete unverified accounts older than 1 hour
+export const deleteUnverifiedAccounts = onSchedule("every 30 minutes", async (event) => {
+  logger.info("Running cleanup of unverified accounts.");
+
+  try {
+    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+
+    const unverifiedSnapshot = await db.collection("EmailVerifications")
+      .where("verified", "==", false)
+      .where("createdAt", "<", oneHourAgo)
+      .get();
+
+    if (unverifiedSnapshot.empty) {
+      logger.info("No unverified accounts to delete.");
+      return null;
+    }
+
+    const batch = db.batch();
+    const uidsToDelete = [];
+
+    unverifiedSnapshot.forEach(doc => {
+      uidsToDelete.push(doc.id);
+      batch.delete(doc.ref);
+    });
+
+    // Delete verification documents
+    await batch.commit();
+
+    // Delete user accounts from Firebase Auth
+    for (const uid of uidsToDelete) {
+      try {
+        await admin.auth().deleteUser(uid);
+
+        // Also delete from Users collection if exists
+        const userDoc = await db.collection("Users").doc(uid).get();
+        if (userDoc.exists) {
+          const userData = userDoc.data();
+
+          // Delete role-specific data
+          if (userData.Role === "Founder") {
+            const founderQuery = await db.collection("Founders").where("User", "==", uid).get();
+            founderQuery.forEach(doc => doc.ref.delete());
+          } else if (userData.Role === "TestMonkey") {
+            const testerQuery = await db.collection("TestMonkey").where("User", "==", uid).get();
+            testerQuery.forEach(doc => doc.ref.delete());
+          }
+
+          // Delete user document
+          await userDoc.ref.delete();
+        }
+
+        logger.info(`Deleted unverified user ${uid}`);
+      } catch (error) {
+        logger.error(`Failed to delete user ${uid}:`, error);
+      }
+    }
+
+    logger.info(`Deleted ${uidsToDelete.length} unverified accounts.`);
+    return null;
+
+  } catch (error) {
+    logger.error("Error during unverified account cleanup:", error);
+    return null;
+  }
+});
 
 export const updateSubmissionCount = onDocumentCreated("Submissions/{submissionId}", async (event) => {
   const submissionData = event.data.data();
@@ -45,7 +305,7 @@ export const updateSubmissionCount = onDocumentCreated("Submissions/{submissionI
   return null;
 });
 
-export const recalculateAllMissionCounts = onCall(async () => {
+export const recalculateAllMissionCounts = onCall({ cors: corsOptions }, async () => {
   const missionsRef = db.collection("Missions");
   const missionsSnap = await missionsRef.get();
 
@@ -124,7 +384,7 @@ export const summarizeFeedback = onSchedule({
 });
 
 
-export const generateMissionReport = onCall({ secrets: [anthropicKey] }, async (request) =>  {
+export const generateMissionReport = onCall({ secrets: [anthropicKey], cors: corsOptions }, async (request) =>  {
   const missionId = request.data.missionId;
   if (!missionId) {
     logger.error("No missionId was provided.");

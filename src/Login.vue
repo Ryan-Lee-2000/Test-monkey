@@ -5,7 +5,9 @@ import "bootstrap"
 
 // Vue / Firebase
 import { ref } from "vue"
-import { getAuth, signInWithEmailAndPassword } from "firebase/auth"
+import { getAuth, signInWithEmailAndPassword, signOut } from "firebase/auth"
+import { getFunctions, httpsCallable } from "firebase/functions"
+import { getFirestore, doc, getDoc } from "firebase/firestore"
 import { useRouter } from "vue-router"
 import { useAlert } from "@/composables/useAlert"
 
@@ -23,12 +25,14 @@ const dialogText = ref("Logging in…")
 
 const router = useRouter()
 const { showError } = useAlert()
+const db = getFirestore()
+const functions = getFunctions()
 
 // Assets
 import monkeyUrl from "@/assets/welcome/monkey.png"
 import bananaUrl from "@/assets/welcome/banana.png"
 
-function login () {
+async function login () {
   if (loading.value) return
   loading.value = true
 
@@ -37,21 +41,35 @@ function login () {
   dialogMode.value = "loading"
   dialogText.value = "Logging in…"
 
-  signInWithEmailAndPassword(getAuth(), email.value, pwd.value)
-    .then(() => {
-      // switch to success state briefly, then go Home
-      dialogMode.value = "success"
-      dialogText.value = "Successfully Login."
-      setTimeout(() => router.replace({ path: "/Home" }), 900)
-    })
-    .catch((error) => {
+  try {
+    const auth = getAuth()
+    const userCredential = await signInWithEmailAndPassword(auth, email.value, pwd.value)
+    const user = userCredential.user
+
+    // Check if email is verified
+    const verificationDoc = await getDoc(doc(db, "EmailVerifications", user.uid))
+
+    if (!verificationDoc.exists() || !verificationDoc.data().verified) {
+      // Sign out the user
+      await signOut(auth)
       showDialog.value = false
-      console.log(error.code)
-      showError(error.message, 'Login Error')
-    })
-    .finally(() => {
+      showError("Please verify your email before logging in. Check your email for the verification code.", "Email Not Verified")
       loading.value = false
-    })
+      return
+    }
+
+    // switch to success state briefly, then go Home
+    dialogMode.value = "success"
+    dialogText.value = "Successfully Login."
+    setTimeout(() => router.replace({ path: "/Home" }), 900)
+
+  } catch (error) {
+    showDialog.value = false
+    console.log(error.code)
+    showError(error.message, 'Login Error')
+  } finally {
+    loading.value = false
+  }
 }
 
 function goBack () {

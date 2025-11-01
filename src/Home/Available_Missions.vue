@@ -170,8 +170,8 @@ async function refreshMissions(){
         <div class="header-content">
           <img :src="homepageMonkeyURL" class="header-image " alt="Header Monkey" />
           <div class="header-text">
-            <h1 class="mb-2">{{ user_name }}'s Dashboard</h1>
-            <p class="mb-0 opacity-75">Welcome back! Check out the latest missions.</p>
+            <h1 class="mb-2">Test Monkey</h1>
+            <p class="mb-0 opacity-75">Welcome back, {{ user_name }}! Check out the latest missions.</p>
           </div>
         </div>
       </div>
@@ -214,7 +214,7 @@ async function refreshMissions(){
                 <small class="text-muted">Highest Payout</small>
                 <div class="highest-row">
                   <img :src="bananaURL" class="banana-image"/>
-                  <h2 class="stats-num text-success mb-0">${{ stats.highestPayout }}</h2>
+                  <h2 class="stats-num text-success mb-0">{{ stats.highestPayout }} 🍌</h2>
                 </div>
               </div>
             </div>
@@ -225,7 +225,7 @@ async function refreshMissions(){
                 <small class="text-muted">Avg Payout</small>
                 <div class="avg-row">
                   <img :src="peeledBananaURL" class="peeledBanana-image"/>
-                  <h2 class="stats-num text-warning mb-0">${{ stats.avgPayout }}</h2>
+                  <h2 class="stats-num text-warning mb-0">{{ stats.avgPayout }} 🍌</h2>
                 </div>
               </div>
             </div>
@@ -293,9 +293,9 @@ async function refreshMissions(){
             :key="mission.mission_id"
             class="col-12 col-sm-6 col-lg-4 col-xl-3"
           >
-            <div class="card h-100 shadow-sm mission-card">
-              <img 
-                :src="getPlaceholderImage(mission.mission_id)" 
+            <div class="card h-100 shadow-sm mission-card" @click="showMission(mission.mission_id)">
+              <img
+                :src="getPlaceholderImage(mission.mission_id)"
                 :alt="mission.name"
                 class="card-img-top"
                 style="height: 200px; object-fit: cover;"
@@ -312,7 +312,7 @@ async function refreshMissions(){
                     <i class="fas fa-clock me-1"></i>{{ formatDuration(mission.duration) }}
                   </span>
                   <span class="badge bg-success bg-opacity-10 text-success">
-                    <i class="fas fa-dollar-sign me-1"></i>{{ mission.payout }}
+                    🍌 {{ mission.payout }}
                   </span>
                   <span class="badge bg-primary bg-opacity-10 text-primary">
                     <i class="fas fa-users me-1"></i>{{ mission.num_testers }}
@@ -322,7 +322,7 @@ async function refreshMissions(){
               
               <div class="card-footer bg-white d-flex justify-content-between align-items-center">
                 <small class="text-muted text-truncate me-2">ID: {{ mission.mission_id.slice(0, 8) }}...</small>
-                <button class="btn btn-sm btn-primary" @click="showMission(mission.mission_id)">
+                <button class="btn btn-sm btn-primary" @click.stop="showMission(mission.mission_id)">
                   <i class="fas fa-paper-plane me-1"></i>Apply
                 </button>
               </div>

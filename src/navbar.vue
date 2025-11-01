@@ -128,16 +128,11 @@ function logout(){
                   <span class="visually-hidden">(current)</span></a
                 >
               </li>
-              <li class="nav-item">
-                <a class="nav-link" id="createMission" v-if="role"
+              <li class="nav-item" v-if="role">
+                <a class="nav-link" id="createMission"
                 :class="{ active_link: $route.path === '/createMission' }"
                 @click="router.push({ path: '/createMission' })">
                 <div class="link_text">Create Mission</div></a>
-
-                <a class="nav-link" id="createMission" v-else
-                :class="{ active_link: $route.path === '/missionList' }"
-                @click="router.push({ path: '/missionList' })">
-                <div class="link_text">My Missions</div></a>
               </li>
               <li class="nav-item" v-if="role">
                 <a class="nav-link "

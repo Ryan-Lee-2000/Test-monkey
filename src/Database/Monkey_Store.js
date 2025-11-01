@@ -10,7 +10,8 @@ import {
   where, 
   serverTimestamp, 
   arrayUnion, 
-  arrayRemove 
+  arrayRemove,
+  documentId
 } from "firebase/firestore";
 import { db, storage } from "@/Config/api_services";
 import { getDownloadURL, ref as storageRef, uploadBytes } from 'firebase/storage';
@@ -151,6 +152,19 @@ export async function createMission(mission_detail){
 
 }
 
+export async function getAllMissions(){
+  // Returns all active missions without filtering
+
+  const snapshot = await getDocs(query(collection(db,'Missions'), where("status", "==", "Active")))
+  const all_missions = []
+  snapshot.forEach((doc)=>{
+    const mission_data = doc.data()
+    mission_data.mission_id = doc.id
+    all_missions.push(mission_data)
+  })
+  return all_missions
+}
+
 export async function getMissions(){
   const snapshot = await getDocs(query(collection(db,'Missions')))
   const all_missions = []
@@ -201,20 +215,66 @@ export async function joinMission(mission_id){
 
 export async function get_user_missions(uid){
   
-  const active_missions = []
+  //const active_missions = []
+  const active_missions = {Active: [], Completed: []}
 
-  const snapshot = await getDocs(query(collection(db,'Missions'),where("active_testers", "array-contains", uid)))
-  snapshot.forEach((doc)=>{
-    const missionData = doc.data();
-    //console.log('doc', doc.data())
-    if(doc.data().status == 'Active'){
-      //console.log('pushing')
-      active_missions.push({ id: doc.id, ...missionData });
-    }
-  })
+  const docRef =  doc(db, 'TestMonkey',uid)
+  const userDoc = await getDoc(docRef)
+  
+  console.log(userDoc.data())
+
+  const active = userDoc.data().active_missions
+  const completed = userDoc.data().mission_history
+
+  console.log(active)
+  console.log(completed)
+
+  const missionRef = collection(db, "Missions");
+  
+  if(active.length > 0){
+    const a_completed = query(missionRef, where(documentId(), 'in', active));
+    const snap_active = await getDocs(a_completed)
+    snap_active.forEach((doc) => {
+      const mission_data = doc.data()
+      mission_data.mission_id = doc.id
+      active_missions.Active.push(mission_data)
+    })
+  }
+
+  if(completed.length > 0){
+    const q_completed = query(missionRef, where(documentId(), 'in', completed));
+    const snap_completed = await getDocs(q_completed)
+    snap_completed.forEach((doc) => {
+      const mission_data = doc.data()
+      mission_data.mission_id = doc.id
+      active_missions.Completed.push(mission_data)
+    })
+  }
+  
+  console.log(active_missions)
+
+  // const snapshot = await getDocs(query(collection(db,'Missions'),where("active_testers", "array-contains", uid)))
+  // snapshot.forEach((doc)=>{
+  //   const missionData = doc.data();
+  //   //console.log('doc', doc.data())
+  //   if(doc.data().status == 'Active'){
+  //     //console.log('pushing')
+  //     active_missions.push({ id: doc.id, ...missionData });
+  //   }
+  // })
 
   return active_missions
 
+}
+
+export async function getUserResponse(missionId, uid){
+  console.log(missionId, uid)
+  const snapshot = await getDocs(query(collection(db,'Submissions'), where("missionId", "==", missionId), where("testerId", "==", uid)))
+  const answers = []
+  snapshot.forEach((doc) => {
+    answers.push(doc.data().answers) 
+  })
+  return answers[0]
 }
 
 export async function getMissionById(missionId) {

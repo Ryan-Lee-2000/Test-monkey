@@ -4,6 +4,7 @@ import App from './App.vue'
 import router from './Config/router'
 import { auth, db, storage } from './Config/api_services'
 import "@/styles/global.css"
+import "@/assets/styles/design-system.css"
 
 import { Roulette } from 'vue3-roulette'
 
