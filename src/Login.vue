@@ -154,12 +154,13 @@ function goBack () {
                       />
                     </div>
 
-                    <p class="helper text-center mb-4">Forgot your password?</p>
+                    <!-- <p class="helper text-center mb-4">Forgot your password?</p> -->
 
                     <!-- centered button -->
                     <button
                       type="submit"
                       class="btn btn-primary btn-login"
+                      style="margin-top: 30px;"
                       :disabled="loading"
                     >
                       <span
@@ -207,7 +208,7 @@ function goBack () {
 
 /* Background */
 .cool-bg {
-  background: linear-gradient(to bottom, #0f4d26 7%, #F97A02 26%, #FC9D05 54%, #FDC955 77%, #ABD453 90%);
+  background: var(--gradient-primary);
   min-height: 100vh;
   display: flex;
   align-items: center;
@@ -318,9 +319,9 @@ function goBack () {
 /* Centered, short login button */
 .btn-login {
   display: block;         
-  width: 220px;           
+  width: 220px;
   margin: 0 auto;          /* center horizontally */
-  background: linear-gradient(180deg, #2e7d32 0%, #1b5e20 100%);
+  background: var(--gradient-green-180);
   border: none;
   border-radius: 12px;
   padding: 12px 2rem;

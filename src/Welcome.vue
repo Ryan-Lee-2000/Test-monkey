@@ -87,7 +87,7 @@ onMounted(() => {
   min-height: 100vh;
   display: grid;
   place-items: center;
-  background: linear-gradient(to bottom, #0f4d26 7%, #F97A02 26%, #FC9D05 54%, #FDC955 77%, #ABD453 90%);
+  background: var(--gradient-primary);
   padding: 36px 16px;
 }
 
@@ -160,7 +160,7 @@ onMounted(() => {
 /* Solid (Login) with black 25% shadows */
 .btn-solid {
   color: #fff;
-  background: linear-gradient(180deg, #2e7d32 0%, #1b5e20 100%);
+  background: var(--gradient-green-180);
   border: none;
   box-shadow: 0 6px 0 rgba(0,0,0,.25), 0 10px 24px rgba(0,0,0,.25);
 }

@@ -187,7 +187,7 @@ async function registerTester () {
   display:grid;
   place-items:center;
   padding:36px 16px;
-  background: linear-gradient(to bottom, #0f4d26 7%, #F97A02 26%, #FC9D05 54%, #FDC955 77%, #ABD453 90%);
+  background: var(--gradient-primary);
 }
 
 /* card */
@@ -299,7 +299,7 @@ async function registerTester () {
   color:#fff;
   font-weight:800;
   font-size:16px;
-  background: linear-gradient(180deg, #2e7d32 0%, #1b5e20 100%);
+  background: var(--gradient-green-180);
   box-shadow: 0 6px 0 rgba(0,0,0,.25), 0 10px 24px rgba(0,0,0,.25);
   width:220px;
   justify-self:center;

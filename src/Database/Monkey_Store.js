@@ -220,14 +220,10 @@ export async function get_user_missions(uid){
 
   const docRef =  doc(db, 'TestMonkey',uid)
   const userDoc = await getDoc(docRef)
-  
-  console.log(userDoc.data())
 
   const active = userDoc.data().active_missions
   const completed = userDoc.data().mission_history
 
-  console.log(active)
-  console.log(completed)
 
   const missionRef = collection(db, "Missions");
   
@@ -251,7 +247,6 @@ export async function get_user_missions(uid){
     })
   }
   
-  console.log(active_missions)
 
   // const snapshot = await getDocs(query(collection(db,'Missions'),where("active_testers", "array-contains", uid)))
   // snapshot.forEach((doc)=>{
@@ -268,7 +263,6 @@ export async function get_user_missions(uid){
 }
 
 export async function getUserResponse(missionId, uid){
-  console.log(missionId, uid)
   const snapshot = await getDocs(query(collection(db,'Submissions'), where("missionId", "==", missionId), where("testerId", "==", uid)))
   const answers = []
   snapshot.forEach((doc) => {

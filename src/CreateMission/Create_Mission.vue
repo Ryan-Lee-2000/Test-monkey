@@ -409,7 +409,7 @@ function reset(){
                 <button class="btn btn-outline-success btn-lg" @click="showPreview = true">
                   <i class="fas fa-eye me-2"></i>Preview Mission
                 </button>
-                <button class="btn btn-gradient btn-lg fw-bold" @click="checkMission">
+                <button class="btn btn-primary btn-lg fw-bold" @click="checkMission">
                   <i class="fas fa-rocket me-2"></i>Launch Mission
                 </button>
               </div>
@@ -585,16 +585,9 @@ function reset(){
   background-size: 20px;
 }
 
+/* Using .btn-primary from design system instead */
 .btn-gradient {
-  background: #0A490AEB;
-  border: none;
-  color: white;
-}
-
-.btn-gradient:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
-  color: white;
+  /* Deprecated - use .btn-primary */
 }
 
 .total-cost-box {

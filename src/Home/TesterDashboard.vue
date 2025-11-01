@@ -385,7 +385,7 @@ async function refreshMissions(){
                         <div>
                           <small class="text-success"><i class="fas fa-coins me-1"></i>🍌{{ mission.payout || 0 }} earned</small>
                         </div>
-                        <button class="btn-modern btn-ghost btn-sm view-btn" style="border: 1px solid black; width: fit-content;"
+                        <button class="btn-modern btn-ghost btn-sm view-btn" 
                         @click="showCompletedMission(mission.mission_id)">
                           <i class="fas fa-eye me-1"></i>View Submission
                         </button>
@@ -655,6 +655,10 @@ async function refreshMissions(){
   -webkit-box-orient: vertical;
   text-overflow: ellipsis;
   overflow: hidden;
+}
+
+.view-btn{
+  color: black;
 }
 
 .view-btn:hover{

@@ -161,7 +161,7 @@ async function registerFounder(){
 :global(html), :global(body) { font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Arial, "Helvetica Neue", sans-serif; }
 
 .page{ min-height:100vh; display:grid; place-items:center; padding:36px 16px;
-    background: linear-gradient(to bottom, #0f4d26 7%, #F97A02 26%, #FC9D05 54%, #FDC955 77%, #ABD453 90%); }
+    background: var(--gradient-primary); }
 
 .card{ position:relative; max-width: 980px; width:100%; min-height:560px; display:grid;
   grid-template-columns: 1.05fr 1px 1.2fr; gap:24px; padding:36px 40px; border-radius:22px;
@@ -213,7 +213,7 @@ async function registerFounder(){
 
 /* Button */
 .btn{ margin-top:6px; height:46px; border:none; border-radius:10px; color:#fff; font-weight:800; font-size:16px;
-  background: linear-gradient(180deg, #2e7d32 0%, #1b5e20 100%);
+  background: var(--gradient-green-180);
   box-shadow: 0 6px 0 rgba(0,0,0,.25), 0 10px 24px rgba(0,0,0,.25); width:220px; justify-self:center;
   transition:transform .1s ease, box-shadow .15s ease; }
 .btn:hover{ transform:translateY(-1px); box-shadow:0 6px 0 rgba(0,0,0,.25), 0 16px 30px rgba(0,0,0,.25) }
