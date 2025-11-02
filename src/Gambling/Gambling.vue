@@ -10,10 +10,12 @@ import { canClaimFreePack, getPityCounter, GACHA_CONSTANTS } from "../Database/G
 import VoucherPackModal from './VoucherPackModal.vue'
 import RecentWinnersFeed from "./RecentWinnersFeed.vue"
 import { useAlert } from "@/composables/useAlert"
+import { useUserData } from "@/composables/useUserData"
 
 const auth = getAuth()
 const router = useRouter()
 const { showInfo, showWarning } = useAlert()
+const { refreshBalance } = useUserData()
 
 const isFounder = ref(false)
 const isLoading = ref(true)
@@ -95,8 +97,11 @@ function closePackModal() {
 async function handlePackOpened(voucher) {
   console.log('Pack opened! Voucher:', voucher)
 
-  // Reload tester data
+  // Reload tester data (for the page stat cards)
   await loadTesterData()
+
+  // Also refresh the navbar balance
+  await refreshBalance()
 }
 
 function goToInventory() {
@@ -252,7 +257,7 @@ function goToInventory() {
             </div>
 
             <button
-              class="btn btn-success btn-lg w-100 open-pack-btn"
+              class="btn btn-primary btn-lg w-100 open-pack-btn"
               @click="openFreePack"
               :disabled="!canClaimFree"
             >

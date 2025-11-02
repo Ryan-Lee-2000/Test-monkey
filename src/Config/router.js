@@ -63,7 +63,6 @@ const routes = [
 
   // Other pages
   { path: '/createMission', component: Create_Mission , meta: { requiresAuth: true }},
-  { path: '/missionList', redirect: '/home' }, // Redirect old route to new unified dashboard
 
   // Gambling and voucher routes
   { path: '/gambling', component: Gambling, meta: { requiresAuth: true } },
@@ -101,17 +100,38 @@ router.beforeEach(async (to, from, next) => {
     return
   }
 
-  // Check role-based access for gambling and voucher routes
-  if ((to.path === '/gambling' || to.path === '/voucher-inventory') && auth.currentUser) {
+  // Check role-based access for authenticated users
+  if (auth.currentUser) {
     try {
       const userRole = await getUserRole(auth.currentUser.uid)
+
+      // Prevent Founders from accessing Tester-only pages
       if (userRole === 'Founder') {
-        // Founders cannot access gambling/vouchers - redirect to home
-        if (showAlertFromRouter) {
-          showAlertFromRouter('Gambling and vouchers are only available for Test Monkeys. As a Founder, you can use bananas to create missions.', { type: 'info', title: 'Access Restricted' })
+        if (to.path === '/home') {
+          // Redirect Founders trying to access /home to their dashboard
+          next('/dashboard')
+          return
         }
-        next('/home')
-        return
+        if (to.path === '/gambling' || to.path === '/voucher-inventory') {
+          // Founders cannot access gambling/vouchers
+          if (showAlertFromRouter) {
+            showAlertFromRouter('Gambling and vouchers are only available for Test Monkeys. As a Founder, you can use bananas to create missions.', { type: 'info', title: 'Access Restricted' })
+          }
+          next('/dashboard')
+          return
+        }
+      }
+
+      // Prevent Testers from accessing Founder-only pages
+      if (userRole !== 'Founder') {
+        if (to.path === '/dashboard' || to.path === '/createMission' || to.path.startsWith('/dashboard/')) {
+          // Redirect Testers trying to access founder pages to their missions
+          if (showAlertFromRouter) {
+            showAlertFromRouter('This page is only available for Founders.', { type: 'info', title: 'Access Restricted' })
+          }
+          next('/home')
+          return
+        }
       }
     } catch (error) {
       console.error('Error checking user role:', error)

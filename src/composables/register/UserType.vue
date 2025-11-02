@@ -58,21 +58,4 @@ function goBack () {
   .auth-hero{
     background: var(--gradient-primary);
   }
-
-  .back{
-    position:absolute;
-    top:16px;
-    left:16px;
-    background:transparent;
-    border:none;
-    color:#fff;
-    font-size:28px;
-    cursor:pointer;
-  }
-
-  .back:focus-visible {
-    outline: 2px solid var(--color-white);
-    outline-offset: 2px;
-    border-radius: 4px;
-  }
 </style>

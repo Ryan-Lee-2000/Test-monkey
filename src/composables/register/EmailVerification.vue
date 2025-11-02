@@ -61,7 +61,7 @@
           <p class="text-muted">Didn't receive the code?</p>
           <button
             type="button"
-            class="btn-modern btn-ghost"
+            class="btn-modern btn-ghost-dark"
             :disabled="resendCooldown > 0 || isResending"
             @click="handleResend"
           >

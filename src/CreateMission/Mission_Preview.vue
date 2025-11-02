@@ -133,7 +133,7 @@ const getPlaceholderImage = computed(() => {
         </div>
         
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" @click="emit('close')">Close</button>
+          <button type="button" class="btn btn-ghost-dark" @click="emit('close')">Close</button>
           <button type="button" class="btn btn-primary" @click="emit('launch')">Looks Good - Launch Mission</button>
         </div>
       </div>

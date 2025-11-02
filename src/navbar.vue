@@ -8,6 +8,8 @@ import { useRouter } from "vue-router";
 import { getUserRole, getBananaBalance } from "./Database/Monkey_Store";
 import BananaTopUp from "./Bananas/BananaTopUp.vue";
 import AlertModal from "./components/AlertModal.vue";
+import UserDropdown from "./components/UserDropdown.vue";
+import NavbarSkeleton from "./components/NavbarSkeleton.vue";
 import { useBananaTopUp } from "./composables/useBananaTopUp";
 import { useUserData } from "./composables/useUserData";
 import { useAlert } from "./composables/useAlert";
@@ -18,12 +20,14 @@ const { showAlert, alertConfig, closeAlert, handleConfirm, handleCancel, showErr
 const show_navbar = ref(true)
 const auth = getAuth();
 const router = useRouter()
-// const role = ref(false) //true == 'Founder', false == 'TestMonkey'
-// const userRole = ref('')
-// const bananaBalance = ref(0)
 const isMobileMenuOpen = ref(false)
-const { userRole, bananaBalance, loadUserData, refreshBalance, resetUserData } = useUserData()
+const { userRole, bananaBalance, isLoaded, loadUserData, refreshBalance, resetUserData } = useUserData()
 const role = computed(() => userRole.value === 'Founder')
+
+// Get current user's display name from Firebase Auth
+const userName = computed(() => {
+  return auth.currentUser?.displayName || auth.currentUser?.email?.split('@')[0] || 'User'
+})
 
 function go(path) {
   router.push({ path })
@@ -41,41 +45,12 @@ onMounted(async () => {
   window.addEventListener('resize', handleResize)
 })
 
-// onMounted(async () => {
-//   if(auth.currentUser){
-//     //show_navbar.value = true
-//     const roleResponse = await getUserRole(auth.currentUser.uid)
-//     userRole.value = roleResponse
-
-//     if(roleResponse == 'Founder'){
-//         role.value = true
-//         // Load banana balance for founders
-//         bananaBalance.value = await getBananaBalance(auth.currentUser.uid, 'Founder')
-//     } else{
-//         role.value = false
-//         // Load banana balance for testers
-//         bananaBalance.value = await getBananaBalance(auth.currentUser.uid, 'TestMonkey')
-//     }
-//   }
-
-//   // Add resize event listener
-//   window.addEventListener('resize', handleResize)
-// })
 
 onUnmounted(() => {
   // Clean up resize event listener
   window.removeEventListener('resize', handleResize)
 })
 
-// async function refreshBalance() {
-//   if (auth.currentUser) {
-//     if (userRole.value === 'Founder') {
-//       bananaBalance.value = await getBananaBalance(auth.currentUser.uid, 'Founder')
-//     } else {
-//       bananaBalance.value = await getBananaBalance(auth.currentUser.uid, 'TestMonkey')
-//     }
-//   }
-// }
 
 function logout(){
     signOut(auth).then(() => {
@@ -102,42 +77,33 @@ function logout(){
 <template>
     <nav
         class="navbar navbar-expand-sm fixed-top navbar-light"
-        style="height: 8vh; "
         v-if="show_navbar"
       >
-        <div class="container-fluid h-100 py-2" 
-        style="display: flex; justify-content: center; align-items: center;">
-          <button
-            class="menu-toggle d-lg-none order-last mt-lg-0 mt-2"
-            style="background-color: transparent; border: 0;"
-            @click="isMobileMenuOpen = !isMobileMenuOpen"
-            aria-label="Toggle menu"
-          >
-            <i class="fas fa-bars fa-2xl"></i>
-          </button>
+        <div class="container-fluid navbar-container">
+          <!-- Navbar Brand -->
+          <a class="navbar-brand" id="navbar-brand-style" @click="router.push({path: role ? '/dashboard' : '/home'})">
+            Test Monkey
+          </a>
 
-          <a class="navbar-brand" id="navbar-brand-style" href="#">Test Monkey</a>
-
-          <div class="collapse navbar-collapse" id="collapsibleNavId">
-            <ul class="navbar-nav me-auto mt-2 mt-lg-0">
-              <li class="nav-item">
+          <!-- Desktop Navigation Links -->
+          <div class="collapse navbar-collapse d-none d-lg-flex">
+            <ul class="navbar-nav me-auto">
+              <li class="nav-item" v-if="!role">
                 <a class="nav-link"
-                  :class="{ active_link: $route.path === '/Home' || $route.path === '/' }" 
-                  @click="router.push({ path: '/Home' })" aria-current="page">
-                  <div class="link_text">Home</div>
-                  <span class="visually-hidden">(current)</span></a
-                >
+                :class="{ active_link: $route.path === '/home' }"
+                @click="router.push({path: '/home'})"><div class="link_text">My Missions</div>
+                  <span class="visually-hidden">(current)</span></a>
+              </li>
+              <li class="nav-item" v-if="role">
+                <a class="nav-link "
+                :class="{ active_link: $route.path === '/dashboard' }"
+                @click="router.push({path: '/dashboard'})"><div class="link_text">Dashboard</div></a>
               </li>
               <li class="nav-item" v-if="role">
                 <a class="nav-link" id="createMission"
                 :class="{ active_link: $route.path === '/createMission' }"
                 @click="router.push({ path: '/createMission' })">
                 <div class="link_text">Create Mission</div></a>
-              </li>
-              <li class="nav-item" v-if="role">
-                <a class="nav-link "
-                :class="{ active_link: $route.path === '/dashboard' }"
-                @click="router.push({path: '/dashboard'})"><div class="link_text">Dashboard</div></a>
               </li>
               <li class="nav-item" v-else>
                 <a class="nav-link "
@@ -169,27 +135,29 @@ function logout(){
             </ul>
           </div>
 
-          <!-- Banana Balance Display -->
-          <div class="right-actions">
-            <div class="banana-balance-container">
-              <!-- Founder: Clickable with top-up -->
-              <button v-if="role" class="banana-balance clickable" @click="openTopUp">
-                <span class="banana-icon">🍌</span>
-                <span class="balance-amount">{{ bananaBalance.toLocaleString() }}</span>
-                <i class="fas fa-plus-circle add-icon"></i>
-              </button>
-
-              <!-- TestMonkey: Display only -->
-              <div v-else class="banana-balance readonly">
-                <span class="banana-icon">🍌</span>
-                <span class="balance-amount">{{ bananaBalance.toLocaleString() }}</span>
-              </div>
-            </div>
+          <!-- User Dropdown (Desktop) -->
+          <div class="d-none d-lg-flex align-items-center">
+            <NavbarSkeleton v-if="!isLoaded" />
+            <UserDropdown
+              v-else
+              :user-name="userName"
+              :user-role="userRole"
+              :banana-balance="bananaBalance"
+              :is-founder="role"
+              @logout="logout"
+              @top-up="openTopUp"
+            />
           </div>
 
-            <button id="logout_btn" class="btn my-2 my-lg-0" @click="logout">
-            Logout
-            </button>
+          <!-- Mobile Menu Toggle -->
+          <button
+            class="menu-toggle d-lg-none"
+            style="background-color: transparent; border: 0;"
+            @click="isMobileMenuOpen = !isMobileMenuOpen"
+            aria-label="Toggle menu"
+          >
+            <i class="fas fa-bars fa-2xl"></i>
+          </button>
             
         </div>
 
@@ -198,7 +166,7 @@ function logout(){
           <div v-if="isMobileMenuOpen" class="mobile-sidebar w-50" style="min-width: 200px;">
           <!-- Sidebar Header -->
             <div class="mobile-sidebar-header d-flex justify-content-between align-items-center px-4 py-3 border-bottom">
-              <h2 class="sidebar-title mb-0">Test Monkey</h2>
+              <h2 class="sidebar-title mb-0" style="color: white;">Test Monkey</h2>
               <button class="close-btn"
               style="background-color: transparent; border: 1px white solid; 
               width: 40px; height: 40px; text-align: center; background-color: white;
@@ -211,12 +179,11 @@ function logout(){
 
             <!-- Sidebar Navigation -->
             <ul class="list-unstyled m-0 p-0">
-              <li class="py-3 px-4 border-bottom" @click="go('/Home'); isMobileMenuOpen = false">Home</li>
-              <li class="py-3 px-4 border-bottom" v-if="role" @click="go('/createMission'); isMobileMenuOpen = false">Create Mission</li>
-              <li class="py-3 px-4 border-bottom" v-else @click="go('/missionList'); isMobileMenuOpen = false">My Missions</li>
+              <li class="py-3 px-4 border-bottom" v-if="!role" @click="go('/home'); isMobileMenuOpen = false">My Missions</li>
               <li class="py-3 px-4 border-bottom" @click="go(role ? '/dashboard' : '/gambling'); isMobileMenuOpen = false">
                 {{ role ? 'Dashboard' : 'Gambling' }}
               </li>
+              <li class="py-3 px-4 border-bottom" v-if="role" @click="go('/createMission'); isMobileMenuOpen = false">Create Mission</li>
             </ul>
             <ul class="list-unstyled m-0 p-0 fixed-bottom" >
               <li class="py-3 px-4 border-bottom border-top w-50" style="min-width: 200px;">
@@ -277,103 +244,166 @@ function logout(){
 
 <style>
 
-.navbar{
-  background-color: #386641;
+.navbar {
+  background-color: var(--color-brand-green-light);
   width: 100%;
   max-width: 100vw;
   left: 0;
   right: 0;
   margin-inline: auto;
-  padding-inline: 20px;
-  padding-block: 12px;
+  padding-inline: var(--spacing-lg);
+  padding-block: 0;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  overflow: visible;
+}
+
+.navbar-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 100%;
+  gap: var(--spacing-xl);
+  padding: 0;
+  overflow: visible;
 }
 
 /* Keep Test Monkey fixed to the left edge on small screens */
 @media (max-width: 576px) {
   .navbar {
-    padding-inline: 12px; 
+    padding-inline: var(--spacing-sm);
   }
 
   #navbar-brand-style {
     position: absolute;
-    left: 16px;
-    top: 12px;
+    left: var(--spacing-md);
+    top: var(--spacing-sm);
     transform: none;
   }
 
   .menu-toggle {
     position: absolute;
-    right: 16px;
+    right: var(--spacing-md);
     top: 14px;
+    min-width: 44px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 }
 
 
 #navbar-brand-style {
-  color: white;
-  font-weight: bold;
-  font-size: 28px;
-  margin-right: 85px;
+  color: var(--color-white);
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-2xl);
+  line-height: 1.2;
+  cursor: pointer;
+  transition: opacity var(--transition-fast);
+  text-decoration: none;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
-#logout_btn{
-  background-color: #EF8C37;
-  color: white;
-  box-shadow: 0 4px 0 rgba(0,0,0,.2), 0 6px 16px rgba(0,0,0,.2);
-  border-radius: 8px;
-  font-weight: 600;
-  font-size: 16px;
-  padding: 8px 20px;
+#navbar-brand-style:hover {
+  opacity: 0.9;
+  text-decoration: none;
+}
+
+.navbar-collapse {
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+/* User Dropdown container spacing */
+.d-none.d-lg-flex.align-items-center {
+  margin-left: auto;
+  position: relative;
 }
 
 a:hover{
   cursor: pointer;
-
 }
-.link_text{
+
+.nav-link {
+  position: relative;
+  text-decoration: none;
+  border-radius: var(--radius-md);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  transition: background-color var(--transition-fast);
+}
+
+.nav-link:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.link_text {
   text-align: center;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  transition: transform 0.3s ease-out;
-  color: white;
-  font-size: 20px;
-  font-weight: 500;
-  padding-right: 15px;
+  color: var(--color-white);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.5;
+  letter-spacing: 0.01em;
+  padding-right: var(--spacing-md);
+  padding-bottom: var(--spacing-xs);
+  transition: opacity var(--transition-fast);
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+/* Animated underline */
+.link_text::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: var(--color-brand-yellow);
+  transition: width 200ms ease-out;
 }
 
 .active_link .link_text {
-  font-weight: bold;
+  font-weight: var(--font-weight-semibold);
+}
+
+.active_link .link_text::after,
+.link_text:hover::after {
+  width: calc(100% - var(--spacing-md));
 }
 
 .link_text:hover{
-  transform: scale(1.1);
-  transition: transform 0.3s ease-out;
-
+  opacity: 0.95;
 }
 
 .navbar-nav .nav-item {
-  margin-left: 1.5rem;
+  margin-left: var(--spacing-lg);
 }
 
 .navbar-nav .nav-item:first-child {
   margin-left: 0;
 }
 
-.banana-balance-container {
-  margin-right: 1rem;
-}
-
 .banana-balance {
   display: flex;
   align-items: center;
-  gap: 8px;
-  background-color: #EF8C37;
+  gap: var(--spacing-sm);
+  background-color: var(--color-brand-orange-accent);
   border: none;
-  border-radius: 20px;
-  padding: 8px 16px;
-  transition: all 0.3s ease;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  border-radius: var(--radius-xl);
+  padding: var(--spacing-sm) var(--spacing-md);
+  transition: all var(--transition-base);
+  box-shadow: var(--shadow-sm);
+  min-height: 44px;
 }
 
 .banana-balance.clickable {
@@ -382,54 +412,56 @@ a:hover{
 
 .banana-balance.clickable:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
-  background: linear-gradient(135deg, #FDC955 0%, #FED16A 100%);
+  box-shadow: var(--shadow-lg);
+  background: linear-gradient(135deg, var(--color-brand-yellow) 0%, var(--color-brand-yellow-light) 100%);
 }
 
 .banana-balance.readonly {
   cursor: default;
-  background-color: #6A994E;
+  background-color: var(--color-brand-green);
 }
 
 .banana-icon {
-  font-size: 20px;
+  font-size: var(--font-size-xl);
 }
 
 .balance-amount {
-  font-size: 18px;
-  font-weight: bold;
-  color: white;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-white);
   min-width: 50px;
   text-align: right;
 }
 
 .add-icon {
-  color: white;
-  font-size: 16px;
+  color: var(--color-white);
+  font-size: var(--font-size-base);
   opacity: 0.8;
-  transition: opacity 0.2s;
+  transition: opacity var(--transition-fast);
 }
 
 .banana-balance:hover .add-icon {
   opacity: 1;
 }
 
-/* Hide normal nav links and show hamburger under 992px */
+/* Hide desktop nav on mobile, show mobile menu toggle */
 @media (max-width: 992px) {
-  .navbar-nav,
-  .banana-balance-container,
-  #logout_btn {
+  .navbar-collapse {
     display: none !important;
   }
 
   .menu-toggle {
-    display: block;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     color: white;
+    min-width: 44px;
+    min-height: 44px;
   }
 }
 
-/* On desktop (≥992px), hide the hamburger */
-@media (min-width: 992px) {
+/* On desktop (≥992px), hide the mobile menu toggle */
+@media (min-width: 993px) {
   .menu-toggle {
     display: none;
   }
@@ -440,31 +472,54 @@ a:hover{
   position: fixed;
   top: 0;
   left: 0;
-  height: 100vh;
+  height: 100dvh;
   width: 240px;
-  background-color: #386641;
-  color: white;
-  z-index: 999;
-  padding-top: 0px;
-  box-shadow: 4px 0 20px rgba(0, 0, 0, 0.4);
-  transition: transform 0.3s ease;
+  background-color: var(--color-brand-green-light);
+  color: var(--color-white);
+  z-index: var(--z-modal);
+  padding-top: 0;
+  box-shadow: var(--shadow-2xl);
+  transition: transform var(--transition-base);
 }
 
 .mobile-sidebar ul li {
-  font-size: 18px;
-  font-weight: 600;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  line-height: 1.5;
+  letter-spacing: 0.01em;
   cursor: pointer;
-  transition: background 0.2s ease;
+  transition: all var(--transition-fast);
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.mobile-sidebar ul li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  width: 4px;
+  background: var(--color-brand-yellow);
+  transform: scaleY(0);
+  transition: transform var(--transition-fast);
 }
 
 .mobile-sidebar ul li:hover {
   background-color: rgba(255, 255, 255, 0.1);
+  padding-left: calc(var(--spacing-lg) + 4px);
+}
+
+.mobile-sidebar ul li:hover::before {
+  transform: scaleY(1);
 }
 
 /* Slide-in / slide-out animation */
 .slide-enter-active,
 .slide-leave-active {
-  transition: all 0.3s ease;
+  transition: transform var(--transition-base);
 }
 .slide-enter-from {
   transform: translateX(-100%);
@@ -479,10 +534,11 @@ a:hover{
   top: 0;
   left: 0;
   width: 100%;
-  height: 100vh;
+  height: 100dvh;
   background: rgba(0, 0, 0, 0.45);
-  z-index: 998;
-  backdrop-filter: blur(1px);
+  z-index: var(--z-modal-backdrop);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
 }
 
 

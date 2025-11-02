@@ -286,6 +286,32 @@ p {
   outline-offset: 2px;
 }
 
+/* Ghost Dark Button - For light/neutral backgrounds */
+.btn-ghost-dark {
+  background-color: transparent;
+  color: var(--color-brand-green-dark);
+  border: 2px solid var(--color-brand-green-dark);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.btn-ghost-dark:hover:not(:disabled) {
+  background-color: rgba(46, 125, 50, 0.08);
+  border-color: var(--color-brand-green-darkest);
+  color: var(--color-brand-green-darkest);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+}
+
+.btn-ghost-dark:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.btn-ghost-dark:focus-visible {
+  outline: 2px solid var(--color-brand-green);
+  outline-offset: 2px;
+}
+
 /* Solid Style Button (for dark backgrounds) */
 .btn-solid {
   background-color: var(--color-white);
@@ -394,32 +420,84 @@ p {
 
 /* ===== Card Components ===== */
 
-.card-modern {
-  background-color: var(--color-white);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
-  border: 1px solid var(--color-gray-200);
+/* Glass Card - For auth/marketing pages with gradient backgrounds */
+.card-glass {
+  position: relative;
+  background: rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1.5px solid rgba(255, 255, 255, 0.45);
+  border-radius: 22px;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.30), inset 0 0 50px rgba(255, 255, 255, 0.18);
   transition: all var(--transition-base);
   overflow: hidden;
 }
 
+.card-glass:hover {
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.35), inset 0 0 60px rgba(255, 255, 255, 0.22);
+}
+
+/* Solid Card - For application pages with white/neutral backgrounds */
+.card-solid,
+.card-modern {
+  background-color: var(--color-white);
+  border: 1px solid var(--color-gray-200);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-base);
+  overflow: hidden;
+}
+
+.card-solid:hover,
 .card-modern:hover {
   box-shadow: var(--shadow-md);
 }
 
-.card-modern.clickable {
+/* Elevated variant - Extra shadow for highlighted content */
+.card-solid.elevated,
+.card-modern.elevated {
+  box-shadow: var(--shadow-lg);
+  border-color: var(--color-gray-300);
+}
+
+.card-solid.elevated:hover,
+.card-modern.elevated:hover {
+  box-shadow: var(--shadow-xl);
+}
+
+/* Clickable modifier - For interactive cards */
+.card-solid.clickable,
+.card-modern.clickable,
+.card-glass.clickable {
   cursor: pointer;
 }
 
+.card-solid.clickable:hover,
 .card-modern.clickable:hover {
   transform: translateY(-2px);
   box-shadow: var(--shadow-lg);
 }
 
-.card-modern.clickable:active {
+.card-glass.clickable:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 22px 50px rgba(0, 0, 0, 0.4), inset 0 0 70px rgba(255, 255, 255, 0.25);
+}
+
+.card-solid.clickable:active,
+.card-modern.clickable:active,
+.card-glass.clickable:active {
   transform: translateY(0);
 }
 
+/* Focus state for clickable cards */
+.card-solid.clickable:focus-visible,
+.card-modern.clickable:focus-visible,
+.card-glass.clickable:focus-visible {
+  outline: 2px solid var(--color-brand-green);
+  outline-offset: 2px;
+}
+
+/* Card sections */
 .card-header {
   padding: var(--spacing-lg);
   border-bottom: 1px solid var(--color-gray-200);
@@ -434,6 +512,19 @@ p {
   padding: var(--spacing-lg);
   border-top: 1px solid var(--color-gray-200);
   background-color: var(--color-gray-50);
+}
+
+/* Responsive card padding */
+@media (max-width: 768px) {
+  .card-header,
+  .card-body,
+  .card-footer {
+    padding: var(--spacing-md);
+  }
+
+  .card-glass {
+    border-radius: 16px;
+  }
 }
 
 /* ===== Form Components ===== */
@@ -684,4 +775,82 @@ button:focus-visible:not(.btn):not(.btn-close),
 [tabindex]:not([tabindex="-1"]):focus-visible {
   outline: 2px solid var(--color-brand-green);
   outline-offset: 2px;
+}
+
+/* ===== Mobile-Specific Utilities ===== */
+
+/* Touch-friendly spacing */
+@media (max-width: 768px) {
+  /* Increase padding for touch targets */
+  .btn-modern,
+  .btn-primary,
+  .btn-secondary,
+  .btn-ghost,
+  .btn-solid {
+    min-height: 44px;
+    padding: var(--spacing-sm) var(--spacing-lg);
+  }
+
+  /* Enhanced spacing for mobile */
+  .container,
+  .card-modern,
+  .card-solid,
+  .card-glass {
+    padding: var(--spacing-lg);
+  }
+
+  /* Reduce font sizes slightly for mobile readability */
+  h1 {
+    font-size: 2rem;
+  }
+
+  h2 {
+    font-size: 1.5rem;
+  }
+
+  h3 {
+    font-size: 1.25rem;
+  }
+
+  /* Stack flex items on mobile */
+  .flex-row-mobile-stack {
+    flex-direction: column;
+    gap: var(--spacing-md);
+  }
+
+  /* Full width buttons on mobile */
+  .btn-mobile-full {
+    width: 100%;
+  }
+
+  /* Touch-friendly form inputs */
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="number"],
+  textarea,
+  select {
+    min-height: 44px;
+    font-size: 16px; /* Prevents iOS zoom on focus */
+  }
+
+  /* Responsive text utilities */
+  .text-sm-mobile {
+    font-size: var(--font-size-sm);
+  }
+
+  .text-base-mobile {
+    font-size: var(--font-size-base);
+  }
+
+  /* Mobile-friendly modals */
+  .modal-dialog {
+    margin: var(--spacing-sm);
+    max-width: calc(100vw - var(--spacing-md));
+  }
+
+  /* Improve scrolling on iOS */
+  .overflow-scroll-mobile {
+    -webkit-overflow-scrolling: touch;
+  }
 }

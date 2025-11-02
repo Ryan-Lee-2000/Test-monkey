@@ -226,7 +226,7 @@ const stats = computed(() => {
                 </div>
               </div>
             </div>
-            <button class="expand-btn" @click.stop>
+            <button class="expand-btn" @click.stop @click="toggleMission(mission.id)">
               <i class="fas" :class="expandedMissionId === mission.id ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
             </button>
           </div>
@@ -299,7 +299,7 @@ const stats = computed(() => {
               >
                 <i class="fas fa-chart-bar me-2"></i>View Full Report
               </button>
-              <button v-else class="btn-modern btn-secondary" disabled>
+              <button v-else class="btn-modern btn-ghost-dark" disabled>
                 <i class="fas fa-hourglass-half me-2"></i>Waiting for submissions
               </button>
             </div>

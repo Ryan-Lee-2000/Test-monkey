@@ -91,18 +91,18 @@ computed(()=>props.show ? console.log('showing questions') : console.log("not sh
 }
 
 .question-item:hover {
-  border-color: #667eea;
+  border-color: #0f4d26;
   box-shadow: 0 4px 12px rgba(102, 126, 234, 0.1);
 }
 
 .btn-gradient {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #2e7d32 0%, #1b5e20 100%);
   border: none;
   color: white;
 }
 
 .question-number {
-  background: #667eea;
+  background: #0f4d26;
   color: white;
   width: 30px;
   height: 30px;
@@ -119,9 +119,9 @@ computed(()=>props.show ? console.log('showing questions') : console.log("not sh
   <div v-if="show" class="modal fade show d-block" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered modal-xl modal-dialog-scrollable">
       <div class="modal-content">
-        <div class="modal-header bg-primary text-white">
+        <div class="modal-header text-white" style="background: linear-gradient(135deg, #2e7d32 0%, #1b5e20 100%);">
           <div>
-            <h5 class="modal-title mb-1"><i class="fas fa-question-circle me-2"></i>AI-Generated Questions</h5>
+            <h5 class="modal-title mb-1 text-white"><i class="fas fa-question-circle me-2"></i>AI-Generated Questions</h5>
             <small class="opacity-75">Review and customize questions for testers</small>
           </div>
           <button type="button" class="btn-close btn-close-white" @click="emit('close')"></button>
@@ -135,7 +135,7 @@ computed(()=>props.show ? console.log('showing questions') : console.log("not sh
           </div>
 
           <template v-else>
-            <div class="alert alert-info d-flex align-items-start mb-4">
+            <div class="alert d-flex align-items-start mb-4" style="background-color: #48C564;">
               <i class="fas fa-lightbulb me-2 mt-1"></i>
               <div>
                 <strong>AI Generated Questions</strong>
@@ -195,7 +195,7 @@ computed(()=>props.show ? console.log('showing questions') : console.log("not sh
         </div>
         
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" @click="emit('close')">Cancel</button>
+          <button type="button" class="btn btn-ghost-dark" @click="emit('close')">Cancel</button>
           <button type="button" class="btn btn-gradient" @click="handleLaunch" :disabled="generating">
             <i class="fas fa-check me-2"></i>Confirm & Launch Mission
           </button>

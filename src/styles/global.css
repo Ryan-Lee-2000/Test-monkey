@@ -48,13 +48,14 @@ body {
   grid-template-columns: 1.05fr 1px 1.2fr; /* left | divider | right */
   gap: 24px;
   padding: 36px 40px;
-  border-radius: 22px;
+  --card-border: 1.5px;
+  color: #fff;
+  /* Using card-glass styles from design system */
   background: rgba(255,255,255,0.14);
   backdrop-filter: blur(8px);
-  --card-border: 1.5px;
   border: var(--card-border) solid rgba(255,255,255,0.45);
   box-shadow: 0 18px 40px rgba(0,0,0,0.30), inset 0 0 50px rgba(255,255,255,0.18);
-  color: #fff;
+  border-radius: 22px;
 }
 
 /* vertical divider */
@@ -137,8 +138,31 @@ body {
   transform: rotate(-3deg);
 }
 
+/* Back button for auth pages */
+.back {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-size: 28px;
+  cursor: pointer;
+  min-width: 44px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.back:focus-visible {
+  outline: 2px solid var(--color-white);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
 /* responsive */
-@media (max-width: 900px) {
+@media (max-width: 768px) {
   .auth-card {
     grid-template-columns: 1fr; /* stack */
     padding: 28px 20px 36px;

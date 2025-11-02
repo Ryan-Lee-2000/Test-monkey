@@ -198,8 +198,8 @@ function reset(){
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <div class="min-vh-100 page">
     <!-- Header -->
-    <div class="hero-header" style="padding-top: 100px;">
-      <div class="container-fluid header-flex">
+    <div class="hero-header" style="padding-top: 80px;">
+      <div class="container header-flex">
         <img :src="monkeyUrl" alt="Monkey" class="brand-monkey" />
         <div class="header-text">
           <h1><i class="me-2"></i>Create New Mission</h1>
@@ -406,7 +406,7 @@ function reset(){
               </div>
 
               <div class="d-grid gap-2">
-                <button class="btn btn-outline-success btn-lg" @click="showPreview = true">
+                <button class="btn btn-ghost-dark btn-outline-success btn-lg" @click="showPreview = true">
                   <i class="fas fa-eye me-2"></i>Preview Mission
                 </button>
                 <button class="btn btn-primary btn-lg fw-bold" @click="checkMission">
@@ -455,7 +455,8 @@ function reset(){
 
 <style scoped>
 .page{
-  background: linear-gradient(to top, #0f4d26 7%, #F97A02 26%, #FC9D05 54%, #FDC955 77%, #ABD453 90%);
+  background: var(--color-gray-50);
+  min-height: 100vh;
 }
 
 .header-text h1{

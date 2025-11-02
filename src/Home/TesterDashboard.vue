@@ -204,6 +204,7 @@ function closeMissionPreview() {
 }
 
 function goToMission(missionId) {
+  console.log(missionId)
   router.push(`/mission/feedback/${missionId}`)
 }
 
@@ -223,7 +224,7 @@ async function refreshMissions(){
 
 <template>
   <navbar />
-  <div class="min-vh-100 page" style="padding-top: 70px;">
+  <div class="min-vh-100 page">
     <!-- Header -->
     <div class="dashboard-header py-1 mb-4">
       <div class="container">
@@ -345,7 +346,7 @@ async function refreshMissions(){
                           <small class="text-muted"><i class="fas fa-clock me-1"></i>{{ getDaysRemaining(mission.duration) }}</small><br>
                           <small class="text-success"><i class="fas fa-coins me-1"></i>🍌{{ mission.payout || 0 }}</small>
                         </div>
-                        <button class="btn-modern btn-primary btn-sm" @click="goToMission(mission.id)">
+                        <button class="btn-modern btn-primary btn-sm" @click="goToMission(mission.mission_id)">
                           <i class="fas fa-play me-1"></i>Continue
                         </button>
                       </div>
@@ -385,7 +386,7 @@ async function refreshMissions(){
                         <div>
                           <small class="text-success"><i class="fas fa-coins me-1"></i>🍌{{ mission.payout || 0 }} earned</small>
                         </div>
-                        <button class="btn-modern btn-ghost btn-sm view-btn" 
+                        <button class="btn-modern btn-ghost-dark btn-sm view-btn"
                         @click="showCompletedMission(mission.mission_id)">
                           <i class="fas fa-eye me-1"></i>View Submission
                         </button>
@@ -561,10 +562,11 @@ async function refreshMissions(){
 .page {
   background: var(--color-gray-50);
   min-height: 100vh;
+  padding-top: 80px;
 }
 
 .dashboard-header {
-  background: linear-gradient(135deg, var(--color-secondary-light) 0%, var(--color-secondary) 100%);
+  background: var(--gradient-green);
   color: white;
 }
 
@@ -592,6 +594,10 @@ async function refreshMissions(){
   font-weight: var(--font-weight-bold);
   margin: 0;
   color: white;
+}
+
+.header-text p {
+  color: rgba(255, 255, 255, 0.95);
 }
 
 /* Custom Tabs */

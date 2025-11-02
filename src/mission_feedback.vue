@@ -168,26 +168,24 @@ async function handleSubmit() {
 <style scoped>
 /* Main Layout */
 .page {
-  background: linear-gradient(to top, #0f4d26 7%, #F97A02 26%, #FC9D05 54%, #FDC955 77%, #ABD453 90%);
-  overflow: hidden;
-  position: fixed;
   width: 100%;
-  height: 100vh;
+  min-height: 100dvh;
 }
 
 .feedback-layout {
   display: flex;
-  height: calc(100vh - 70px);
+  height: calc(100dvh - 80px);
   width: 100%;
-  margin-top: 70px;
+  margin-top: 80px;
   overflow: hidden;
+  
 }
 
 /* Website Preview Panel */
 .website-panel {
   flex: 3;
   height: 100%;
-  border-right: 3px solid #ff7700;
+  border-right: 3px solid #0f4d26;
   background: white;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   overflow: hidden;
@@ -223,12 +221,12 @@ async function handleSubmit() {
 }
 
 .form-panel::-webkit-scrollbar-thumb {
-  background: rgba(255, 119, 0, 0.6);
+  background: linear-gradient(135deg, #2e7d32 0%, #1b5e20 100%);
   border-radius: 10px;
 }
 
 .form-panel::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 119, 0, 0.8);
+  background: linear-gradient(135deg, #2e7d32 0%, #1b5e20 100%);
 }
 
 .form-content {
@@ -240,7 +238,7 @@ async function handleSubmit() {
 .mission-header-card {
   background: rgba(255, 255, 255, 0.9);
   backdrop-filter: blur(8px);
-  border: 3px solid #ff7700;
+  border: 3px solid #0f4d26;
   border-radius: 20px;
   padding: 1.5rem;
   margin-bottom: 1.5rem;
@@ -300,7 +298,7 @@ async function handleSubmit() {
 .question-card {
   background: rgba(255, 255, 255, 0.9);
   backdrop-filter: blur(8px);
-  border: 3px solid #ff7700;
+  border: 3px solid #0f4d26;
   border-radius: 20px;
   padding: 1.5rem;
   box-shadow: 0 6px 0 rgba(0, 0, 0, 0.25), 0 10px 24px rgba(0, 0, 0, 0.25);
@@ -378,17 +376,17 @@ async function handleSubmit() {
 }
 
 /* Responsive Design */
-@media (max-width: 992px) {
+@media (max-width: 768px) {
   .page {
     position: relative;
     height: auto;
-    min-height: 100vh;
+    min-height: 100dvh;
   }
 
   .feedback-layout {
     flex-direction: column;
     height: auto;
-    min-height: calc(100vh - 70px);
+    min-height: calc(100dvh - 70px);
     overflow: visible;
   }
 

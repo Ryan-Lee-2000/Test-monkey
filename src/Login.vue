@@ -58,10 +58,21 @@ async function login () {
       return
     }
 
-    // switch to success state briefly, then go Home
+    // Check user role and redirect to appropriate dashboard
+    const userDoc = await getDoc(doc(db, "users", user.uid))
+    const userRole = userDoc.exists() ? userDoc.data().role : null
+
+    // switch to success state briefly, then redirect based on role
     dialogMode.value = "success"
     dialogText.value = "Successfully Login."
-    setTimeout(() => router.replace({ path: "/Home" }), 900)
+
+    setTimeout(() => {
+      if (userRole === 'Founder') {
+        router.replace({ path: "/dashboard" })
+      } else {
+        router.replace({ path: "/home" })
+      }
+    }, 900)
 
   } catch (error) {
     showDialog.value = false
@@ -318,8 +329,9 @@ function goBack () {
 
 /* Centered, short login button */
 .btn-login {
-  display: block;         
-  width: 220px;
+  display: block;
+  width: 100%;
+  max-width: 220px;
   margin: 0 auto;          /* center horizontally */
   background: var(--gradient-green-180);
   border: none;
@@ -355,13 +367,9 @@ function goBack () {
 }
 
 /* Responsive */
-@media (max-width: 992px){
-  .v-divider{ display:none; }
-}
-@media (max-width: 900px){
-  .banana-sticker{ width: 66px; }
-}
 @media (max-width: 768px){
+  .v-divider{ display:none; }
+  .banana-sticker{ width: 66px; }
   .brand-section{ padding: 2rem 1.25rem; }
   .form-section{ padding: 2rem 1.25rem; }
   .brand-monkey{ width: 72px; }

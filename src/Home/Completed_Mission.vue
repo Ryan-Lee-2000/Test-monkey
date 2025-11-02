@@ -101,7 +101,7 @@ function close_preview(){
   color: #2d3748;
   margin-bottom: 1.5rem;
   padding-bottom: 0.75rem;
-  border-bottom: 3px solid #FFD700;
+  border-bottom: 3px solid #1b5e20;;
 }
 
 .questions-list {
@@ -178,7 +178,7 @@ function close_preview(){
   background: #fffef7;
   padding: 0.875rem 1rem;
   border-radius: 8px;
-  border: 1px solid #FFE55C;
+  border: 1px solid #1b5e20;;
 }
 
 .modal-footer {
@@ -247,7 +247,7 @@ function close_preview(){
     <div class="modal-dialog modal-dialog-centered modal-xl modal-dialog-scrollable">
       <div class="modal-content">
         <div class="modal-header bg-primary text-white">
-          <h5 class="modal-title"><i class="fas fa-eye me-2"></i>Mission Preview</h5>
+          <h5 class="modal-title text-white"><i class="fas fa-eye me-2"></i>Your Submission</h5>
           <button type="button" class="btn-close btn-close-white" @click="emit('close')"></button>
         </div>
         <div v-if="loading" class="text-center py-5">

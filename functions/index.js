@@ -11,6 +11,8 @@ admin.initializeApp();
 const db = admin.firestore();
 const { FieldValue } = admin.firestore;
 const anthropicKey = defineSecret("ANTHROPIC_KEY");
+const emailUser = defineSecret("EMAIL_USER");
+const emailPassword = defineSecret("EMAIL_PASSWORD");
 
 // CORS configuration
 const corsOptions = {
@@ -24,44 +26,91 @@ function generateVerificationCode() {
 }
 
 async function sendVerificationEmail(email, code) {
-  // For development: Log the code to console
-  logger.info(`Verification code for ${email}: ${code}`);
+  logger.info(`Sending verification email to ${email}`);
 
-  // In production, you would use a service like SendGrid, Mailgun, or Firebase Extensions
-  // For now, we'll use nodemailer with a test account for development
   try {
-    // Create a test account (or use your SMTP credentials in production)
-    const isDevelopment = process.env.NODE_ENV !== 'production';
+    // Create nodemailer transporter with Gmail SMTP
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: emailUser.value(),
+        pass: emailPassword.value()
+      }
+    });
 
-    if (isDevelopment) {
-      // For development, just log the code
-      logger.info(`DEV MODE: Verification code for ${email}: ${code}`);
-      return { success: true, code }; // Return code in dev mode for testing
-    }
+    // Professional HTML email template with Test Monkey branding
+    const htmlTemplate = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      </head>
+      <body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f5f5f5;">
+        <table role="presentation" style="width: 100%; border-collapse: collapse;">
+          <tr>
+            <td align="center" style="padding: 40px 0;">
+              <table role="presentation" style="width: 600px; border-collapse: collapse; background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+                <!-- Header -->
+                <tr>
+                  <td style="padding: 40px 40px 20px 40px; text-align: center; background: linear-gradient(135deg, #0A490A 0%, #0f5a0f 100%); border-radius: 12px 12px 0 0;">
+                    <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: bold;">🐵 Test Monkey</h1>
+                  </td>
+                </tr>
 
-    // Production email sending would go here
-    // Example with nodemailer:
-    // const transporter = nodemailer.createTransport({
-    //   service: 'gmail',
-    //   auth: {
-    //     user: process.env.EMAIL_USER,
-    //     pass: process.env.EMAIL_PASSWORD
-    //   }
-    // });
-    //
-    // await transporter.sendMail({
-    //   from: '"Test Monkey" <noreply@testmonkey.com>',
-    //   to: email,
-    //   subject: 'Verify Your Email - Test Monkey',
-    //   html: `
-    //     <h2>Welcome to Test Monkey!</h2>
-    //     <p>Your verification code is:</p>
-    //     <h1 style="color: #4A90E2; font-size: 32px; letter-spacing: 4px;">${code}</h1>
-    //     <p>This code will expire in 1 hour.</p>
-    //     <p>If you didn't request this code, please ignore this email.</p>
-    //   `
-    // });
+                <!-- Body -->
+                <tr>
+                  <td style="padding: 40px;">
+                    <h2 style="margin: 0 0 20px 0; color: #0A490A; font-size: 24px;">Welcome to Test Monkey!</h2>
+                    <p style="margin: 0 0 20px 0; color: #333333; font-size: 16px; line-height: 1.6;">
+                      Thank you for signing up! Please verify your email address to get started.
+                    </p>
+                    <p style="margin: 0 0 10px 0; color: #666666; font-size: 14px;">
+                      Your verification code is:
+                    </p>
 
+                    <!-- OTP Code Box -->
+                    <div style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-radius: 8px; padding: 30px; text-align: center; margin: 20px 0;">
+                      <div style="color: #0A490A; font-size: 42px; font-weight: bold; letter-spacing: 8px; font-family: 'Courier New', monospace;">
+                        ${code}
+                      </div>
+                    </div>
+
+                    <p style="margin: 20px 0 0 0; color: #666666; font-size: 14px; line-height: 1.6;">
+                      ⏱️ This code will expire in <strong>1 hour</strong>.
+                    </p>
+                    <p style="margin: 10px 0 0 0; color: #999999; font-size: 13px; line-height: 1.6;">
+                      If you didn't request this code, please ignore this email.
+                    </p>
+                  </td>
+                </tr>
+
+                <!-- Footer -->
+                <tr>
+                  <td style="padding: 30px 40px; background-color: #f8f9fa; border-radius: 0 0 12px 12px; text-align: center;">
+                    <p style="margin: 0; color: #999999; font-size: 12px;">
+                      © ${new Date().getFullYear()} Test Monkey. All rights reserved.
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+      </body>
+      </html>
+    `;
+
+    // Send email
+    await transporter.sendMail({
+      from: `"Test Monkey" <${emailUser.value()}>`,
+      to: email,
+      subject: 'Verify Your Email - Test Monkey 🐵',
+      html: htmlTemplate,
+      text: `Welcome to Test Monkey! Your verification code is: ${code}\n\nThis code will expire in 1 hour.\n\nIf you didn't request this code, please ignore this email.`
+    });
+
+    logger.info(`Verification email sent successfully to ${email}`);
     return { success: true };
   } catch (error) {
     logger.error('Error sending verification email:', error);
@@ -70,7 +119,10 @@ async function sendVerificationEmail(email, code) {
 }
 
 // Create verification code for a user
-export const createVerificationCode = onCall({ cors: corsOptions }, async (request) => {
+export const createVerificationCode = onCall({
+  cors: corsOptions,
+  secrets: [emailUser, emailPassword]
+}, async (request) => {
   const { email, uid } = request.data;
 
   if (!email || !uid) {
@@ -93,13 +145,6 @@ export const createVerificationCode = onCall({ cors: corsOptions }, async (reque
     await sendVerificationEmail(email, code);
 
     logger.info(`Verification code created for ${email}`);
-
-    // In development, return the code for easy testing
-    const isDevelopment = process.env.NODE_ENV !== 'production';
-    if (isDevelopment) {
-      return { success: true, devCode: code };
-    }
-
     return { success: true };
   } catch (error) {
     logger.error("Error creating verification code:", error);
@@ -166,7 +211,10 @@ export const verifyEmailCode = onCall({ cors: corsOptions }, async (request) => 
 });
 
 // Resend verification code
-export const resendVerificationCode = onCall({ cors: corsOptions }, async (request) => {
+export const resendVerificationCode = onCall({
+  cors: corsOptions,
+  secrets: [emailUser, emailPassword]
+}, async (request) => {
   const { uid, email } = request.data;
 
   if (!uid || !email) {
