@@ -12,13 +12,14 @@ import Gambling from '@/Gambling/Gambling.vue'
 import VoucherInventory from '@/Gambling/VoucherInventory.vue'
 import MissionReportView from '../MissionReportView.vue'
 
+// ✅ NEW: Import the new full-report view (kept old imports too)
+import MissionFullReportView from '../MissionReport/views/MissionFullReportView.vue'
+
 // Registration flow
 import UserType from '@/composables/register/UserType.vue'
 import RegisterTester from "@/composables/register/RegisterTester.vue"
 import RegisterFounderAccount from "@/composables/register/founder/RegisterFounderAccount.vue"
 import RegisterFounderCompany from "@/composables/register/founder/RegisterFounderCompany.vue"
-
-
 
 // Firebase auth
 import { auth } from './api_services'
@@ -33,6 +34,15 @@ export function setRouterAlertFunction(fn) {
 
 const routes = [
   { path: '/', component: Welcome },
+
+  // ✅ NEW: Add the Full Mission Report route EARLY so it matches before generic /dashboard
+  {
+    path: '/dashboard/:missionId',
+    name: 'MissionFullReport',
+    component: MissionFullReportView,
+    props: true,
+    meta: { requiresAuth: true }
+  },
 
   // Auth-protected pages
   { path: '/home', component: TesterDashboard, meta: { requiresAuth: true } },
@@ -71,6 +81,7 @@ const routes = [
   // Fallback
   { path: '/:pathMatch(.*)*', redirect: '/' },
 
+  // (Existing routes kept as-is — these remain but will be shadowed by the earlier, new route)
   {
     path: '/dashboard/:missionId',
     name: 'missionReport',
@@ -80,11 +91,11 @@ const routes = [
   },
 
   {
-  path: '/dashboard/:missionId',
-  name: 'missionReport',
-  component: MissionReportView, // Make sure to import this component
-  props: true,
-  meta: { requiresAuth: true }
+    path: '/dashboard/:missionId',
+    name: 'missionReport',
+    component: MissionReportView, // Make sure to import this component
+    props: true,
+    meta: { requiresAuth: true }
   }
 ]
 

@@ -6,6 +6,7 @@ import * as logger from "firebase-functions/logger";
 import { Anthropic } from "@anthropic-ai/sdk";
 import admin from "firebase-admin";
 import nodemailer from "nodemailer"; 
+import crypto from "crypto";
 
 admin.initializeApp();
 const db = admin.firestore();
@@ -14,7 +15,85 @@ const anthropicKey = defineSecret("ANTHROPIC_KEY");
 const emailUser = defineSecret("EMAIL_USER");
 const emailPassword = defineSecret("EMAIL_PASSWORD");
 
-// CORS configuration
+const CONTRACT_TEMPLATE = `
+{
+  "survey_questions": {{SURVEY_QUESTIONS}},
+  "tester_responses": {{TESTER_RESPONSES}},
+  "task": "You are an API that MUST return ONLY valid JSON (no markdown, no prose) conforming exactly to the schema below. Use the provided survey_questions (ordered) and tester_responses (aligned to those questions; empty strings mean skipped). Aggregate all responses and produce exactly four top-level sections. Do not add, rename, or remove keys. Do not include null. Use empty strings where needed. Ensure all arrays have the exact required lengths.\\n\\nREQUIRED OUTPUT SCHEMA (return exactly this top-level shape):\\n{\\n  \\"section_1_sentiment_analysis\\": {\\n    \\"overall_summary\\": \\"<short paragraph>\\",\\n    \\"distribution\\": {\\n      \\"positive_percent\\": <number>,\\n      \\"neutral_percent\\": <number>,\\n      \\"negative_percent\\": <number>\\n    }\\n  },\\n  \\"section_2_scoring_and_pain_points\\": {\\n    \\"areas\\": [\\n      { \\"area\\": \\"Navigation\\",        \\"score_1_to_5\\": <integer 1-5>, \\"stars\\": \\"<1-5 black stars>\\", \\"comment\\": \\"<one-liner>\\" },\\n      { \\"area\\": \\"Layout clarity\\",    \\"score_1_to_5\\": <integer 1-5>, \\"stars\\": \\"<1-5 black stars>\\", \\"comment\\": \\"<one-liner>\\" },\\n      { \\"area\\": \\"Functionality\\",     \\"score_1_to_5\\": <integer 1-5>, \\"stars\\": \\"<1-5 black stars>\\", \\"comment\\": \\"<one-liner>\\" },\\n      { \\"area\\": \\"Visual appeal\\",     \\"score_1_to_5\\": <integer 1-5>, \\"stars\\": \\"<1-5 black stars>\\", \\"comment\\": \\"<one-liner>\\" }\\n    ]\\n  },\\n  \\"section_3_actionable_steps_and_ranking\\": {\\n    \\"high\\":   [ { \\"action\\": \\"<concise>\\", \\"rationale\\": \\"<why>\\", \\"impact\\": \\"High\\",   \\"effort\\": \\"<Low|Medium|High>\\" }, { \\"action\\": \\"<concise>\\", \\"rationale\\": \\"<why>\\", \\"impact\\": \\"High\\",   \\"effort\\": \\"<Low|Medium|High>\\" }, { \\"action\\": \\"<concise>\\", \\"rationale\\": \\"<why>\\", \\"impact\\": \\"High\\",   \\"effort\\": \\"<Low|Medium|High>\\" } ],\\n    \\"medium\\": [ { \\"action\\": \\"<concise>\\", \\"rationale\\": \\"<why>\\", \\"impact\\": \\"Medium\\", \\"effort\\": \\"<Low|Medium|High>\\" }, { \\"action\\": \\"<concise>\\", \\"rationale\\": \\"<why>\\", \\"impact\\": \\"Medium\\", \\"effort\\": \\"<Low|Medium|High>\\" }, { \\"action\\": \\"<concise>\\", \\"rationale\\": \\"<why>\\", \\"impact\\": \\"Medium\\", \\"effort\\": \\"<Low|Medium|High>\\" } ],\\n    \\"low\\":    [ { \\"action\\": \\"<concise>\\", \\"rationale\\": \\"<why>\\", \\"impact\\": \\"Low\\",    \\"effort\\": \\"<Low|Medium|High>\\" }, { \\"action\\": \\"<concise>\\", \\"rationale\\": \\"<why>\\", \\"impact\\": \\"Low\\",    \\"effort\\": \\"<Low|Medium|High>\\" } ]\\n  },\\n  \\"section_4_review_by_questions\\": {\\n    \\"questions\\": [\\n      {\\n        \\"question_text\\": \\"<exact text from survey_questions[i]>\\",\\n        \\"short_summary\\": \\"<1-2 sentence synthesis>\\",\\n        \\"answers\\": [ { \\"tester_id\\": \\"<id>\\", \\"tester_name\\": \\"<name>\\", \\"answer\\": \\"<string (may be empty)>\\" } ]\\n      }\\n    ]\\n  }\\n}\\n\\nRULES:\\n- Use exactly four top-level keys as shown.\\n- In section_2, provide exactly 4 areas in the order specified.\\n- In section_3, provide exactly 3 items in \\"high\\", 3 items in \\"medium\\", and 2 items in \\"low\\"; within each, order from most impactful to least.\\n- In section_4, include one entry per survey question (in order). Each \\"answers\\" must include every tester from tester_responses, with their answer aligned to that question index (use empty string if skipped).\\n- Percent values in distribution should sum to ~100 (allow rounding).\\n- Return ONLY the JSON object — no code fences, no extra commentary."
+}
+`;
+
+// --- Helpers ---
+function normalizeQuestions(raw) {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .map((q) => (typeof q === "string" ? q.trim() : ""))
+    .filter((q) => q.length > 0);
+}
+
+function alignResponsesToQuestions(questions, submissionAnswers) {
+  // submissionAnswers: [{ question, answer }, ...]
+  const map = new Map();
+  if (Array.isArray(submissionAnswers)) {
+    for (const entry of submissionAnswers) {
+      const q = (entry?.question || "").trim();
+      const a = typeof entry?.answer === "string" ? entry.answer : "";
+      if (q) map.set(q, a);
+    }
+  }
+  return questions.map((q) => map.get(q) || "");
+}
+
+function populateTemplate(templateStr, vars) {
+  // placeholders: {{SURVEY_QUESTIONS}} and {{TESTER_RESPONSES}}
+  return templateStr
+    .replace("{{SURVEY_QUESTIONS}}", JSON.stringify(vars.SURVEY_QUESTIONS))
+    .replace("{{TESTER_RESPONSES}}", JSON.stringify(vars.TESTER_RESPONSES));
+}
+
+function validateSections(sections) {
+  if (!sections || typeof sections !== "object") {
+    throw new Error("AI response missing top-level sections object");
+  }
+  const s1 = sections.section_1_sentiment_analysis;
+  const s2 = sections.section_2_scoring_and_pain_points;
+  const s3 = sections.section_3_actionable_steps_and_ranking;
+  const s4 = sections.section_4_review_by_questions;
+
+  if (!s1 || !s2 || !s3 || !s4) {
+    throw new Error("AI response missing one or more required sections");
+  }
+
+  // exactly 4 areas
+  if (!Array.isArray(s2.areas) || s2.areas.length !== 4) {
+    throw new Error("Scoring & pain points must include exactly 4 areas");
+  }
+
+  // 3/3/2 items
+  const hs = Array.isArray(s3.high) ? s3.high.length : 0;
+  const ms = Array.isArray(s3.medium) ? s3.medium.length : 0;
+  const ls = Array.isArray(s3.low) ? s3.low.length : 0;
+  if (hs !== 3 || ms !== 3 || ls !== 2) {
+    throw new Error("Actionable steps must be 3 high, 3 medium, 2 low");
+  }
+
+  // per-question array present
+  if (!Array.isArray(s4.questions) || s4.questions.length === 0) {
+    throw new Error("Review by questions must include at least one question");
+  }
+}
+
+function hashQuestions(questions) {
+  return crypto
+    .createHash("sha256")
+    .update(JSON.stringify(questions))
+    .digest("hex")
+    .slice(0, 16);
+}
+
+
+
+
 const corsOptions = {
   origin: true, // Allow all origins in development
   credentials: true,
@@ -118,7 +197,115 @@ async function sendVerificationEmail(email, code) {
   }
 }
 
-// Create verification code for a user
+export const generateFullMissionReport = onCall(
+  { secrets: [anthropicKey], cors: corsOptions },
+  async (request) => {
+    try {
+      const missionId = request?.data?.missionId;
+      if (!missionId || typeof missionId !== "string") {
+        return { error: "missionId (string) is required." };
+      }
+
+      // --- Read mission (questions) ---
+      const missionRef = db.collection("Missions").doc(missionId);
+      const missionSnap = await missionRef.get();
+      if (!missionSnap.exists) {
+        return { error: `Mission ${missionId} not found.` };
+      }
+      const mission = missionSnap.data();
+      const SURVEY_QUESTIONS = normalizeQuestions(mission?.questions || []);
+
+      // --- Read submissions for mission ---
+      const subsSnap = await db
+        .collection("Submissions")
+        .where("missionId", "==", missionId)
+        .get();
+
+      const submissions = subsSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      const sourceSubmissionCount = submissions.length;
+
+      // --- Build TESTER_RESPONSES aligned to SURVEY_QUESTIONS ---
+      const TESTER_RESPONSES = submissions.map((s) => {
+        const responses = alignResponsesToQuestions(
+          SURVEY_QUESTIONS,
+          s?.answers || []
+        );
+        return {
+          tester_id: s?.testerId || "",
+          tester_name: s?.testerName || "",
+          responses,
+        };
+      });
+
+      // --- Populate contract template (server-side only; no optional blocks) ---
+      const contractBody = populateTemplate(CONTRACT_TEMPLATE, {
+        SURVEY_QUESTIONS,
+        TESTER_RESPONSES,
+      });
+
+      // --- Call Anthropic (Claude) ---
+      const anthropic = new Anthropic({
+        apiKey: anthropicKey.value(),
+      });
+
+      // Mirror teammate convention; you can change via env if needed
+      const model = process.env.CLAUDE_MODEL || "claude-3-sonnet-20240229";
+
+      const aiResp = await anthropic.messages.create({
+        model,
+        max_tokens: 4000,
+        system:
+          "You are a strict API that returns ONLY valid JSON matching the requested schema. No prose, no markdown.",
+        messages: [{ role: "user", content: contractBody }],
+      });
+
+      const raw = aiResp?.content?.[0]?.text || "";
+      let parsed;
+      try {
+        parsed = JSON.parse(raw);
+      } catch {
+        const start = raw.indexOf("{");
+        const end = raw.lastIndexOf("}");
+        if (start >= 0 && end > start) {
+          parsed = JSON.parse(raw.slice(start, end + 1));
+        } else {
+          return { error: "AI response was not valid JSON." };
+        }
+      }
+
+      // --- Validate output shape (light checks) ---
+      validateSections(parsed);
+
+      // --- Persist (append-only) ---
+      const questionsHash = hashQuestions(SURVEY_QUESTIONS);
+      const reportRef = await missionRef.collection("reports").add({
+        ai_output_json: parsed,
+        generatedAt: FieldValue.serverTimestamp(),
+        sourceSubmissionCount,
+        questionsHash,
+        model,
+      });
+
+      // read back timestamp for UI
+      const saved = await reportRef.get();
+      const savedData = saved.data();
+      const generatedAt =
+        savedData?.generatedAt?.toDate?.().toISOString?.() || null;
+
+      return {
+        success: true,
+        reportId: reportRef.id,
+        generatedAt,
+        sourceSubmissionCount,
+        sections: parsed,
+      };
+    } catch (err) {
+      console.error("generateFullMissionReport error:", err);
+      return { error: err?.message || "Failed to generate mission full report." };
+    }
+  }
+);
+
 export const createVerificationCode = onCall({
   cors: corsOptions,
   secrets: [emailUser, emailPassword]
