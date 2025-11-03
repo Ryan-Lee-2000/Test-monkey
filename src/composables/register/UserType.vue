@@ -43,8 +43,8 @@ function goBack () {
         <h1 class="heading">I am a</h1>
 
         <div class="grid gap-3" style="display:grid; gap:16px; width: min(360px, 90%);">
-          <button class="btn-green" style="width:100%;" @click="pickFounder">Founder</button>
-          <button class="btn-green" style="width:100%;" @click="pickTester">Tester</button>
+          <button class="btn btn-primary" style="width:100%;" @click="pickFounder">Founder</button>
+          <button class="btn btn-primary" style="width:100%;" @click="pickTester">Tester</button>
         </div>
       </section>
 
@@ -56,10 +56,6 @@ function goBack () {
 
 <style scoped>
   .auth-hero{
-    background: linear-gradient(to bottom, #0f4d26 7%, #F97A02 26%, #FC9D05 54%, #FDC955 77%, #ABD453 90%);
-  }
-
-  .back{
-  position:absolute;top:16px;left:16px;background:transparent;border:none;color:#fff;font-size:28px;cursor:pointer
+    background: var(--gradient-primary);
   }
 </style>

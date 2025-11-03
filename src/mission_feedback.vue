@@ -168,27 +168,35 @@ async function handleSubmit() {
 <style scoped>
 /* Main Layout */
 .page {
-  background: linear-gradient(to top, #0f4d26 7%, #F97A02 26%, #FC9D05 54%, #FDC955 77%, #ABD453 90%);
-  overflow-y: hidden;
+  width: 100%;
+  min-height: 100dvh;
 }
 
 .feedback-layout {
   display: flex;
-  height: calc(100vh - 70px);
+  height: calc(100dvh - 80px);
   width: 100%;
-  margin-top: 70px;
+  margin-top: 80px;
+  overflow: hidden;
+  
 }
 
 /* Website Preview Panel */
 .website-panel {
   flex: 3;
   height: 100%;
-  border-right: 3px solid #ff7700;
+  border-right: 3px solid #0f4d26;
   background: white;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  position: relative;
 }
-::-webkit-scrollbar {
-    display: none;
+
+.website-panel iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  display: block;
 }
 
 /* Form Panel */
@@ -199,18 +207,38 @@ async function handleSubmit() {
   flex-direction: column;
   background: transparent;
   overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* Custom scrollbar for form panel */
+.form-panel::-webkit-scrollbar {
+  width: 12px;
+}
+
+.form-panel::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+}
+
+.form-panel::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #2e7d32 0%, #1b5e20 100%);
+  border-radius: 10px;
+}
+
+.form-panel::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #2e7d32 0%, #1b5e20 100%);
 }
 
 .form-content {
   padding: 2rem;
-  overflow-y: auto;
+  flex: 1;
 }
 
 /* Mission Header Card */
 .mission-header-card {
   background: rgba(255, 255, 255, 0.9);
   backdrop-filter: blur(8px);
-  border: 3px solid #ff7700;
+  border: 3px solid #0f4d26;
   border-radius: 20px;
   padding: 1.5rem;
   margin-bottom: 1.5rem;
@@ -270,7 +298,7 @@ async function handleSubmit() {
 .question-card {
   background: rgba(255, 255, 255, 0.9);
   backdrop-filter: blur(8px);
-  border: 3px solid #ff7700;
+  border: 3px solid #0f4d26;
   border-radius: 20px;
   padding: 1.5rem;
   box-shadow: 0 6px 0 rgba(0, 0, 0, 0.25), 0 10px 24px rgba(0, 0, 0, 0.25);
@@ -348,21 +376,32 @@ async function handleSubmit() {
 }
 
 /* Responsive Design */
-@media (max-width: 992px) {
+@media (max-width: 768px) {
+  .page {
+    position: relative;
+    height: auto;
+    min-height: 100dvh;
+  }
+
   .feedback-layout {
     flex-direction: column;
     height: auto;
-    min-height: calc(100vh - 70px);
+    min-height: calc(100dvh - 70px);
+    overflow: visible;
   }
 
   .website-panel {
-    height: 50vh;
+    height: 60vh;
+    min-height: 400px;
     border-right: none;
     border-bottom: 3px solid #ff7700;
+    position: relative;
   }
 
   .form-panel {
     height: auto;
+    overflow-y: visible;
+    overflow-x: hidden;
   }
 
   .form-content {

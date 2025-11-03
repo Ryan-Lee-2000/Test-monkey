@@ -328,6 +328,7 @@ onMounted(() => {
 }
 
 .page-header {
+  margin-top: 100px;
   text-align: center;
 }
 

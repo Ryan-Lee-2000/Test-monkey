@@ -1,14 +1,17 @@
 <script setup>
 import { ref, onMounted } from "vue"
 import { useRouter } from "vue-router"
-import { getAuth, createUserWithEmailAndPassword, updateProfile } from "firebase/auth"
+import { getAuth, createUserWithEmailAndPassword, updateProfile, signOut } from "firebase/auth"
+import { getFunctions, httpsCallable } from "firebase/functions"
 import { createUser } from "@/Database/Monkey_Store"
 import RegistrationModal from "../RegistrationModal.vue"
+import EmailVerification from "../EmailVerification.vue"
 
 import monkeyUrl from "@/assets/welcome/monkey.png"
 import bananaUrl from "@/assets/welcome/banana.png"
 
 const router = useRouter()
+const functions = getFunctions()
 
 const base = ref({ name: "", email: "", pwd: "" })
 const companyName = ref("")
@@ -18,6 +21,12 @@ const showDialog = ref(false)
 const dialogMode = ref("loading")   // "loading" | "success" | "error"
 const dialogText = ref("Creating account…")
 const submitting = ref(false)
+
+// verification state
+const showVerification = ref(false)
+const userUid = ref("")
+const userEmail = ref("")
+const verificationDevCode = ref("")
 
 function goBack(){ router.back() }
 function onFileChange(e){ logoFile.value = e.target.files?.[0] ?? null }
@@ -50,20 +59,55 @@ async function registerFounder(){
     const data = [companyName.value, "Logo", "UEN", "linkedin"]
     await createUser([cred.user.uid, base.value.name, data, true])
 
-    dialogMode.value = "success"
-    dialogText.value = "Account Created!"
+    // Create verification code
+    const createVerificationCode = httpsCallable(functions, 'createVerificationCode')
+    const result = await createVerificationCode({
+      email: base.value.email,
+      uid: cred.user.uid
+    })
+
+    // Sign out the user (they must verify email before logging in)
+    await signOut(auth)
+
+    // Store user info for verification screen
+    userUid.value = cred.user.uid
+    userEmail.value = base.value.email
+
+    // If in development mode, store the code
+    if (result.data.devCode) {
+      verificationDevCode.value = result.data.devCode
+    }
+
+    // Close registration modal and show verification screen
+    showDialog.value = false
+    showVerification.value = true
     sessionStorage.removeItem("founderReg")
-    setTimeout(() => router.replace("/dashboard"), 1000)
+    submitting.value = false
+
   } catch (e) {
     dialogMode.value = "error"
-    dialogText.value = e?.message || "Registration failed."
+    if (e?.code === 'auth/email-already-in-use') {
+      dialogText.value = "This email is already registered. Please check your email to continue your registration, or use a different email address."
+    } else {
+      dialogText.value = e?.message || "Registration failed."
+    }
     submitting.value = false
   }
 }
 </script>
 
 <template>
-  <div class="page">
+  <!-- Show verification screen if account created -->
+  <EmailVerification
+    v-if="showVerification"
+    :email="userEmail"
+    :uid="userUid"
+    :devCode="verificationDevCode"
+    userRole="Founder"
+  />
+
+  <!-- Registration form -->
+  <div v-else class="page">
     <div class="card">
       <!-- modal -->
       <RegistrationModal
@@ -117,7 +161,7 @@ async function registerFounder(){
 :global(html), :global(body) { font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Arial, "Helvetica Neue", sans-serif; }
 
 .page{ min-height:100vh; display:grid; place-items:center; padding:36px 16px;
-    background: linear-gradient(to bottom, #0f4d26 7%, #F97A02 26%, #FC9D05 54%, #FDC955 77%, #ABD453 90%); }
+    background: var(--gradient-primary); }
 
 .card{ position:relative; max-width: 980px; width:100%; min-height:560px; display:grid;
   grid-template-columns: 1.05fr 1px 1.2fr; gap:24px; padding:36px 40px; border-radius:22px;
@@ -169,7 +213,7 @@ async function registerFounder(){
 
 /* Button */
 .btn{ margin-top:6px; height:46px; border:none; border-radius:10px; color:#fff; font-weight:800; font-size:16px;
-  background: linear-gradient(180deg, #2e7d32 0%, #1b5e20 100%);
+  background: var(--gradient-green-180);
   box-shadow: 0 6px 0 rgba(0,0,0,.25), 0 10px 24px rgba(0,0,0,.25); width:220px; justify-self:center;
   transition:transform .1s ease, box-shadow .15s ease; }
 .btn:hover{ transform:translateY(-1px); box-shadow:0 6px 0 rgba(0,0,0,.25), 0 16px 30px rgba(0,0,0,.25) }

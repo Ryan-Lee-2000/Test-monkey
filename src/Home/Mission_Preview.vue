@@ -68,8 +68,8 @@ function close_preview(){
   <div v-if="show" class="modal fade show d-block" tabindex="-1" @click.self="emit('close')">
     <div class="modal-dialog modal-dialog-centered modal-xl modal-dialog-scrollable">
       <div class="modal-content">
-        <div class="modal-header bg-primary text-white">
-          <h5 class="modal-title"><i class="fas fa-eye me-2"></i>Mission Preview</h5>
+        <div class="modal-header text-white" style="background: linear-gradient(180deg, #2e7d32 0%, #1b5e20 100%);">
+          <h5 class="modal-title text-white"><i class="fas fa-eye me-2"></i>Mission Preview</h5>
           <button type="button" class="btn-close btn-close-white" @click="emit('close')"></button>
         </div>
         <div v-if="loading" class="text-center py-5">
@@ -90,7 +90,7 @@ function close_preview(){
             <!-- Left side: iframe -->
             <div class="col-md-6 border-end d-flex flex-column">
               <div class="p-3 iframe-container">
-                <h6 class="mb-3"><i class="fas fa-desktop me-2"></i>Live Preview</h6>
+                <h6 class="mb-3"><i class="fas fa-desktop me-2"></i>Website Preview</h6>
                 <div class="iframe-wrapper bg-dark rounded">
                   <iframe 
                     v-if="website" 
@@ -112,13 +112,12 @@ function close_preview(){
             <!-- Right side: Mission Card Preview -->
             <div class="col-md-6">
               <div class="p-3 bg-light">
-                <p class="text-muted mb-2"><i class="fas fa-info-circle me-1"></i>This is how your mission will appear to testers:</p>
+                <p class="text-muted mb-2"><i class="fas fa-info-circle me-1"></i>Here are the mission details:</p>
                 
                 <div class="card shadow-sm border-0">
                   <img :src="getPlaceholderImage" class="card-img-top" alt="Mission preview" style="height: 200px; object-fit: cover;">
                   <div class="card-body">
                     <h5 class="card-title">{{ missionName || 'Mission Name' }}</h5>
-                    <div class="text-primary mb-2"><i class="fas fa-building me-2"></i>Your Company</div>
                     <p class="card-text text-muted small">{{ description || 'Mission description will appear here...' }}</p>
                     
                     <div class="d-flex flex-wrap gap-2 mb-3">
@@ -126,10 +125,6 @@ function close_preview(){
                       <span class="badge bg-success">🍌 {{ bananasPayout || '0' }}</span>
                       <span class="badge bg-info text-dark">{{ duration ? duration + (duration == 1 ? ' Day' : ' Days') : 'Duration TBD' }}</span>
                     </div>
-                  </div>
-                  <div class="card-footer bg-white d-flex justify-content-between align-items-center">
-                    <small class="text-muted">Just now</small>
-                    <button class="btn btn-sm btn-primary"><i class="fas fa-paper-plane me-2"></i>Apply</button>
                   </div>
                 </div>
               </div>
@@ -169,7 +164,7 @@ function close_preview(){
         </div>
         
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" @click="close_preview()">Close</button>
+          <button type="button" class="btn btn-ghost-dark" @click="close_preview()">Close</button>
           <button type="button" class="btn btn-primary" @click="joinThisMission()" :hidden="loading">Looks Good - Sign me up</button>
         </div>
       </div>

@@ -5,7 +5,9 @@ import "bootstrap"
 
 // Vue / Firebase
 import { ref } from "vue"
-import { getAuth, signInWithEmailAndPassword } from "firebase/auth"
+import { getAuth, signInWithEmailAndPassword, signOut } from "firebase/auth"
+import { getFunctions, httpsCallable } from "firebase/functions"
+import { getFirestore, doc, getDoc } from "firebase/firestore"
 import { useRouter } from "vue-router"
 import { useAlert } from "@/composables/useAlert"
 
@@ -23,12 +25,14 @@ const dialogText = ref("Logging in…")
 
 const router = useRouter()
 const { showError } = useAlert()
+const db = getFirestore()
+const functions = getFunctions()
 
 // Assets
 import monkeyUrl from "@/assets/welcome/monkey.png"
 import bananaUrl from "@/assets/welcome/banana.png"
 
-function login () {
+async function login () {
   if (loading.value) return
   loading.value = true
 
@@ -37,21 +41,46 @@ function login () {
   dialogMode.value = "loading"
   dialogText.value = "Logging in…"
 
-  signInWithEmailAndPassword(getAuth(), email.value, pwd.value)
-    .then(() => {
-      // switch to success state briefly, then go Home
-      dialogMode.value = "success"
-      dialogText.value = "Successfully Login."
-      setTimeout(() => router.replace({ path: "/Home" }), 900)
-    })
-    .catch((error) => {
+  try {
+    const auth = getAuth()
+    const userCredential = await signInWithEmailAndPassword(auth, email.value, pwd.value)
+    const user = userCredential.user
+
+    // Check if email is verified
+    const verificationDoc = await getDoc(doc(db, "EmailVerifications", user.uid))
+
+    if (!verificationDoc.exists() || !verificationDoc.data().verified) {
+      // Sign out the user
+      await signOut(auth)
       showDialog.value = false
-      console.log(error.code)
-      showError(error.message, 'Login Error')
-    })
-    .finally(() => {
+      showError("Please verify your email before logging in. Check your email for the verification code.", "Email Not Verified")
       loading.value = false
-    })
+      return
+    }
+
+    // Check user role and redirect to appropriate dashboard
+    const userDoc = await getDoc(doc(db, "users", user.uid))
+    const userRole = userDoc.exists() ? userDoc.data().role : null
+
+    // switch to success state briefly, then redirect based on role
+    dialogMode.value = "success"
+    dialogText.value = "Successfully Login."
+
+    setTimeout(() => {
+      if (userRole === 'Founder') {
+        router.replace({ path: "/dashboard" })
+      } else {
+        router.replace({ path: "/home" })
+      }
+    }, 900)
+
+  } catch (error) {
+    showDialog.value = false
+    console.log(error.code)
+    showError(error.message, 'Login Error')
+  } finally {
+    loading.value = false
+  }
 }
 
 function goBack () {
@@ -136,12 +165,13 @@ function goBack () {
                       />
                     </div>
 
-                    <p class="helper text-center mb-4">Forgot your password?</p>
+                    <!-- <p class="helper text-center mb-4">Forgot your password?</p> -->
 
                     <!-- centered button -->
                     <button
                       type="submit"
                       class="btn btn-primary btn-login"
+                      style="margin-top: 30px;"
                       :disabled="loading"
                     >
                       <span
@@ -189,7 +219,7 @@ function goBack () {
 
 /* Background */
 .cool-bg {
-  background: linear-gradient(to bottom, #0f4d26 7%, #F97A02 26%, #FC9D05 54%, #FDC955 77%, #ABD453 90%);
+  background: var(--gradient-primary);
   min-height: 100vh;
   display: flex;
   align-items: center;
@@ -299,10 +329,11 @@ function goBack () {
 
 /* Centered, short login button */
 .btn-login {
-  display: block;         
-  width: 220px;           
+  display: block;
+  width: 100%;
+  max-width: 220px;
   margin: 0 auto;          /* center horizontally */
-  background: linear-gradient(180deg, #2e7d32 0%, #1b5e20 100%);
+  background: var(--gradient-green-180);
   border: none;
   border-radius: 12px;
   padding: 12px 2rem;
@@ -336,13 +367,9 @@ function goBack () {
 }
 
 /* Responsive */
-@media (max-width: 992px){
-  .v-divider{ display:none; }
-}
-@media (max-width: 900px){
-  .banana-sticker{ width: 66px; }
-}
 @media (max-width: 768px){
+  .v-divider{ display:none; }
+  .banana-sticker{ width: 66px; }
   .brand-section{ padding: 2rem 1.25rem; }
   .form-section{ padding: 2rem 1.25rem; }
   .brand-monkey{ width: 72px; }

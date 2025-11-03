@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { openVoucherPack, GACHA_CONSTANTS } from '@/Database/GachaSystem'
 import { getAuth } from 'firebase/auth'
 
@@ -11,6 +11,18 @@ const props = defineProps({
 const emit = defineEmits(['close', 'packOpened'])
 
 const auth = getAuth()
+
+// Reset state when modal is shown
+watch(() => props.show, (newValue) => {
+  if (newValue) {
+    // Modal is opening, reset all state
+    revealedVoucher.value = null
+    showPackAnimation.value = false
+    showVoucherReveal.value = false
+    error.value = ''
+    isOpening.value = false
+  }
+})
 
 // Animation states
 const isOpening = ref(false)
@@ -40,7 +52,10 @@ async function openPack() {
   if (isOpening.value) return
 
   try {
+    // Reset all state first
     error.value = ''
+    revealedVoucher.value = null
+    showVoucherReveal.value = false
     isOpening.value = true
     showPackAnimation.value = true
 
@@ -145,11 +160,21 @@ function handleBackdropClick(event) {
 
               <div class="button-group">
                 <button
+                  v-if="isFree"
+                  class="btn btn-primary btn-lg open-btn"
+                  style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);"
+                  @click="openPack"
+                  :disabled="isOpening"
+                >
+                  Open Free Pack
+                </button>
+                <button
+                  v-else
                   class="btn btn-primary btn-lg open-btn"
                   @click="openPack"
                   :disabled="isOpening"
                 >
-                  {{ isFree ? 'Open Free Pack' : 'Open Pack' }}
+                  Open Pack
                 </button>
                 <button
                   class="btn btn-secondary btn-lg"
