@@ -435,7 +435,8 @@ function reset(){
     :generating="generating"
     :questions="questions"
     @close="{{ showQuestions = false; generating = true; questions = [] }}"
-    @launch="launchMission"/>
+    @launch="launchMission"
+    @showError="showError"/>
 
     <InsufficientBalanceModal
       :show="showInsufficientBalance"

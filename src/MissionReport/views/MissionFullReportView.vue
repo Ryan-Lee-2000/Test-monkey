@@ -2,7 +2,7 @@
 import { onMounted, ref, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import navbar from '../../navbar.vue';                  // same navbar as FounderDashboard.vue
-import { generateFullReport } from '../services/aiClient'; // calls functions(us-central1)
+import { generateFullReport, getLatestReport } from '../services/aiClient'; // calls functions(us-central1)
 
 const route = useRoute();
 const router = useRouter();
@@ -16,6 +16,7 @@ const sections = ref(null);
 const generatedAt = ref(null);
 const reportId = ref(null);
 const sourceSubmissionCount = ref(null);
+const hasExistingReport = ref(false);
 
 const hasSections = computed(() => {
   const s = sections.value;
@@ -39,6 +40,36 @@ function goBack() {
   else router.push({ path: '/' });
 }
 
+async function loadExistingReport() {
+  if (!missionId.value) {
+    errorMsg.value = 'Missing missionId in route.';
+    return;
+  }
+  isLoading.value = true;
+  errorMsg.value = '';
+  try {
+    const resp = await getLatestReport({ missionId: missionId.value });
+    if (resp && resp.success) {
+      // Found existing report
+      sections.value = resp.sections || null;
+      generatedAt.value = resp.generatedAt || null;
+      reportId.value = resp.reportId || null;
+      sourceSubmissionCount.value =
+        typeof resp.sourceSubmissionCount === 'number' ? resp.sourceSubmissionCount : null;
+      hasExistingReport.value = true;
+      isLoading.value = false;
+    } else {
+      // No existing report, auto-generate one
+      hasExistingReport.value = false;
+      // Don't set isLoading to false here, let generate() handle it
+      await generate();
+    }
+  } catch (err) {
+    errorMsg.value = err?.message || 'Failed to load the report.';
+    isLoading.value = false;
+  }
+}
+
 async function generate() {
   if (!missionId.value) {
     errorMsg.value = 'Missing missionId in route.';
@@ -54,6 +85,7 @@ async function generate() {
     reportId.value = resp.reportId || null;
     sourceSubmissionCount.value =
       typeof resp.sourceSubmissionCount === 'number' ? resp.sourceSubmissionCount : null;
+    hasExistingReport.value = true;
   } catch (err) {
     errorMsg.value = err?.message || 'Failed to generate the report.';
   } finally {
@@ -62,8 +94,8 @@ async function generate() {
 }
 
 onMounted(() => {
-  // The "View Full Report" button routed here → auto-generate on load
-  generate();
+  // Check for existing report first instead of auto-generating
+  loadExistingReport();
 });
 </script>
 
@@ -84,7 +116,7 @@ onMounted(() => {
         <button class="btn-modern btn-primary" @click="generate" :disabled="isLoading">
           <i v-if="!isLoading" class="fas fa-rotate me-2"></i>
           <span v-else class="spinner spinner-inline me-2" aria-hidden="true"></span>
-          {{ isLoading ? 'Generating…' : 'Generate Report' }}
+          {{ isLoading ? 'Generating…' : (hasExistingReport ? 'Regenerate Report' : 'Generate Report') }}
         </button>
       </div>
     </div>

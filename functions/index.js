@@ -104,6 +104,103 @@ function generateVerificationCode() {
   return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
+async function sendMissionCompleteEmail(founderEmail, founderName, missionName, missionId) {
+  logger.info(`Sending mission completion email to ${founderEmail}`);
+
+  try {
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: emailUser.value(),
+        pass: emailPassword.value()
+      }
+    });
+
+    // Use Vercel deployment URL
+    const appUrl = process.env.APP_URL || 'https://test-monkey-liard.vercel.app';
+    const reportUrl = `${appUrl}`;
+
+    const htmlTemplate = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      </head>
+      <body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f5f5f5;">
+        <table role="presentation" style="width: 100%; border-collapse: collapse;">
+          <tr>
+            <td align="center" style="padding: 40px 0;">
+              <table role="presentation" style="width: 600px; border-collapse: collapse; background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+                <!-- Header -->
+                <tr>
+                  <td style="padding: 40px 40px 20px 40px; text-align: center; background: linear-gradient(135deg, #0A490A 0%, #0f5a0f 100%); border-radius: 12px 12px 0 0;">
+                    <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: bold;">🐵 Test Monkey</h1>
+                  </td>
+                </tr>
+
+                <!-- Body -->
+                <tr>
+                  <td style="padding: 40px;">
+                    <h2 style="margin: 0 0 20px 0; color: #0A490A; font-size: 24px;">Mission Complete! 🎉</h2>
+                    <p style="margin: 0 0 20px 0; color: #333333; font-size: 16px; line-height: 1.6;">
+                      Hi ${founderName || 'there'},
+                    </p>
+                    <p style="margin: 0 0 20px 0; color: #333333; font-size: 16px; line-height: 1.6;">
+                      Great news! Your mission "<strong>${missionName}</strong>" has been completed by all testers. Your detailed report is now ready to view.
+                    </p>
+
+                    <!-- CTA Button -->
+                    <div style="text-align: center; margin: 30px 0;">
+                      <a href="${reportUrl}" style="display: inline-block; background: linear-gradient(135deg, #0A490A 0%, #0f5a0f 100%); color: #ffffff; text-decoration: none; padding: 16px 32px; border-radius: 8px; font-size: 16px; font-weight: bold;">
+                        View Your Report
+                      </a>
+                    </div>
+
+                    <p style="margin: 20px 0 0 0; color: #666666; font-size: 14px; line-height: 1.6;">
+                      The report includes:
+                    </p>
+                    <ul style="color: #666666; font-size: 14px; line-height: 1.8;">
+                      <li>Sentiment analysis from all testers</li>
+                      <li>Scoring across key areas</li>
+                      <li>Actionable improvement steps</li>
+                      <li>Detailed feedback by question</li>
+                    </ul>
+                  </td>
+                </tr>
+
+                <!-- Footer -->
+                <tr>
+                  <td style="padding: 30px 40px; background-color: #f8f9fa; border-radius: 0 0 12px 12px; text-align: center;">
+                    <p style="margin: 0; color: #999999; font-size: 12px;">
+                      © ${new Date().getFullYear()} Test Monkey. All rights reserved.
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+      </body>
+      </html>
+    `;
+
+    await transporter.sendMail({
+      from: `"Test Monkey" <${emailUser.value()}>`,
+      to: founderEmail,
+      subject: `Mission Complete: ${missionName} - Test Monkey 🎉`,
+      html: htmlTemplate,
+      text: `Hi ${founderName || 'there'},\n\nGreat news! Your mission "${missionName}" has been completed by all testers.\n\nYour detailed report is now ready to view at: ${reportUrl}\n\nThe report includes sentiment analysis, scoring, actionable steps, and detailed feedback.\n\n© ${new Date().getFullYear()} Test Monkey`
+    });
+
+    logger.info(`Mission completion email sent successfully to ${founderEmail}`);
+    return { success: true };
+  } catch (error) {
+    logger.error('Error sending mission completion email:', error);
+    throw error;
+  }
+}
+
 async function sendVerificationEmail(email, code) {
   logger.info(`Sending verification email to ${email}`);
 
@@ -249,7 +346,7 @@ export const generateFullMissionReport = onCall(
       });
 
       // Mirror teammate convention; you can change via env if needed
-      const model = process.env.CLAUDE_MODEL || "claude-3-sonnet-20240229";
+      const model = process.env.CLAUDE_MODEL || "claude-sonnet-4-5";
 
       const aiResp = await anthropic.messages.create({
         model,
@@ -506,7 +603,10 @@ export const deleteUnverifiedAccounts = onSchedule("every 30 minutes", async (ev
   }
 });
 
-export const updateSubmissionCount = onDocumentCreated("Submissions/{submissionId}", async (event) => {
+export const updateSubmissionCount = onDocumentCreated({
+  document: "Submissions/{submissionId}",
+  secrets: [emailUser, emailPassword]
+}, async (event) => {
   const submissionData = event.data.data();
   const missionId = submissionData.missionId;
 
@@ -535,6 +635,31 @@ export const updateSubmissionCount = onDocumentCreated("Submissions/{submissionI
       status: "Completed"
     });
     console.log(`Mission ${missionId} marked as Completed`);
+
+    // Send email notification to founder
+    try {
+      const founderId = mission.owner;
+      if (founderId) {
+        // Get founder info from Firebase Auth
+        const founderUser = await admin.auth().getUser(founderId);
+
+        if (founderUser && founderUser.email) {
+          const founderEmail = founderUser.email;
+          const founderName = founderUser.displayName || "Founder";
+          const missionName = mission.name || "Your Mission";
+
+          await sendMissionCompleteEmail(founderEmail, founderName, missionName, missionId);
+          logger.info(`Mission completion email sent to ${founderEmail} for mission ${missionId}`);
+        } else {
+          logger.warn(`Founder user not found or email missing for owner: ${founderId}`);
+        }
+      } else {
+        logger.warn(`No owner found for mission ${missionId}`);
+      }
+    } catch (emailError) {
+      logger.error(`Failed to send mission completion email for mission ${missionId}:`, emailError);
+      // Don't throw - email failure shouldn't stop the function
+    }
   }
 
   return null;
@@ -600,7 +725,7 @@ export const summarizeFeedback = onSchedule({
 
     try {
       const summaryMsg = await anthropic.messages.create({
-        model: "claude-3-sonnet-20240229",
+        model: "claude-sonnet-4-5",
         max_tokens: 1024,
         messages: [{ role: "user", content: prompt }],
       });
@@ -611,6 +736,33 @@ export const summarizeFeedback = onSchedule({
         status: "Completed",
       });
       console.log(`Successfully summarized feedback for mission ${missionId}`);
+
+      // Send email notification to founder
+      try {
+        const missionData = doc.data();
+        const founderId = missionData.owner;
+
+        if (founderId) {
+          // Get founder info from Firebase Auth
+          const founderUser = await admin.auth().getUser(founderId);
+
+          if (founderUser && founderUser.email) {
+            const founderEmail = founderUser.email;
+            const founderName = founderUser.displayName || "Founder";
+            const missionName = missionData.name || "Your Mission";
+
+            await sendMissionCompleteEmail(founderEmail, founderName, missionName, missionId);
+            logger.info(`Mission completion email sent to ${founderEmail} for mission ${missionId}`);
+          } else {
+            logger.warn(`Founder user not found or email missing for owner: ${founderId}`);
+          }
+        } else {
+          logger.warn(`No owner found for mission ${missionId}`);
+        }
+      } catch (emailError) {
+        logger.error(`Failed to send mission completion email for mission ${missionId}:`, emailError);
+        // Don't throw - email failure shouldn't stop the function
+      }
     } catch (error) {
       console.error(`Failed to get summary for mission ${missionId}:`, error);
     }
@@ -664,7 +816,7 @@ export const generateMissionReport = onCall({ secrets: [anthropicKey], cors: cor
                     The "sentimentKeywords" value must be an array of objects, where each object has a "word" (string) and a "weight" (number). \n\n---BEGIN FEEDBACK---\n${aggregatedFeedbackText}\n---END FEEDBACK---`;
 
     const aiResponse = await anthropic.messages.create({
-      model: "claude-3-sonnet-20240229",
+      model: "claude-sonnet-4-5",
       max_tokens: 2048,
       messages: [{ role: "user", content: prompt }],
     });

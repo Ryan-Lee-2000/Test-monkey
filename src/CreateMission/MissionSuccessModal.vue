@@ -91,7 +91,7 @@ function handleGoHome() {
             <button class="btn btn-success btn-lg fw-bold" @click="handleGoHome">
               <i class="fas fa-home me-2"></i>Go to Home
             </button>
-            <button class="btn btn-outline-secondary" @click="emit('close')">
+            <button class="btn btn-ghost-dark" @click="emit('close')">
               Close
             </button>
           </div>

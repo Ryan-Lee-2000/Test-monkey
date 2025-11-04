@@ -86,6 +86,23 @@ const viewFullReport = (missionId) => {
   router.push(`/dashboard/${missionId}`);
 };
 
+// Computed sorted missions - Active first, Completed last
+const sortedMissions = computed(() => {
+  return [...missions.value].sort((a, b) => {
+    // Define status priority: Active = 0, In Progress = 1, Completed = 2
+    const statusPriority = {
+      'Active': 0,
+      'In Progress': 1,
+      'Completed': 2
+    };
+
+    const priorityA = statusPriority[a.status] ?? 3;
+    const priorityB = statusPriority[b.status] ?? 3;
+
+    return priorityA - priorityB;
+  });
+});
+
 // Computed stats
 const stats = computed(() => {
   return {
@@ -172,7 +189,7 @@ const stats = computed(() => {
     <!-- Missions List -->
     <div v-else class="missions-list">
       <div
-        v-for="mission in missions"
+        v-for="mission in sortedMissions"
         :key="mission.id"
         class="mission-card card-modern"
         :class="{ 'expanded': expandedMissionId === mission.id }"

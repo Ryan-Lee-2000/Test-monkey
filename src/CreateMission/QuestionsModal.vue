@@ -12,17 +12,24 @@ const props = defineProps({
 })
 
 
-const emit = defineEmits(['close', 'confirm', 'launch'])
+const emit = defineEmits(['close', 'confirm', 'launch', 'showError'])
 
 // Create a local copy of questions that we can modify
 const localQuestions = ref([])
+const validationAttempted = ref(false)
 
 // Watch for changes in props.questions
 watch(() => props.questions, (newQuestions) => {
   if (newQuestions && newQuestions.length > 0) {
     localQuestions.value = newQuestions.map(q => ({...q}))
+    validationAttempted.value = false
   }
 }, { immediate: true })
+
+// Check if a question is invalid (empty)
+const isQuestionInvalid = (question) => {
+  return validationAttempted.value && (!question.text || question.text.trim() === '')
+}
 
 const addQuestion = async () => {
   const newId = Date.now()
@@ -67,6 +74,17 @@ const confirm = () => {
 }
 
 const handleLaunch = () => {
+  // Mark that validation has been attempted
+  validationAttempted.value = true
+
+  // Validate that all questions have text
+  const emptyQuestions = localQuestions.value.filter(q => !q.text || q.text.trim() === '')
+
+  if (emptyQuestions.length > 0) {
+    emit('showError', 'All question fields must be filled out before launching the mission.', 'Empty Questions')
+    return
+  }
+
   // Pass the modified questions back to parent before launching
   emit('launch', localQuestions.value)
 }
@@ -95,6 +113,30 @@ computed(()=>props.show ? console.log('showing questions') : console.log("not sh
   box-shadow: 0 4px 12px rgba(102, 126, 234, 0.1);
 }
 
+.question-item.invalid {
+  border-color: #dc3545;
+  background-color: #fff5f5;
+}
+
+.question-item.invalid:hover {
+  border-color: #dc3545;
+}
+
+.error-text {
+  color: #dc3545;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+
+.invalid-textarea {
+  border-color: #dc3545 !important;
+}
+
+.invalid-textarea:focus {
+  border-color: #dc3545 !important;
+  box-shadow: 0 0 0 0.25rem rgba(220, 53, 69, 0.25) !important;
+}
+
 .btn-gradient {
   background: linear-gradient(135deg, #2e7d32 0%, #1b5e20 100%);
   border: none;
@@ -112,6 +154,20 @@ computed(()=>props.show ? console.log('showing questions') : console.log("not sh
   justify-content: center;
   font-weight: 600;
   font-size: 0.9rem;
+}
+
+.delete-btn {
+  transition: all 0.2s ease;
+}
+
+.delete-btn:hover:not(:disabled) {
+  transform: scale(1.05);
+  box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);
+}
+
+.delete-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 </style>
 
@@ -156,7 +212,7 @@ computed(()=>props.show ? console.log('showing questions') : console.log("not sh
                 </div>
               </div>
 
-              <div v-for="(question, index) in localQuestions" :key="question.id" class="question-item" :data-question-id="question.id">
+              <div v-for="(question, index) in localQuestions" :key="question.id" class="question-item" :class="{ invalid: isQuestionInvalid(question) }" :data-question-id="question.id">
                 <div class="d-flex gap-3">
                   <div class="question-number">{{ index + 1 }}</div>
 
@@ -166,9 +222,13 @@ computed(()=>props.show ? console.log('showing questions') : console.log("not sh
                         <textarea
                           v-model="question.text"
                           class="form-control"
+                          :class="{ 'invalid-textarea': isQuestionInvalid(question) }"
                           rows="2"
                           placeholder="Enter question text"
                         ></textarea>
+                        <div v-if="isQuestionInvalid(question)" class="error-text">
+                          <i class="fas fa-exclamation-circle me-1"></i>This field is required
+                        </div>
                       </div>
                     </div>
 
@@ -176,11 +236,12 @@ computed(()=>props.show ? console.log('showing questions') : console.log("not sh
                       <small class="text-muted">
                       </small>
                       <button
-                        class="btn btn-sm btn-outline-danger"
+                        class="btn btn-ghost-dark btn-outline-danger delete-btn"
                         @click="removeQuestion(question.id)"
                         :disabled="localQuestions.length === 1"
+                        :title="localQuestions.length === 1 ? 'At least one question is required' : 'Delete this question'"
                       >
-                        <i class="fas fa-trash"></i>
+                        <i class="fas fa-trash me-1"></i>Delete
                       </button>
                     </div>
                   </div>

@@ -148,8 +148,9 @@ async function loadAvailableMissions() {
 }
 
 function getProgress(mission) {
-  if (!mission.active_testers || !mission.num_testers) return 0
-  return Math.round((mission.active_testers.length / mission.num_testers) * 100)
+  const currentCount = mission.submissionCount || mission.active_testers?.length || 0;
+  if (!mission.num_testers) return 0
+  return Math.round((currentCount / mission.num_testers) * 100)
 }
 
 function getDaysRemaining(duration) {
@@ -162,10 +163,32 @@ function formatDuration(duration) {
   return duration
 }
 
-function getPlaceholderImage(missionId) {
-  const colors = ['667eea', '764ba2', 'f093fb', '4facfe']
-  const colorIndex = missionId?.charCodeAt(0) % colors.length || 0
-  return `https://via.placeholder.com/400x200/${colors[colorIndex]}/ffffff?text=Mission`
+function getMissionVisual(mission) {
+  const progress = getProgress(mission)
+  const payoutLevel = Math.min(Math.floor(mission.payout / 20), 4) // 0-4 scale
+
+  // Select gradient based on payout level - higher payouts get warmer/brighter colors
+  const gradients = [
+    'linear-gradient(135deg, #6C757D 0%, #495057 100%)', // Low payout - gray
+    'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)', // Medium-low - blue
+    'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)', // Medium - green
+    'linear-gradient(135deg, #fa709a 0%, #fee140 100%)', // Medium-high - pink/yellow
+    'linear-gradient(135deg, #F97A02 0%, #FDC955 100%)', // High payout - banana colors!
+  ]
+
+  return {
+    gradient: gradients[payoutLevel],
+    progress: progress,
+    payoutLevel: payoutLevel
+  }
+}
+
+function getWebsiteDomain(url) {
+  try {
+    return new URL(url).hostname.replace('www.', '')
+  } catch {
+    return 'Website'
+  }
 }
 
 function showMission(missionId) {
@@ -488,13 +511,31 @@ async function refreshMissions(){
               class="col-12 col-sm-6 col-lg-4 col-xl-3"
             >
               <div class="card h-100 shadow-sm mission-card" @click="showMission(mission.mission_id)">
-                <img
-                  :src="getPlaceholderImage(mission.mission_id)"
-                  :alt="mission.name"
-                  class="card-img-top"
-                  style="height: 200px; object-fit: cover;"
-                  @error="$event.target.src = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22200%22%3E%3Crect fill=%22%23667eea%22 width=%22400%22 height=%22200%22/%3E%3C/svg%3E'"
-                />
+                <div class="mission-hybrid-header" :style="{ background: getMissionVisual(mission).gradient }">
+                  <div class="mission-overlay">
+                    <!-- Top section: Website domain -->
+                    <div class="website-info">
+                      <i class="fas fa-link"></i>
+                      {{ getWebsiteDomain(mission.website) }}
+                    </div>
+
+                    <!-- Center: Main payout display -->
+                    <div class="payout-display">
+                      <img :src="bananaURL" class="banana-icon" alt="Banana" />
+                      <span class="payout-amount">{{ mission.payout }}</span>
+                    </div>
+
+                    <!-- Bottom: Progress bar -->
+                    <div class="mini-progress">
+                      <div class="progress-track">
+                        <div class="progress-fill" :style="{ width: `${getProgress(mission)}%` }"></div>
+                      </div>
+                      <div class="progress-text-container">
+                        <span class="progress-text">{{ getProgress(mission) }}% filled</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
                 <div class="card-body d-flex flex-column">
                   <h5 class="card-title">{{ mission.name }}</h5>
                   <p class="card-text text-muted small flex-grow-1 text-truncate-3">
@@ -647,11 +688,101 @@ async function refreshMissions(){
 .mission-card {
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   cursor: pointer;
+  overflow: hidden;
 }
 
 .mission-card:hover {
   transform: translateY(-4px);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Hybrid Mission Header */
+.mission-hybrid-header {
+  height: 200px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+  color: white;
+}
+
+.mission-overlay {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+}
+
+.website-info {
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  align-self: flex-start;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.payout-display {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin: auto 0;
+}
+
+.banana-icon {
+  width: 48px;
+  height: 48px;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.3));
+}
+
+.payout-amount {
+  font-size: 48px;
+  font-weight: 800;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+.mini-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.progress-track {
+  height: 8px;
+  background: rgba(0, 0, 0, 0.25);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: white;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
+}
+
+.progress-text-container {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.progress-text {
+  font-size: 11px;
+  font-weight: 600;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  padding: 2px 8px;
+  border-radius: 10px;
+  display: inline-block;
 }
 
 .text-truncate-3 {
@@ -685,6 +816,21 @@ async function refreshMissions(){
   .custom-tabs .nav-link {
     padding: var(--spacing-sm) var(--spacing-md);
     font-size: var(--font-size-sm);
+  }
+
+  /* Adjust mission card header for mobile */
+  .banana-icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .payout-amount {
+    font-size: 40px;
+  }
+
+  .website-info {
+    font-size: 11px;
+    padding: 4px 10px;
   }
 }
 </style>

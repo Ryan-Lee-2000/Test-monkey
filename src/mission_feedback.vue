@@ -5,6 +5,7 @@ import { getMissionById, submitMissionFeedback,retrieveFile } from '@/Database/M
 import { getAuth } from "firebase/auth";
 import navbar from './navbar.vue';
 import { useAlert } from '@/composables/useAlert';
+import { useUserData } from '@/composables/useUserData';
 
 const route = useRoute()
 const mission = ref(null)
@@ -13,6 +14,7 @@ const isLoading = ref(true)
 const router = useRouter()
 const isSubmitting = ref(false)
 const { showSuccess, showError } = useAlert()
+const { refreshBalance } = useUserData()
 
 const showMoreDescription = ref(false)
 
@@ -54,6 +56,9 @@ async function handleSubmit() {
 
     await submitMissionFeedback(submissionData);
 
+    // Refresh the banana balance in the navbar
+    await refreshBalance();
+
     showSuccess("Feedback submitted successfully! You will now be returned to your mission list.", "Submission Complete");
     setTimeout(() => {
       router.push('/missionList');
@@ -68,7 +73,7 @@ async function handleSubmit() {
 </script>
 
 <template>
-  <div class="page" style="height: fit-content;">
+  <div class="page">
     <navbar/>
     <div class="feedback-layout">
       <!-- Website Preview Panel -->
@@ -170,6 +175,8 @@ async function handleSubmit() {
 .page {
   width: 100%;
   min-height: 100dvh;
+  height: 100dvh;
+  overflow: hidden;
 }
 
 .feedback-layout {
@@ -178,7 +185,6 @@ async function handleSubmit() {
   width: 100%;
   margin-top: 80px;
   overflow: hidden;
-  
 }
 
 /* Website Preview Panel */
@@ -375,37 +381,33 @@ async function handleSubmit() {
   cursor: not-allowed;
 }
 
-/* Responsive Design */
+/* Mobile/Tablet Layout */
 @media (max-width: 768px) {
   .page {
-    position: relative;
-    height: auto;
-    min-height: 100dvh;
+    height: 100dvh;
+    overflow: hidden;
   }
 
   .feedback-layout {
     flex-direction: column;
-    height: auto;
-    min-height: calc(100dvh - 70px);
-    overflow: visible;
+    height: calc(100dvh - 80px);
+    overflow-y: auto;
   }
 
   .website-panel {
+    flex: none;
+    width: 100%;
     height: 60vh;
-    min-height: 400px;
+    min-height: 300px;
     border-right: none;
-    border-bottom: 3px solid #ff7700;
-    position: relative;
+    border-bottom: 3px solid #0f4d26;
   }
 
   .form-panel {
+    flex: none;
+    width: 100%;
     height: auto;
-    overflow-y: visible;
-    overflow-x: hidden;
-  }
-
-  .form-content {
-    padding: 1.5rem;
+    min-height: calc(100vh - 80px);
   }
 }
 

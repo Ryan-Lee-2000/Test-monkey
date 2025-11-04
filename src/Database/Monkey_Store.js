@@ -179,9 +179,12 @@ export async function getMissions(){
   const uid = auth.currentUser.uid;
   // console.log('start', all_missions)
   for(let i = all_missions.length - 1; i >= 0; i--){
-    if(all_missions[i].active_testers.length >= all_missions[i].num_testers){
+    // Use submissionCount if it exists, otherwise fall back to active_testers.length
+    const currentCount = all_missions[i].submissionCount || all_missions[i].active_testers?.length || 0;
+
+    if(currentCount >= all_missions[i].num_testers){
       all_missions.splice(i, 1);
-    } else if(all_missions[i].active_testers.indexOf(uid) > -1){
+    } else if(all_missions[i].active_testers?.indexOf(uid) > -1){
       all_missions.splice(i, 1);
     }
   }
