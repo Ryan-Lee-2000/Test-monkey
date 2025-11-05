@@ -102,7 +102,7 @@ function handleTopUp() {
             <button class="btn btn-success btn-lg fw-bold" @click="handleTopUp">
               <i class="fas fa-plus-circle me-2"></i>Top Up Bananas
             </button>
-            <button class="btn btn-outline-secondary" @click="emit('close')">
+            <button class="btn btn-ghost-dark" @click="emit('close')">
               Cancel
             </button>
           </div>

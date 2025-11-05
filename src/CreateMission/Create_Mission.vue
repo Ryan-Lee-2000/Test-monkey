@@ -587,10 +587,6 @@ function reset(){
   background-size: 20px;
 }
 
-/* Using .btn-primary from design system instead */
-.btn-gradient {
-  /* Deprecated - use .btn-primary */
-}
 
 .total-cost-box {
   background: linear-gradient(135deg, #0A490A 0%, #0f5a0f 100%);
