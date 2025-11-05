@@ -201,6 +201,155 @@ async function sendMissionCompleteEmail(founderEmail, founderName, missionName, 
   }
 }
 
+async function sendMissionExpirationEmail(founderEmail, founderName, missionName, missionId, submissionCount, numTesters, refundAmount, finalStatus) {
+  logger.info(`Sending mission expiration email to ${founderEmail}`);
+
+  try {
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: emailUser.value(),
+        pass: emailPassword.value()
+      }
+    });
+
+    const appUrl = process.env.APP_URL || 'https://test-monkey-liard.vercel.app';
+    const dashboardUrl = `${appUrl}/dashboard`;
+
+    // Customize message based on submission count
+    let statusMessage = '';
+    let statusColor = '#e74c3c';
+    let statusEmoji = '⏰';
+
+    if (submissionCount === 0) {
+      statusMessage = 'Your mission has expired without receiving any responses from testers.';
+      statusEmoji = '⏰';
+      statusColor = '#e74c3c';
+    } else if (submissionCount < numTesters) {
+      statusMessage = `Your mission has expired with partial completion. ${submissionCount} out of ${numTesters} testers submitted feedback.`;
+      statusEmoji = '⚠️';
+      statusColor = '#f39c12';
+    }
+
+    const htmlTemplate = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      </head>
+      <body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f5f5f5;">
+        <table role="presentation" style="width: 100%; border-collapse: collapse;">
+          <tr>
+            <td align="center" style="padding: 40px 0;">
+              <table role="presentation" style="width: 600px; border-collapse: collapse; background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+                <!-- Header -->
+                <tr>
+                  <td style="padding: 40px 40px 20px 40px; text-align: center; background: linear-gradient(135deg, #0A490A 0%, #0f5a0f 100%); border-radius: 12px 12px 0 0;">
+                    <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: bold;">🐵 Test Monkey</h1>
+                  </td>
+                </tr>
+
+                <!-- Body -->
+                <tr>
+                  <td style="padding: 40px;">
+                    <h2 style="margin: 0 0 20px 0; color: ${statusColor}; font-size: 24px;">Mission Expired ${statusEmoji}</h2>
+                    <p style="margin: 0 0 20px 0; color: #333333; font-size: 16px; line-height: 1.6;">
+                      Hi ${founderName || 'there'},
+                    </p>
+                    <p style="margin: 0 0 20px 0; color: #333333; font-size: 16px; line-height: 1.6;">
+                      ${statusMessage}
+                    </p>
+
+                    <!-- Mission Details Box -->
+                    <div style="background: #f8f9fa; border-left: 4px solid ${statusColor}; padding: 20px; border-radius: 4px; margin: 20px 0;">
+                      <p style="margin: 0 0 10px 0; color: #333; font-size: 14px;">
+                        <strong>Mission:</strong> ${missionName}
+                      </p>
+                      <p style="margin: 0 0 10px 0; color: #333; font-size: 14px;">
+                        <strong>Status:</strong> ${finalStatus}
+                      </p>
+                      <p style="margin: 0 0 10px 0; color: #333; font-size: 14px;">
+                        <strong>Submissions Received:</strong> ${submissionCount} / ${numTesters}
+                      </p>
+                      ${refundAmount > 0 ? `
+                        <p style="margin: 0; color: #27ae60; font-size: 14px;">
+                          <strong>🍌 Refund Issued:</strong> ${refundAmount} bananas
+                        </p>
+                      ` : ''}
+                    </div>
+
+                    ${refundAmount > 0 ? `
+                      <div style="background: #e8f5e9; border: 1px solid #27ae60; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                        <p style="margin: 0; color: #27ae60; font-size: 16px; font-weight: bold;">
+                          ✓ Good News!
+                        </p>
+                        <p style="margin: 10px 0 0 0; color: #333; font-size: 14px;">
+                          We've automatically refunded <strong>${refundAmount} bananas</strong> for the ${numTesters - submissionCount} unused tester slot${numTesters - submissionCount !== 1 ? 's' : ''}. The bananas have been added back to your account balance.
+                        </p>
+                      </div>
+                    ` : ''}
+
+                    ${submissionCount > 0 ? `
+                      <p style="margin: 20px 0 10px 0; color: #333; font-size: 14px;">
+                        <strong>You can still:</strong>
+                      </p>
+                      <ul style="color: #666; font-size: 14px; line-height: 1.8; margin-top: 0;">
+                        <li>View the partial feedback from ${submissionCount} tester${submissionCount !== 1 ? 's' : ''}</li>
+                        <li>Generate a report with the available data</li>
+                      </ul>
+                    ` : `
+                      <p style="margin: 20px 0 10px 0; color: #666; font-size: 14px;">
+                        Consider creating a new mission with:
+                      </p>
+                      <ul style="color: #666; font-size: 14px; line-height: 1.8; margin-top: 0;">
+                        <li>Higher payout to attract more testers</li>
+                        <li>Clearer mission description</li>
+                        <li>Longer duration for more visibility</li>
+                      </ul>
+                    `}
+
+                    <!-- CTA Button -->
+                    <div style="text-align: center; margin: 30px 0;">
+                      <a href="${dashboardUrl}" style="display: inline-block; background: linear-gradient(135deg, #0A490A 0%, #0f5a0f 100%); color: #ffffff; text-decoration: none; padding: 16px 32px; border-radius: 8px; font-size: 16px; font-weight: bold;">
+                        View Dashboard
+                      </a>
+                    </div>
+                  </td>
+                </tr>
+
+                <!-- Footer -->
+                <tr>
+                  <td style="padding: 30px 40px; background-color: #f8f9fa; border-radius: 0 0 12px 12px; text-align: center;">
+                    <p style="margin: 0; color: #999999; font-size: 12px;">
+                      © ${new Date().getFullYear()} Test Monkey. All rights reserved.
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+      </body>
+      </html>
+    `;
+
+    await transporter.sendMail({
+      from: `"Test Monkey" <${emailUser.value()}>`,
+      to: founderEmail,
+      subject: `Mission Expired: ${missionName} - Test Monkey ${statusEmoji}`,
+      html: htmlTemplate,
+      text: `Hi ${founderName || 'there'},\n\n${statusMessage}\n\nMission: ${missionName}\nStatus: ${finalStatus}\nSubmissions: ${submissionCount}/${numTesters}\n${refundAmount > 0 ? `\nRefund Issued: ${refundAmount} bananas have been added back to your account.\n` : ''}\n\nView your dashboard at: ${dashboardUrl}\n\n© ${new Date().getFullYear()} Test Monkey`
+    });
+
+    logger.info(`Mission expiration email sent successfully to ${founderEmail}`);
+    return { success: true };
+  } catch (error) {
+    logger.error('Error sending mission expiration email:', error);
+    throw error;
+  }
+}
+
 async function sendVerificationEmail(email, code) {
   logger.info(`Sending verification email to ${email}`);
 
@@ -320,6 +469,11 @@ export const generateFullMissionReport = onCall(
 
       const submissions = subsSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
       const sourceSubmissionCount = submissions.length;
+
+      // Allow report generation for missions with partial data (at least 1 submission)
+      if (sourceSubmissionCount === 0) {
+        return { error: "Cannot generate report: No submissions available. Report generation requires at least one tester submission." };
+      }
 
       // --- Build TESTER_RESPONSES aligned to SURVEY_QUESTIONS ---
       const TESTER_RESPONSES = submissions.map((s) => {
@@ -768,6 +922,116 @@ export const summarizeFeedback = onSchedule({
     }
   }
   return null;
+});
+
+// Scheduled function to expire missions that have passed their deadline
+export const expireMissions = onSchedule({
+  schedule: "every 1 hours",
+  secrets: [emailUser, emailPassword]
+}, async (event) => {
+  logger.info("Running mission expiration check.");
+
+  try {
+    const now = admin.firestore.Timestamp.now();
+    const missionsRef = db.collection("Missions");
+
+    // Query for active missions that have expired
+    const expiredSnapshot = await missionsRef
+      .where("status", "==", "Active")
+      .where("expiresAt", "<=", now)
+      .get();
+
+    if (expiredSnapshot.empty) {
+      logger.info("No expired missions to process.");
+      return null;
+    }
+
+    const expiredMissionIds = [];
+
+    // Process each expired mission
+    for (const missionDoc of expiredSnapshot.docs) {
+      const missionId = missionDoc.id;
+      const missionData = missionDoc.data();
+      const submissionCount = missionData.submissionCount || 0;
+      const numTesters = missionData.num_testers || 0;
+      const payout = missionData.payout || 0;
+      const ownerId = missionData.owner;
+
+      expiredMissionIds.push(missionId);
+
+      // Calculate refund for unused slots
+      const unusedSlots = numTesters - submissionCount;
+      const refundAmount = unusedSlots * payout;
+
+      // Determine final status based on submissions
+      let finalStatus = "Expired";
+      if (submissionCount > 0 && submissionCount < numTesters) {
+        finalStatus = "Partially Completed";
+      } else if (submissionCount === 0) {
+        finalStatus = "Expired";
+      }
+
+      // Update mission status and record refund info
+      await missionDoc.ref.update({
+        status: finalStatus,
+        refundAmount: refundAmount,
+        finalSubmissionCount: submissionCount,
+        expiredAt: FieldValue.serverTimestamp()
+      });
+
+      // Refund bananas to founder if there are unused slots
+      if (refundAmount > 0 && ownerId) {
+        try {
+          const foundersSnapshot = await db.collection("Founders")
+            .where("User", "==", ownerId)
+            .limit(1)
+            .get();
+
+          if (!foundersSnapshot.empty) {
+            const founderDoc = foundersSnapshot.docs[0];
+            const currentBalance = founderDoc.data().bananaBalance || 0;
+            const currentSpent = founderDoc.data().totalBananasSpent || 0;
+
+            await founderDoc.ref.update({
+              bananaBalance: currentBalance + refundAmount,
+              totalBananasSpent: Math.max(0, currentSpent - refundAmount)
+            });
+
+            logger.info(`Refunded ${refundAmount} bananas to founder ${ownerId} for mission ${missionId}`);
+          }
+        } catch (refundError) {
+          logger.error(`Error refunding bananas for mission ${missionId}:`, refundError);
+        }
+      }
+
+      // Send expiration email to founder
+      try {
+        const founderUser = await admin.auth().getUser(ownerId);
+        if (founderUser && founderUser.email) {
+          await sendMissionExpirationEmail(
+            founderUser.email,
+            founderUser.displayName || "Founder",
+            missionData.name || "Your Mission",
+            missionId,
+            submissionCount,
+            numTesters,
+            refundAmount,
+            finalStatus
+          );
+          logger.info(`Expiration email sent to ${founderUser.email} for mission ${missionId}`);
+        }
+      } catch (emailError) {
+        logger.error(`Failed to send expiration email for mission ${missionId}:`, emailError);
+      }
+    }
+
+    logger.info(`Processed ${expiredMissionIds.length} expired missions: ${expiredMissionIds.join(", ")}`);
+    return null;
+
+  } catch (error) {
+    logger.error("Error during mission expiration check:", error);
+    return null;
+  }
 });
 
 

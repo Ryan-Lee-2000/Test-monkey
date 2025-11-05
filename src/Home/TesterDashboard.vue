@@ -168,9 +168,18 @@ function getProgress(mission) {
   return Math.round((currentCount / mission.num_testers) * 100)
 }
 
-function getDaysRemaining(duration) {
-  if (!duration) return 'No deadline'
-  return `${duration} days left`
+function getDaysRemaining(mission) {
+  if (!mission || !mission.expiresAt) return 'No deadline'
+
+  const now = new Date()
+  const expiresAt = mission.expiresAt.toDate ? mission.expiresAt.toDate() : new Date(mission.expiresAt)
+  const diffTime = expiresAt - now
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+
+  if (diffDays < 0) return 'Expired'
+  if (diffDays === 0) return 'Expires today'
+  if (diffDays === 1) return '1 day left'
+  return `${diffDays} days left`
 }
 
 function formatDuration(duration) {
@@ -384,7 +393,7 @@ async function refreshMissions(){
 
                       <div class="d-flex justify-content-between align-items-center">
                         <div>
-                          <small class="text-muted"><i class="fas fa-clock me-1"></i>{{ getDaysRemaining(mission.duration) }}</small><br>
+                          <small class="text-muted"><i class="fas fa-clock me-1"></i>{{ getDaysRemaining(mission) }}</small><br>
                           <small class="text-success"><i class="fas fa-coins me-1"></i>🍌{{ mission.payout || 0 }}</small>
                         </div>
                         <button class="btn-modern btn-primary btn-sm" @click="goToMission(mission.mission_id)">

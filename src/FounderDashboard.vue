@@ -40,11 +40,27 @@ const getStatusClass = (status) => {
       return 'badge-modern badge-success';
     case 'Active':
       return 'badge-modern badge-primary';
+    case 'Expired':
+      return 'badge-modern badge-danger';
     case 'In Progress':
       return 'badge-modern badge-warning';
     default:
       return 'badge-modern badge-secondary';
   }
+};
+
+const getDaysRemaining = (mission) => {
+  if (!mission || !mission.expiresAt) return 'No deadline';
+
+  const now = new Date();
+  const expiresAt = mission.expiresAt.toDate ? mission.expiresAt.toDate() : new Date(mission.expiresAt);
+  const diffTime = expiresAt - now;
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+  if (diffDays < 0) return 'Expired';
+  if (diffDays === 0) return 'Expires today';
+  if (diffDays === 1) return '1 day left';
+  return `${diffDays} days left`;
 };
 
 const getProgressPercentage = (mission) => {
@@ -89,11 +105,12 @@ const viewFullReport = (missionId) => {
 // Computed sorted missions - Active first, Completed last
 const sortedMissions = computed(() => {
   return [...missions.value].sort((a, b) => {
-    // Define status priority: Active = 0, In Progress = 1, Completed = 2
+    // Define status priority: Active = 0, In Progress = 1, Expired = 2, Completed = 3
     const statusPriority = {
       'Active': 0,
       'In Progress': 1,
-      'Completed': 2
+      'Expired': 2,
+      'Completed': 3
     };
 
     const priorityA = statusPriority[a.status] ?? 3;
@@ -109,6 +126,7 @@ const stats = computed(() => {
     totalMissions: missions.value.length,
     activeMissions: missions.value.filter(m => m.status === 'Active').length,
     completedMissions: missions.value.filter(m => m.status === 'Completed').length,
+    expiredMissions: missions.value.filter(m => m.status === 'Expired').length,
     totalSubmissions: missions.value.reduce((sum, m) => sum + (m.submissionCount || 0), 0)
   };
 });
@@ -214,7 +232,7 @@ const stats = computed(() => {
               </span>
               <span class="meta-item">
                 <i class="fas fa-calendar"></i>
-                {{ mission.duration }} days
+                {{ mission.duration }} days ({{ getDaysRemaining(mission) }})
               </span>
             </div>
           </div>
@@ -266,7 +284,7 @@ const stats = computed(() => {
               </div>
             </div>
 
-            <div class="details-section" v-if="mission.status === 'Completed'">
+            <div class="details-section" v-if="mission.status === 'Completed' || mission.status === 'Partially Completed'">
               <h4><i class="fas fa-chart-line me-2"></i>AI Analysis</h4>
               <div v-if="mission.aiReport" class="ai-report">
                 <div v-if="mission.aiReport.sentimentKeywords" class="sentiment-cloud">
@@ -281,7 +299,11 @@ const stats = computed(() => {
                 </div>
                 <p v-if="mission.aiReport.overview" class="ai-overview">{{ mission.aiReport.overview }}</p>
               </div>
-              <p v-else class="text-muted">AI analysis will be available once all submissions are processed.</p>
+              <p v-else class="text-muted">
+                {{ mission.status === 'Partially Completed'
+                  ? 'AI analysis available based on partial submissions received.'
+                  : 'AI analysis will be available once all submissions are processed.' }}
+              </p>
             </div>
 
             <div class="details-section" v-if="missionSubmissions[mission.id]?.length > 0">
@@ -310,11 +332,14 @@ const stats = computed(() => {
 
             <div class="details-actions">
               <button
-                v-if="mission.status === 'Completed'"
+                v-if="mission.status === 'Completed' || mission.status === 'Partially Completed'"
                 @click="viewFullReport(mission.id)"
                 class="btn-modern btn-primary"
               >
                 <i class="fas fa-chart-bar me-2"></i>View Full Report
+              </button>
+              <button v-else-if="mission.status === 'Expired'" class="btn-modern btn-ghost-dark" disabled>
+                <i class="fas fa-times-circle me-2"></i>Mission Expired (No submissions)
               </button>
               <button v-else class="btn-modern btn-ghost-dark" disabled>
                 <i class="fas fa-hourglass-half me-2"></i>Waiting for submissions

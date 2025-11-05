@@ -181,7 +181,7 @@ function logout(){
             <ul class="list-unstyled m-0 p-0">
               <li class="py-3 px-4 border-bottom" v-if="!role" @click="go('/home'); isMobileMenuOpen = false">My Missions</li>
               <li class="py-3 px-4 border-bottom" @click="go(role ? '/dashboard' : '/gambling'); isMobileMenuOpen = false">
-                {{ role ? 'Dashboard' : 'Gambling' }}
+                {{ role ? 'Dashboard' : 'Gacha' }}
               </li>
               <li class="py-3 px-4 border-bottom" v-if="role" @click="go('/createMission'); isMobileMenuOpen = false">Create Mission</li>
             </ul>

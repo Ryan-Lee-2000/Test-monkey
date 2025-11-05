@@ -1,15 +1,16 @@
-import { 
-  collection, 
-  addDoc, 
-  doc, 
-  setDoc, 
-  updateDoc, 
-  getDoc, 
-  getDocs, 
-  query, 
-  where, 
-  serverTimestamp, 
-  arrayUnion, 
+import {
+  collection,
+  addDoc,
+  doc,
+  setDoc,
+  updateDoc,
+  getDoc,
+  getDocs,
+  query,
+  where,
+  serverTimestamp,
+  Timestamp,
+  arrayUnion,
   arrayRemove,
   documentId
 } from "firebase/firestore";
@@ -123,6 +124,11 @@ export async function createMission(mission_detail){
     const uid = auth.currentUser.uid;
     const file = mission_detail.file
 
+    // Calculate expiration date (duration is in days)
+    const createdAt = new Date();
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + Number(mission_detail.duration));
+
     const docRef = await addDoc(collection(db, "Missions"), {
         name: mission_detail.missionName,
         description: mission_detail.description,
@@ -133,7 +139,10 @@ export async function createMission(mission_detail){
         website: mission_detail.website,
         owner: uid,
         active_testers: [],
-        status: 'Active'
+        status: 'Active',
+        createdAt: Timestamp.fromDate(createdAt),
+        expiresAt: Timestamp.fromDate(expiresAt),
+        submissionCount: 0
     });
 
     //Upload File
@@ -153,9 +162,16 @@ export async function createMission(mission_detail){
 }
 
 export async function getAllMissions(){
-  // Returns all active missions without filtering
+  // Returns all active missions that haven't expired
+  const now = Timestamp.now();
 
-  const snapshot = await getDocs(query(collection(db,'Missions'), where("status", "==", "Active")))
+  const snapshot = await getDocs(
+    query(
+      collection(db,'Missions'),
+      where("status", "==", "Active"),
+      where("expiresAt", ">", now)
+    )
+  )
   const all_missions = []
   snapshot.forEach((doc)=>{
     const mission_data = doc.data()
@@ -168,6 +184,8 @@ export async function getAllMissions(){
 export async function getMissions(){
   const snapshot = await getDocs(query(collection(db,'Missions')))
   const all_missions = []
+  const now = Timestamp.now();
+
   snapshot.forEach((doc)=>{
     // console.log('foreach:',doc.data())
     const mission_data = doc.data()
@@ -182,9 +200,14 @@ export async function getMissions(){
     // Use submissionCount if it exists, otherwise fall back to active_testers.length
     const currentCount = all_missions[i].submissionCount || all_missions[i].active_testers?.length || 0;
 
+    // Filter out missions that are: full, expired, or already joined
     if(currentCount >= all_missions[i].num_testers){
       all_missions.splice(i, 1);
     } else if(all_missions[i].active_testers?.indexOf(uid) > -1){
+      all_missions.splice(i, 1);
+    } else if(all_missions[i].expiresAt && all_missions[i].expiresAt.toMillis() <= now.toMillis()){
+      all_missions.splice(i, 1);
+    } else if(all_missions[i].status !== 'Active'){
       all_missions.splice(i, 1);
     }
   }
@@ -197,21 +220,44 @@ export async function joinMission(mission_id){
   const missionRef = doc(db, "Missions", mission_id);
   const missionDoc = await getDoc(missionRef);
 
+  if (!missionDoc.exists()) {
+    throw new Error("Mission not found");
+  }
+
+  const missionData = missionDoc.data();
+  const now = Timestamp.now();
+
+  // Check if mission has expired
+  if (missionData.expiresAt && missionData.expiresAt.toMillis() <= now.toMillis()) {
+    throw new Error("This mission has expired and is no longer accepting testers");
+  }
+
+  // Check if mission is still active
+  if (missionData.status !== 'Active') {
+    throw new Error("This mission is no longer active");
+  }
+
+  // Check if mission is full
+  const currentCount = missionData.submissionCount || missionData.active_testers?.length || 0;
+  if (currentCount >= missionData.num_testers) {
+    throw new Error("This mission is full");
+  }
+
   const auth = getAuth();
   const uid = auth.currentUser.uid;
 
   const userRef =  doc(db, 'TestMonkey',uid)
   const userDoc = await getDoc(userRef)
 
-  var mission_testers = missionDoc.data().active_testers
+  var mission_testers = missionData.active_testers
   var user_active_missions = userDoc.data().active_missions
   mission_testers.push(uid)
   user_active_missions.push(mission_id)
 
-  await updateDoc(missionRef, { 
+  await updateDoc(missionRef, {
               active_testers: mission_testers,
             });
-  await updateDoc(userRef, { 
+  await updateDoc(userRef, {
               active_missions: user_active_missions,
             });
 }
