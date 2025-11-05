@@ -41,6 +41,23 @@ function pct(val) {
   return 0;
 }
 
+function formatDateTime(isoString) {
+  if (!isoString) return '';
+  try {
+    const date = new Date(isoString);
+    return date.toLocaleString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    });
+  } catch (e) {
+    return isoString;
+  }
+}
+
 function goBack() {
   if (window.history.length > 1) router.back();
   else router.push({ path: '/' });
@@ -205,7 +222,7 @@ onMounted(async () => {
       <div class="meta-chip" v-if="generatedAt">
         <i class="fas fa-clock me-2"></i>
         <span class="label">Generated:</span>
-        <span class="value">{{ generatedAt }}</span>
+        <span class="value">{{ formatDateTime(generatedAt) }}</span>
       </div>
       <div class="meta-chip" v-if="sourceSubmissionCount !== null">
         <i class="fas fa-users me-2"></i>
