@@ -140,5 +140,5 @@ function nextStep () {
 .banana{ position:absolute; right:calc(-1 * var(--card-border)); bottom:calc(-1 * var(--card-border));
   width:86px; height:auto; opacity:.95; pointer-events:none; transform: rotate(-3deg) }
 
-@media (max-width: 900px){ .card{ grid-template-columns:1fr; padding:28px 20px 36px } .divider{ display:none } .banana{ width:66px } }
+@media (max-width: 900px){ .card{ grid-template-columns:1fr; padding:28px 20px 80px } .divider{ display:none } .banana{ width:66px; bottom:10px; right:10px } }
 </style>

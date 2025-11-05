@@ -392,8 +392,8 @@ onMounted(async () => {
               <table class="table-compact">
                 <thead>
                   <tr>
-                    <th style="width: 24%;">Tester</th>
-                    <th>Answer</th>
+                    <th class="tester-col">Tester</th>
+                    <th class="answer-col">Answer</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -726,9 +726,33 @@ onMounted(async () => {
   gap: var(--spacing-lg);
 }
 
+/* Table column widths */
+.tester-col { width: 15%; min-width: 120px; }
+.answer-col { width: 85%; }
+
 /* Responsive */
 @media (max-width: 768px) {
   .dashboard-container { padding: var(--spacing-lg); padding-top: 80px; }
-  .page-header { flex-direction: column; gap: var(--spacing-md); }
+  .page-header {
+    flex-direction: column;
+    gap: var(--spacing-md);
+    align-items: stretch;
+  }
+
+  .header-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .header-actions .btn-modern {
+    width: 100%;
+  }
+
+  /* Adjust table columns for mobile: Keep tester narrow */
+  .tester-col { width: 20%; min-width: 100px; }
+  .answer-col { width: 80%; }
+
+  /* Hide tester ID on mobile to save space */
+  .tester-id { display: none; }
 }
 </style>

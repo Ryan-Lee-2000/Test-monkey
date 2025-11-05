@@ -369,11 +369,12 @@ function goBack () {
 /* Responsive */
 @media (max-width: 768px){
   .v-divider{ display:none; }
-  .banana-sticker{ width: 66px; }
+  .banana-sticker{ width: 66px; bottom: 10px; right: 10px; }
   .brand-section{ padding: 2rem 1.25rem; }
-  .form-section{ padding: 2rem 1.25rem; }
+  .form-section{ padding: 2rem 1.25rem 4rem; }
   .brand-monkey{ width: 72px; }
   .form-title{ font-size: 32px; }
+  .login-card{ padding-bottom: 80px; }
 }
 /* ===== Modal / Overlay for login ===== */
 .modal-mask {

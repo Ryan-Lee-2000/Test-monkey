@@ -277,6 +277,13 @@ onMounted(() => {
 
   .banana-sticker {
     width: 66px;
+    bottom: 10px;
+    right: 10px;
+  }
+
+  /* Add padding to prevent button overlap with banana */
+  .welcome-card {
+    padding-bottom: 80px;
   }
 }
 </style>
