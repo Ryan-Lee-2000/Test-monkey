@@ -891,3 +891,225 @@ export const generateMissionQuestions = onCall({ secrets: [anthropicKey] }, asyn
     return { error: "Failed to generate questions." };
   }
 });
+
+export const emailMissionReport = onCall({
+  cors: corsOptions,
+  secrets: [emailUser, emailPassword]
+}, async (request) => {
+  const { missionId, reportId, sections, founderEmail, missionName } = request.data;
+
+  if (!missionId || !sections || !founderEmail) {
+    logger.error("Missing required parameters for email report");
+    return { error: "Missing required parameters." };
+  }
+
+  logger.info(`Sending mission report email for mission: ${missionId}`);
+
+  try {
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: emailUser.value(),
+        pass: emailPassword.value()
+      }
+    });
+
+    // Helper function to safely get percentage
+    const pct = (val) => {
+      const n = Number(val);
+      return Number.isFinite(n) ? Math.round(n) : 0;
+    };
+
+    // Build sections HTML
+    let section1HTML = '';
+    if (sections.section_1_sentiment_analysis) {
+      const s1 = sections.section_1_sentiment_analysis;
+      section1HTML = `
+        <div style="margin-bottom: 30px; padding: 20px; background: #f8f9fa; border-radius: 8px;">
+          <h3 style="color: #0A490A; margin-top: 0;">1. Sentiment Analysis</h3>
+          <p style="color: #333; line-height: 1.6;">${s1.overall_summary || ''}</p>
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-top: 15px;">
+            <div style="background: white; padding: 15px; border-radius: 6px; text-align: center;">
+              <div style="font-size: 12px; color: #666; margin-bottom: 5px;">Positive</div>
+              <div style="font-size: 24px; font-weight: bold; color: #0A490A;">${pct(s1.distribution?.positive_percent)}%</div>
+            </div>
+            <div style="background: white; padding: 15px; border-radius: 6px; text-align: center;">
+              <div style="font-size: 12px; color: #666; margin-bottom: 5px;">Neutral</div>
+              <div style="font-size: 24px; font-weight: bold; color: #0A490A;">${pct(s1.distribution?.neutral_percent)}%</div>
+            </div>
+            <div style="background: white; padding: 15px; border-radius: 6px; text-align: center;">
+              <div style="font-size: 12px; color: #666; margin-bottom: 5px;">Negative</div>
+              <div style="font-size: 24px; font-weight: bold; color: #0A490A;">${pct(s1.distribution?.negative_percent)}%</div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    let section2HTML = '';
+    if (sections.section_2_scoring_and_pain_points?.areas) {
+      const areas = sections.section_2_scoring_and_pain_points.areas.map(area => `
+        <div style="background: white; padding: 15px; border-radius: 6px; margin-bottom: 10px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+            <strong style="color: #333;">${area.area}</strong>
+            <span style="color: #0A490A; font-weight: bold;">${area.score_1_to_5}/5</span>
+          </div>
+          <div style="color: #f39c12; margin-bottom: 8px;">${area.stars}</div>
+          <p style="color: #666; font-size: 14px; margin: 0;">${area.comment}</p>
+        </div>
+      `).join('');
+
+      section2HTML = `
+        <div style="margin-bottom: 30px; padding: 20px; background: #f8f9fa; border-radius: 8px;">
+          <h3 style="color: #0A490A; margin-top: 0;">2. Scoring & Pain Points</h3>
+          ${areas}
+        </div>
+      `;
+    }
+
+    let section3HTML = '';
+    if (sections.section_3_actionable_steps_and_ranking) {
+      const s3 = sections.section_3_actionable_steps_and_ranking;
+      const buildActionsList = (items, title, color) => {
+        if (!items || items.length === 0) return '';
+        const listItems = items.map(item => `
+          <li style="margin-bottom: 15px;">
+            <div style="font-weight: bold; color: #333; margin-bottom: 5px;">${item.action}</div>
+            <div style="font-size: 13px; color: #666; margin-bottom: 5px;">${item.rationale}</div>
+            <div>
+              <span style="background: ${color}; color: white; padding: 3px 8px; border-radius: 4px; font-size: 11px; margin-right: 5px;">Impact: ${item.impact}</span>
+              <span style="background: #95a5a6; color: white; padding: 3px 8px; border-radius: 4px; font-size: 11px;">Effort: ${item.effort}</span>
+            </div>
+          </li>
+        `).join('');
+        return `
+          <div style="margin-bottom: 20px;">
+            <h4 style="color: ${color}; margin-bottom: 10px;">${title}</h4>
+            <ol style="padding-left: 20px;">${listItems}</ol>
+          </div>
+        `;
+      };
+
+      section3HTML = `
+        <div style="margin-bottom: 30px; padding: 20px; background: #f8f9fa; border-radius: 8px;">
+          <h3 style="color: #0A490A; margin-top: 0;">3. Actionable Steps & Ranking</h3>
+          ${buildActionsList(s3.high, 'High Priority (Top 3)', '#e74c3c')}
+          ${buildActionsList(s3.medium, 'Medium Priority (3)', '#f39c12')}
+          ${buildActionsList(s3.low, 'Low Priority (2)', '#27ae60')}
+        </div>
+      `;
+    }
+
+    let section4HTML = '';
+    if (sections.section_4_review_by_questions?.questions) {
+      const questions = sections.section_4_review_by_questions.questions.map((q, idx) => {
+        const answersRows = (q.answers || []).map(ans => `
+          <tr>
+            <td style="padding: 10px; border: 1px solid #ddd; background: #fff;">
+              <strong>${ans.tester_name || ans.tester_id || 'Unknown'}</strong>
+              ${ans.tester_id && ans.tester_name ? `<br><span style="font-size: 12px; color: #999;">(${ans.tester_id})</span>` : ''}
+            </td>
+            <td style="padding: 10px; border: 1px solid #ddd; background: #fff;">
+              ${ans.answer && ans.answer.trim() ? ans.answer : '<em style="color: #999;">— no response —</em>'}
+            </td>
+          </tr>
+        `).join('');
+
+        return `
+          <div style="margin-bottom: 25px;">
+            <h4 style="color: #333; margin-bottom: 5px;">Q${idx + 1}. ${q.question_text}</h4>
+            <p style="font-size: 13px; color: #666; margin-bottom: 10px;">${q.short_summary}</p>
+            <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+              <thead>
+                <tr>
+                  <th style="padding: 10px; background: #f8f9fa; border: 1px solid #ddd; text-align: left; width: 25%;">Tester</th>
+                  <th style="padding: 10px; background: #f8f9fa; border: 1px solid #ddd; text-align: left;">Answer</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${answersRows}
+              </tbody>
+            </table>
+          </div>
+        `;
+      }).join('');
+
+      section4HTML = `
+        <div style="margin-bottom: 30px; padding: 20px; background: #f8f9fa; border-radius: 8px;">
+          <h3 style="color: #0A490A; margin-top: 0;">4. Review by Questions</h3>
+          ${questions}
+        </div>
+      `;
+    }
+
+    const htmlTemplate = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      </head>
+      <body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f5f5f5;">
+        <table role="presentation" style="width: 100%; border-collapse: collapse;">
+          <tr>
+            <td align="center" style="padding: 40px 20px;">
+              <table role="presentation" style="max-width: 800px; width: 100%; border-collapse: collapse; background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+                <!-- Header -->
+                <tr>
+                  <td style="padding: 40px 40px 20px 40px; text-align: center; background: linear-gradient(135deg, #0A490A 0%, #0f5a0f 100%); border-radius: 12px 12px 0 0;">
+                    <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: bold;">🐵 Test Monkey</h1>
+                    <p style="margin: 10px 0 0 0; color: #fff; font-size: 16px;">Full Mission Report</p>
+                  </td>
+                </tr>
+
+                <!-- Mission Info -->
+                <tr>
+                  <td style="padding: 30px 40px 20px 40px;">
+                    <h2 style="margin: 0 0 10px 0; color: #0A490A; font-size: 24px;">${missionName || 'Mission Report'}</h2>
+                    <p style="margin: 0; color: #666; font-size: 14px;">Mission ID: <code>${missionId}</code></p>
+                    ${reportId ? `<p style="margin: 5px 0 0 0; color: #666; font-size: 14px;">Report ID: <code>${reportId}</code></p>` : ''}
+                  </td>
+                </tr>
+
+                <!-- Report Content -->
+                <tr>
+                  <td style="padding: 0 40px 40px 40px;">
+                    ${section1HTML}
+                    ${section2HTML}
+                    ${section3HTML}
+                    ${section4HTML}
+                  </td>
+                </tr>
+
+                <!-- Footer -->
+                <tr>
+                  <td style="padding: 30px 40px; background-color: #f8f9fa; border-radius: 0 0 12px 12px; text-align: center;">
+                    <p style="margin: 0; color: #999999; font-size: 12px;">
+                      © ${new Date().getFullYear()} Test Monkey. All rights reserved.
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+      </body>
+      </html>
+    `;
+
+    await transporter.sendMail({
+      from: `"Test Monkey" <${emailUser.value()}>`,
+      to: founderEmail,
+      subject: `Full Mission Report: ${missionName || missionId} - Test Monkey`,
+      html: htmlTemplate,
+      text: `Full Mission Report for ${missionName || missionId}\n\nMission ID: ${missionId}\n\nYour detailed mission report is attached as HTML. Please view this email in an HTML-capable email client to see the full formatted report.`
+    });
+
+    logger.info(`Mission report email sent successfully to ${founderEmail}`);
+    return { success: true };
+
+  } catch (error) {
+    logger.error('Error sending mission report email:', error);
+    return { error: 'Failed to send email report.' };
+  }
+});

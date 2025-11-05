@@ -8,6 +8,8 @@ import { getAllMissions, get_user_missions, getMissions, getUserResponse } from 
 import { useRouter } from 'vue-router'
 import MissionPreview from "./Mission_Preview.vue"
 import Completed_Mission from "./Completed_Mission.vue"
+import DailyPackModal from "@/components/DailyPackModal.vue"
+import { canClaimFreePack } from "@/Database/GachaSystem"
 
 // Assets
 import homepageMonkeyURL from "@/assets/welcome/homepage_monkey.png"
@@ -115,6 +117,19 @@ onMounted(async () => {
   const currentUser = auth.currentUser
   if (currentUser) {
     user_name.value = currentUser.displayName || "User"
+
+    // Check if user can claim daily pack
+    try {
+      const canClaim = await canClaimFreePack(currentUser.uid)
+      if (canClaim) {
+        // Show modal after a brief delay for better UX
+        setTimeout(() => {
+          showDailyPackModal.value = true
+        }, 1000)
+      }
+    } catch (error) {
+      console.error('Error checking daily pack eligibility:', error)
+    }
   }
 
   // Load both tabs data
@@ -209,6 +224,9 @@ function showMission(missionId) {
 
 const user_submission = ref({website: '', answers:[]})
 const show_selected_c_mission = ref(false)
+
+// Daily Pack Modal
+const showDailyPackModal = ref(false)
 
 async function showCompletedMission(missionId){
   const uid = auth.currentUser.uid
@@ -591,12 +609,18 @@ async function refreshMissions(){
       @refresh="refreshMissions()"
   />
 
-  <Completed_Mission 
-  :show="show_selected_c_mission" 
+  <Completed_Mission
+  :show="show_selected_c_mission"
   :mission="user_submission"
   @close="show_selected_c_mission = false"
   />
-  
+
+  <!-- Daily Pack Modal -->
+  <DailyPackModal
+    :show="showDailyPackModal"
+    @close="showDailyPackModal = false"
+  />
+
 </template>
 
 <style scoped>

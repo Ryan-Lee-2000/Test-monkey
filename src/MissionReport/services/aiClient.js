@@ -64,3 +64,41 @@ export async function generateFullReport({ missionId }) {
   }
 }
 
+/**
+ * Emails the mission report to the founder's email.
+ * @param {Object} params
+ * @param {string} params.missionId - Mission document ID
+ * @param {string} params.reportId - Report document ID (optional)
+ * @param {Object} params.sections - Report sections data
+ * @param {string} params.founderEmail - Founder's email address
+ * @param {string} params.missionName - Mission name (optional)
+ * @returns {Promise<Object>} Response from the callable
+ */
+export async function emailMissionReport({ missionId, reportId, sections, founderEmail, missionName }) {
+  try {
+    if (!missionId || !sections || !founderEmail) {
+      throw new Error('Missing required parameters for email report');
+    }
+
+    // Verify user is authenticated
+    const user = auth.currentUser;
+    if (!user) {
+      throw new Error('User must be authenticated to email reports');
+    }
+
+    const callEmailReport = httpsCallable(functions, 'emailMissionReport');
+    const result = await callEmailReport({
+      missionId,
+      reportId,
+      sections,
+      founderEmail,
+      missionName
+    });
+
+    return result?.data || { success: false, error: 'No data returned from function' };
+  } catch (error) {
+    console.error('Email report error:', error);
+    throw new Error(error.message || 'Failed to email report');
+  }
+}
+

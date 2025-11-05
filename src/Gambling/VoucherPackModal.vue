@@ -2,6 +2,7 @@
 import { ref, computed, watch } from 'vue'
 import { openVoucherPack, GACHA_CONSTANTS } from '@/Database/GachaSystem'
 import { getAuth } from 'firebase/auth'
+import { useRouter } from 'vue-router'
 
 const props = defineProps({
   show: Boolean,
@@ -11,6 +12,7 @@ const props = defineProps({
 const emit = defineEmits(['close', 'packOpened'])
 
 const auth = getAuth()
+const router = useRouter()
 
 // Reset state when modal is shown
 watch(() => props.show, (newValue) => {
@@ -71,11 +73,8 @@ async function openPack() {
     showPackAnimation.value = false
     showVoucherReveal.value = true
 
-    // Auto-close after showing voucher
-    setTimeout(() => {
-      closeModal()
-      emit('packOpened', voucher)
-    }, 4000)
+    // Emit pack opened event
+    emit('packOpened', voucher)
 
   } catch (err) {
     console.error('Error opening pack:', err)
@@ -94,6 +93,11 @@ function closeModal() {
   error.value = ''
   isOpening.value = false
   emit('close')
+}
+
+function goToInventory() {
+  emit('close')
+  router.push('/voucher-inventory')
 }
 
 function handleBackdropClick(event) {
@@ -209,9 +213,11 @@ function handleBackdropClick(event) {
                 boxShadow: `0 0 40px ${rarityGlow[revealedVoucher.rarity]}`
               }"
             >
-              <div class="rarity-banner modal-header" :style="{ background: rarityColors[revealedVoucher.rarity] }">
+              <div class="rarity-banner" :style="{ background: rarityColors[revealedVoucher.rarity] }">
                 {{ revealedVoucher.rarity.toUpperCase() }}
-                <button type="button" class="btn-close btn-close-white" @click="emit('close')"></button>
+                <button type="button" class="close-btn" @click="closeModal" aria-label="Close">
+                  <i class="fas fa-times"></i>
+                </button>
               </div>
 
               <div class="voucher-icon-large">{{ revealedVoucher.icon }}</div>
@@ -222,13 +228,24 @@ function handleBackdropClick(event) {
                 S${{ revealedVoucher.amount }}
               </div>
 
-              <div class="voucher-code-display">
+              <div class="voucher-code-display locked">
                 <small class="text-muted">Voucher Code</small>
-                <div class="code-box">{{ revealedVoucher.code }}</div>
+                <div class="code-box locked-code">
+                  <span>••••••••</span>
+                  <i class="fas fa-lock ms-2" style="font-size: 1rem; color: var(--color-gray-400);"></i>
+                </div>
+                <p class="unlock-hint">Redeem in your inventory to reveal code</p>
               </div>
 
               <div class="expiry-info">
                 <small>Expires: {{ new Date(revealedVoucher.expiresAt).toLocaleDateString() }}</small>
+              </div>
+
+              <div class="action-buttons">
+                <button class="btn-modern btn-success w-100" @click="goToInventory">
+                  <i class="fas fa-wallet me-2"></i>
+                  Go to My Vouchers
+                </button>
               </div>
             </div>
 
@@ -489,6 +506,31 @@ function handleBackdropClick(event) {
   font-weight: bold;
   font-size: 1.2rem;
   letter-spacing: 2px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.close-btn {
+  position: absolute;
+  right: 1rem;
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 1rem;
+}
+
+.close-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.1);
 }
 
 .voucher-icon-large {
@@ -517,6 +559,11 @@ function handleBackdropClick(event) {
   margin-bottom: 1rem;
 }
 
+.voucher-code-display.locked {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border: 2px dashed var(--color-gray-300);
+}
+
 .code-box {
   font-family: 'Courier New', monospace;
   font-size: 1.5rem;
@@ -526,9 +573,49 @@ function handleBackdropClick(event) {
   margin-top: 0.5rem;
 }
 
+.code-box.locked-code {
+  opacity: 0.6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.unlock-hint {
+  margin-top: 0.75rem;
+  margin-bottom: 0;
+  font-size: 0.85rem;
+  color: var(--color-gray-500);
+  text-align: center;
+  font-style: italic;
+}
+
 .expiry-info {
   color: #6c757d;
   font-size: 0.9rem;
+  margin-bottom: 1.5rem;
+}
+
+.action-buttons {
+  margin-top: 1rem;
+}
+
+.btn-modern.btn-success {
+  background: linear-gradient(135deg, #0A490A 0%, #27ae60 100%);
+  color: white;
+  padding: 0.875rem 1.5rem;
+  font-size: 1.05rem;
+  font-weight: var(--font-weight-semibold);
+  border: none;
+  border-radius: var(--radius-md);
+  transition: all 0.2s;
+  box-shadow: 0 4px 12px rgba(10, 73, 10, 0.3);
+}
+
+.btn-modern.btn-success:hover {
+  background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(10, 73, 10, 0.4);
 }
 
 .confetti {

@@ -12,7 +12,10 @@ const vouchers = ref([])
 const isLoading = ref(true)
 const selectedVoucher = ref(null)
 const showRedeemModal = ref(false)
+const isRedeeming = ref(false)
+const justRedeemed = ref(false)
 const filterType = ref('active') // 'active', 'redeemed', 'all'
+const copiedCode = ref(null) // Track which code was copied
 
 // Rarity color mapping
 const rarityColors = {
@@ -69,17 +72,21 @@ async function loadVouchers() {
 function openRedeemModal(voucher) {
   selectedVoucher.value = voucher
   showRedeemModal.value = true
+  justRedeemed.value = false
 }
 
 function closeRedeemModal() {
   selectedVoucher.value = null
   showRedeemModal.value = false
+  justRedeemed.value = false
+  isRedeeming.value = false
 }
 
 async function confirmRedeem() {
   if (!selectedVoucher.value) return
 
   try {
+    isRedeeming.value = true
     await redeemVoucher(selectedVoucher.value.id, auth.currentUser.uid)
 
     // Update local state
@@ -87,12 +94,18 @@ async function confirmRedeem() {
     if (index !== -1) {
       vouchers.value[index].redeemed = true
       vouchers.value[index].redeemedAt = new Date()
+
+      // Update selectedVoucher to show as redeemed
+      selectedVoucher.value = vouchers.value[index]
     }
 
-    closeRedeemModal()
+    // Show the code instead of closing
+    justRedeemed.value = true
   } catch (error) {
     console.error('Error redeeming voucher:', error)
     showError(error.message || 'Failed to redeem voucher', 'Redemption Failed')
+  } finally {
+    isRedeeming.value = false
   }
 }
 
@@ -110,7 +123,12 @@ function getDaysUntilExpiry(voucher) {
 
 function copyCode(code) {
   navigator.clipboard.writeText(code)
-  showSuccess('Voucher code copied to clipboard!', 'Copied')
+  copiedCode.value = code
+
+  // Reset after 2 seconds
+  setTimeout(() => {
+    copiedCode.value = null
+  }, 2000)
 }
 
 onMounted(() => {
@@ -125,11 +143,18 @@ onMounted(() => {
     <div class="container py-5">
       <!-- Header -->
       <div class="page-header mb-5">
-        <h1 class="display-4 fw-bold text-white mb-2">
-          <span class="header-icon">🎫</span>
-          My Vouchers
-        </h1>
-        <p class="text-white-50">Manage and redeem your earned vouchers</p>
+        <div class="header-content">
+          <h1 class="display-4 fw-bold mb-2">
+            <span class="header-icon">🎫</span>
+            My Vouchers
+          </h1>
+          <p>Manage and redeem your earned vouchers</p>
+        </div>
+        <div class="header-actions">
+          <router-link to="/gambling" class="btn-modern btn-ghost-dark">
+            <i class="fas fa-arrow-left me-2"></i>Back to Gacha
+          </router-link>
+        </div>
       </div>
 
       <!-- Stats Cards -->
@@ -191,22 +216,23 @@ onMounted(() => {
 
       <!-- Loading State -->
       <div v-if="isLoading" class="text-center py-5">
-        <div class="spinner-border text-light" role="status">
+        <div class="spinner-border" style="color: #0A490A;" role="status">
           <span class="visually-hidden">Loading...</span>
         </div>
+        <p class="mt-3" style="color: var(--color-gray-700);">Loading vouchers...</p>
       </div>
 
       <!-- Empty State -->
       <div v-else-if="filteredVouchers.length === 0" class="empty-state">
         <div class="empty-icon">📭</div>
-        <h3 class="text-white mb-2">No Vouchers Found</h3>
-        <p class="text-white-50 mb-4">
+        <h3 class="mb-2">No Vouchers Found</h3>
+        <p class="mb-4">
           {{ filterType === 'active' ? 'You don\'t have any active vouchers.' :
              filterType === 'redeemed' ? 'You haven\'t redeemed any vouchers yet.' :
              'Start opening packs to collect vouchers!' }}
         </p>
-        <router-link to="/gambling" class="btn btn-primary btn-lg">
-          Go to Gacha
+        <router-link to="/gambling" class="btn-modern btn-primary">
+          <i class="fas fa-gift me-2"></i>Go to Gacha
         </router-link>
       </div>
 
@@ -239,31 +265,50 @@ onMounted(() => {
           <h4 class="voucher-brand">{{ voucher.brand }}</h4>
           <div class="voucher-amount">S${{ voucher.amount }}</div>
 
-          <!-- Voucher Code -->
-          <div class="voucher-code-section">
+          <!-- Voucher Code (only show if redeemed) -->
+          <div v-if="voucher.redeemed" class="voucher-code-section">
             <label class="code-label">Code:</label>
             <div class="code-display">
               <span class="code-text">{{ voucher.code }}</span>
               <button
-                class="btn btn-sm btn-outline-secondary copy-btn"
+                class="btn btn-sm copy-btn"
+                :class="copiedCode === voucher.code ? 'btn-success' : 'btn-outline-secondary'"
                 @click="copyCode(voucher.code)"
-                title="Copy code"
+                :title="copiedCode === voucher.code ? 'Copied!' : 'Copy code'"
               >
-                <i class="fas fa-copy"></i>
+                <i v-if="copiedCode === voucher.code" class="fas fa-check"></i>
+                <i v-else class="fas fa-copy"></i>
               </button>
             </div>
+          </div>
+          <div v-else class="voucher-code-section locked">
+            <label class="code-label">Code:</label>
+            <div class="code-display locked-code">
+              <span class="code-text">••••••••</span>
+              <i class="fas fa-lock" style="color: var(--color-gray-400);"></i>
+            </div>
+            <p class="unlock-hint">Redeem to reveal code</p>
           </div>
 
           <!-- Status & Expiry -->
           <div class="voucher-footer">
-            <div v-if="voucher.redeemed" class="status-badge redeemed-badge">
-              ✓ Redeemed
+            <div v-if="voucher.redeemed" class="redeemed-info">
+              <div class="status-badge redeemed-badge">
+                ✓ Redeemed
+              </div>
+              <div class="expiry-text mt-2" :class="{ 'expiry-warning': getDaysUntilExpiry(voucher) <= 3 }">
+                <i class="fas fa-clock me-1"></i>
+                {{ isExpired(voucher) ? 'Code expired' :
+                   getDaysUntilExpiry(voucher) === 1 ? 'Code expires tomorrow' :
+                   `Code expires in ${getDaysUntilExpiry(voucher)} days` }}
+              </div>
             </div>
             <div v-else-if="isExpired(voucher)" class="status-badge expired-badge">
               ⚠️ Expired
             </div>
             <div v-else>
               <div class="expiry-text" :class="{ 'expiry-warning': getDaysUntilExpiry(voucher) <= 3 }">
+                <i class="fas fa-clock me-1"></i>
                 {{ getDaysUntilExpiry(voucher) <= 0 ? 'Expired' :
                    getDaysUntilExpiry(voucher) === 1 ? 'Expires tomorrow' :
                    `Expires in ${getDaysUntilExpiry(voucher)} days` }}
@@ -292,27 +337,84 @@ onMounted(() => {
           @click.self="closeRedeemModal"
         >
           <div class="redeem-modal">
-            <h3 class="modal-title">Redeem Voucher?</h3>
+            <!-- Before Redemption -->
+            <div v-if="!justRedeemed">
+              <h3 class="modal-title">Redeem Voucher?</h3>
 
-            <div class="voucher-preview">
-              <div class="preview-icon">{{ selectedVoucher.icon }}</div>
-              <h4>{{ selectedVoucher.brand }}</h4>
-              <div class="preview-amount">S${{ selectedVoucher.amount }}</div>
-              <div class="preview-code">{{ selectedVoucher.code }}</div>
+              <div class="voucher-preview">
+                <div class="preview-icon">{{ selectedVoucher.icon }}</div>
+                <h4>{{ selectedVoucher.brand }}</h4>
+                <div class="preview-amount">S${{ selectedVoucher.amount }}</div>
+                <div class="preview-rarity-badge" :style="{ background: rarityColors[selectedVoucher.rarity] }">
+                  {{ selectedVoucher.rarity.toUpperCase() }}
+                </div>
+              </div>
+
+              <div class="alert alert-info">
+                <strong>Important:</strong> Your voucher code will be revealed after you confirm redemption.
+                Make sure to copy and use the code before it expires. This action cannot be undone.
+              </div>
+
+              <div class="modal-actions">
+                <button class="btn btn-ghost-dark" @click="closeRedeemModal" :disabled="isRedeeming">
+                  Cancel
+                </button>
+                <button class="btn btn-primary" @click="confirmRedeem" :disabled="isRedeeming">
+                  <i v-if="!isRedeeming" class="fas fa-unlock me-2"></i>
+                  <span v-else class="spinner-border spinner-border-sm me-2"></span>
+                  {{ isRedeeming ? 'Redeeming...' : 'Confirm & Reveal Code' }}
+                </button>
+              </div>
             </div>
 
-            <div class="alert alert-info">
-              <strong>Important:</strong> Make sure to use this voucher code before it expires.
-              Once redeemed, this action cannot be undone.
-            </div>
+            <!-- After Redemption - Show Code -->
+            <div v-else class="redeemed-success">
+              <div class="success-header">
+                <i class="fas fa-check-circle success-icon-large"></i>
+                <h3 class="modal-title">Voucher Redeemed!</h3>
+              </div>
 
-            <div class="modal-actions">
-              <button class="btn btn-secondary" @click="closeRedeemModal">
-                Cancel
-              </button>
-              <button class="btn btn-primary" @click="confirmRedeem">
-                Confirm Redeem
-              </button>
+              <div class="voucher-preview">
+                <div class="preview-icon">{{ selectedVoucher.icon }}</div>
+                <h4>{{ selectedVoucher.brand }}</h4>
+                <div class="preview-amount">S${{ selectedVoucher.amount }}</div>
+              </div>
+
+              <div class="code-reveal-section">
+                <label class="code-label">Your Voucher Code:</label>
+                <div class="code-display-modal">
+                  <span class="code-text-large">{{ selectedVoucher.code }}</span>
+                  <button
+                    class="btn btn-sm copy-btn-modal"
+                    :class="copiedCode === selectedVoucher.code ? 'btn-success-solid' : 'btn-outline-success'"
+                    @click="copyCode(selectedVoucher.code)"
+                    :title="copiedCode === selectedVoucher.code ? 'Copied!' : 'Copy code'"
+                  >
+                    <i v-if="copiedCode === selectedVoucher.code" class="fas fa-check me-2"></i>
+                    <i v-else class="fas fa-copy me-2"></i>
+                    {{ copiedCode === selectedVoucher.code ? 'Copied!' : 'Copy' }}
+                  </button>
+                </div>
+              </div>
+
+              <div class="alert alert-success">
+                <i class="fas fa-info-circle me-2"></i>
+                <strong>Code revealed!</strong> Make sure to copy and use this code before it expires.
+                <div class="mt-2" style="font-size: 0.9rem;">
+                  <i class="fas fa-clock me-1"></i>
+                  <strong>
+                    {{ isExpired(selectedVoucher) ? 'Code has expired!' :
+                       getDaysUntilExpiry(selectedVoucher) === 1 ? 'Expires tomorrow' :
+                       `Expires in ${getDaysUntilExpiry(selectedVoucher)} days` }}
+                  </strong>
+                </div>
+              </div>
+
+              <div class="modal-actions">
+                <button class="btn btn-primary w-100" @click="closeRedeemModal">
+                  <i class="fas fa-check me-2"></i>Done
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -324,137 +426,166 @@ onMounted(() => {
 <style scoped>
 .inventory-page {
   min-height: 100vh;
-  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+  background: linear-gradient(135deg, #f5f7fa 0%, #e8ebe9 100%);
+  padding-top: 100px;
 }
 
 .page-header {
-  margin-top: 100px;
   text-align: center;
+  margin-bottom: var(--spacing-2xl);
+}
+
+.page-header h1 {
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-gray-900);
+  margin-bottom: var(--spacing-sm);
+}
+
+.page-header p {
+  color: var(--color-gray-600);
+  font-size: var(--font-size-base);
 }
 
 .header-icon {
-  font-size: 3rem;
-  display: block;
-  margin-bottom: 1rem;
+  font-size: 2.5rem;
+  display: inline-block;
+  margin-right: 0.5rem;
 }
 
 /* Stats Cards */
 .stat-card {
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  border-radius: 15px;
-  padding: 1.5rem;
+  background: var(--color-white);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
   text-align: center;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  transition: transform 0.3s, box-shadow 0.3s;
+  border: 1px solid var(--color-gray-200);
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.2s, box-shadow 0.2s;
 }
 
 .stat-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
 }
 
 .stat-card.active {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-left: 4px solid #0A490A;
+  background: linear-gradient(135deg, rgba(10, 73, 10, 0.05) 0%, rgba(15, 90, 15, 0.05) 100%);
 }
 
 .stat-icon {
   font-size: 2.5rem;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.75rem;
 }
 
 .stat-value {
   font-size: 2rem;
-  font-weight: bold;
-  color: white;
-  margin-bottom: 0.25rem;
+  font-weight: var(--font-weight-bold);
+  color: var(--color-gray-900);
+  margin-bottom: 0.5rem;
 }
 
 .stat-label {
-  font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.95rem;
+  color: var(--color-gray-600);
 }
 
 /* Filter Tabs */
 .filter-tabs {
   display: flex;
-  gap: 1rem;
+  gap: var(--spacing-md);
   justify-content: center;
   flex-wrap: wrap;
+  margin-bottom: var(--spacing-xl);
 }
 
 .filter-tab {
-  background: rgba(255, 255, 255, 0.1);
-  border: 2px solid transparent;
-  color: white;
-  padding: 0.75rem 1.5rem;
-  border-radius: 50px;
-  font-weight: 500;
+  background: var(--color-white);
+  border: 2px solid var(--color-gray-200);
+  color: var(--color-gray-700);
+  padding: 0.625rem 1.5rem;
+  border-radius: var(--radius-full);
+  font-weight: var(--font-weight-medium);
   cursor: pointer;
-  transition: all 0.3s;
+  transition: all 0.2s;
 }
 
 .filter-tab:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: var(--color-gray-50);
+  border-color: var(--color-gray-300);
 }
 
 .filter-tab.active {
-  background: white;
-  color: #1e3c72;
-  border-color: white;
+  background: linear-gradient(135deg, #0A490A 0%, #0f5a0f 100%);
+  color: white;
+  border-color: #0A490A;
 }
 
 /* Empty State */
 .empty-state {
   text-align: center;
-  padding: 4rem 2rem;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 20px;
-  backdrop-filter: blur(10px);
+  padding: var(--spacing-3xl);
+  background: var(--color-white);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--color-gray-200);
+}
+
+.empty-state h3 {
+  color: var(--color-gray-900);
+  font-weight: var(--font-weight-semibold);
+  margin-bottom: var(--spacing-sm);
+}
+
+.empty-state p {
+  color: var(--color-gray-600);
 }
 
 .empty-icon {
-  font-size: 5rem;
-  margin-bottom: 1.5rem;
+  font-size: 4rem;
+  margin-bottom: var(--spacing-lg);
+  color: var(--color-gray-400);
 }
 
 /* Voucher Grid */
 .voucher-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 1.5rem;
+  gap: var(--spacing-lg);
 }
 
 .voucher-card {
-  background: white;
-  border-radius: 15px;
-  padding: 1.5rem;
-  border: 3px solid;
+  background: var(--color-white);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-xl);
+  border: 2px solid;
   position: relative;
-  transition: transform 0.3s, box-shadow 0.3s;
+  transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: var(--shadow-sm);
 }
 
 .voucher-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
 }
 
 .voucher-card.expired,
 .voucher-card.redeemed {
-  opacity: 0.6;
-  filter: grayscale(50%);
+  opacity: 0.65;
+  filter: grayscale(40%);
 }
 
 .rarity-badge {
   position: absolute;
   top: 0;
   right: 0;
-  padding: 0.35rem 0.75rem;
-  border-radius: 0 12px 0 12px;
+  padding: 0.4rem 0.85rem;
+  border-radius: 0 var(--radius-lg) 0 var(--radius-md);
   color: white;
   font-size: 0.75rem;
-  font-weight: bold;
-  letter-spacing: 1px;
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.5px;
 }
 
 .voucher-icon {
@@ -486,6 +617,11 @@ onMounted(() => {
   margin-bottom: 1rem;
 }
 
+.voucher-code-section.locked {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border: 1px dashed var(--color-gray-300);
+}
+
 .code-label {
   font-size: 0.85rem;
   color: #6c757d;
@@ -500,12 +636,25 @@ onMounted(() => {
   gap: 0.5rem;
 }
 
+.code-display.locked-code {
+  opacity: 0.6;
+}
+
 .code-text {
   font-family: 'Courier New', monospace;
   font-weight: bold;
   font-size: 1.1rem;
   color: #212529;
   word-break: break-all;
+}
+
+.unlock-hint {
+  margin-top: 0.5rem;
+  margin-bottom: 0;
+  font-size: 0.8rem;
+  color: var(--color-gray-500);
+  text-align: center;
+  font-style: italic;
 }
 
 .copy-btn {
@@ -515,6 +664,13 @@ onMounted(() => {
 .voucher-footer {
   margin-bottom: 1rem;
   text-align: center;
+}
+
+.redeemed-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .status-badge {
@@ -536,7 +692,7 @@ onMounted(() => {
 }
 
 .expiry-text {
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   color: #6c757d;
 }
 
@@ -598,14 +754,94 @@ onMounted(() => {
   margin: 1rem 0;
 }
 
-.preview-code {
+.preview-rarity-badge {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-full);
+  color: white;
+  font-size: 0.9rem;
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.5px;
+  margin-top: 0.5rem;
+}
+
+.success-header {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.success-icon-large {
+  font-size: 3.5rem;
+  color: #27ae60;
+  margin-bottom: 0.5rem;
+}
+
+.redeemed-success .modal-title {
+  color: #27ae60;
+  margin-bottom: 1rem;
+}
+
+.code-reveal-section {
+  background: #f8f9fa;
+  border-radius: 10px;
+  padding: 1.25rem;
+  margin: 1.5rem 0;
+  border: 2px solid #27ae60;
+}
+
+.code-reveal-section .code-label {
+  font-size: 0.9rem;
+  color: #6c757d;
+  display: block;
+  margin-bottom: 0.75rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.code-display-modal {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.code-text-large {
   font-family: 'Courier New', monospace;
   font-weight: bold;
-  font-size: 1.2rem;
+  font-size: 1.5rem;
+  color: #212529;
   background: white;
-  padding: 0.75rem;
+  padding: 0.75rem 1.25rem;
   border-radius: 8px;
-  margin-top: 1rem;
+  border: 2px dashed #27ae60;
+  letter-spacing: 2px;
+  word-break: break-all;
+  text-align: center;
+}
+
+.copy-btn-modal {
+  padding: 0.5rem 1.25rem;
+  font-weight: 600;
+  border: 2px solid #27ae60;
+  color: #27ae60;
+  background: white;
+  transition: all 0.2s;
+}
+
+.copy-btn-modal:hover {
+  background: #27ae60;
+  color: white;
+  transform: translateY(-1px);
+}
+
+.btn-success-solid {
+  background: #27ae60 !important;
+  color: white !important;
+  border-color: #27ae60 !important;
+}
+
+.btn-success-solid:hover {
+  background: #229954 !important;
 }
 
 .modal-actions {

@@ -2,7 +2,9 @@
 import { onMounted, ref, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import navbar from '../../navbar.vue';                  // same navbar as FounderDashboard.vue
-import { generateFullReport, getLatestReport } from '../services/aiClient'; // calls functions(us-central1)
+import { generateFullReport, getLatestReport, emailMissionReport } from '../services/aiClient'; // calls functions(us-central1)
+import { auth, db } from '../../Config/api_services.js';
+import { doc, getDoc } from 'firebase/firestore';
 
 const route = useRoute();
 const router = useRouter();
@@ -11,12 +13,16 @@ const router = useRouter();
 const missionId = computed(() => route.params.missionId || '');
 
 const isLoading = ref(false);
+const isEmailingReport = ref(false);
 const errorMsg = ref('');
+const emailSuccessMsg = ref('');
 const sections = ref(null);
 const generatedAt = ref(null);
 const reportId = ref(null);
 const sourceSubmissionCount = ref(null);
 const hasExistingReport = ref(false);
+const missionName = ref('');
+const founderEmail = ref('');
 
 const hasSections = computed(() => {
   const s = sections.value;
@@ -38,6 +44,26 @@ function pct(val) {
 function goBack() {
   if (window.history.length > 1) router.back();
   else router.push({ path: '/' });
+}
+
+async function loadMissionData() {
+  if (!missionId.value) return;
+
+  try {
+    const missionDoc = await getDoc(doc(db, 'Missions', missionId.value));
+    if (missionDoc.exists()) {
+      const missionData = missionDoc.data();
+      missionName.value = missionData.name || '';
+
+      // Get founder's email from auth
+      const currentUser = auth.currentUser;
+      if (currentUser) {
+        founderEmail.value = currentUser.email || '';
+      }
+    }
+  } catch (err) {
+    console.error('Error loading mission data:', err);
+  }
 }
 
 async function loadExistingReport() {
@@ -93,9 +119,46 @@ async function generate() {
   }
 }
 
-onMounted(() => {
+async function sendReportViaEmail() {
+  if (!sections.value || !founderEmail.value) {
+    errorMsg.value = 'Cannot send email: missing report data or email address.';
+    return;
+  }
+
+  isEmailingReport.value = true;
+  errorMsg.value = '';
+  emailSuccessMsg.value = '';
+
+  try {
+    const resp = await emailMissionReport({
+      missionId: missionId.value,
+      reportId: reportId.value,
+      sections: sections.value,
+      founderEmail: founderEmail.value,
+      missionName: missionName.value
+    });
+
+    if (!resp || !resp.success) {
+      throw new Error(resp?.error || 'Failed to send email');
+    }
+
+    emailSuccessMsg.value = `Report successfully sent to ${founderEmail.value}`;
+    // Clear success message after 5 seconds
+    setTimeout(() => {
+      emailSuccessMsg.value = '';
+    }, 5000);
+  } catch (err) {
+    errorMsg.value = err?.message || 'Failed to send email.';
+  } finally {
+    isEmailingReport.value = false;
+  }
+}
+
+onMounted(async () => {
+  // Load mission data (name and email)
+  await loadMissionData();
   // Check for existing report first instead of auto-generating
-  loadExistingReport();
+  await loadExistingReport();
 });
 </script>
 
@@ -112,6 +175,17 @@ onMounted(() => {
       <div class="header-actions">
         <button class="btn-modern btn-ghost-dark" @click="goBack" :disabled="isLoading">
           <i class="fas fa-arrow-left me-2"></i>Back
+        </button>
+        <button
+          v-if="hasSections"
+          class="btn-modern btn-success"
+          @click="sendReportViaEmail"
+          :disabled="isEmailingReport || !founderEmail"
+          :title="!founderEmail ? 'Email address not available' : 'Send report to your email'"
+        >
+          <i v-if="!isEmailingReport" class="fas fa-envelope me-2"></i>
+          <span v-else class="spinner spinner-inline me-2" aria-hidden="true"></span>
+          {{ isEmailingReport ? 'Sending…' : 'Email Report' }}
         </button>
         <button class="btn-modern btn-primary" @click="generate" :disabled="isLoading">
           <i v-if="!isLoading" class="fas fa-rotate me-2"></i>
@@ -145,11 +219,20 @@ onMounted(() => {
       </div>
     </div>
 
+    <!-- Success Message -->
+    <div v-if="emailSuccessMsg" class="card-modern success-card">
+      <div class="success-icon">✓</div>
+      <div class="success-content">
+        <div class="success-title">Email sent successfully!</div>
+        <div class="success-text">{{ emailSuccessMsg }}</div>
+      </div>
+    </div>
+
     <!-- Error -->
     <div v-if="errorMsg" class="card-modern error-card">
       <div class="error-icon">⚠️</div>
       <div class="error-content">
-        <div class="error-title">Couldn’t generate the report</div>
+        <div class="error-title">Couldn't generate the report</div>
         <div class="error-text">{{ errorMsg }}</div>
         <button class="btn-modern btn-primary" @click="generate" :disabled="isLoading">
           Try again
@@ -581,6 +664,43 @@ onMounted(() => {
 }
 .error-icon { font-size: 20px; line-height: 1; }
 .error-content .error-title { font-weight: var(--font-weight-semibold); margin-bottom: 4px; }
+
+.success-card {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-md);
+  border-left: 4px solid var(--color-success);
+  background: var(--color-success-bg);
+  color: var(--color-success);
+  margin-bottom: var(--spacing-xl);
+}
+.success-icon {
+  font-size: 20px;
+  line-height: 1;
+  background: var(--color-success);
+  color: white;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+.success-content .success-title { font-weight: var(--font-weight-semibold); margin-bottom: 4px; }
+
+.btn-success {
+  background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
+  color: white;
+}
+.btn-success:hover:not(:disabled) {
+  background: linear-gradient(135deg, #229954 0%, #1e8449 100%);
+  transform: translateY(-1px);
+}
+.btn-success:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
 
 /* Layout */
 .sections-grid {

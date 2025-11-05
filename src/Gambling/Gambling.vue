@@ -114,8 +114,8 @@ function goToInventory() {
   <div class="gacha-page position-relative overflow-hidden">
     <!-- Loading State -->
     <div v-if="isLoading" class="container py-5 text-center">
-      <div class="spinner-border text-warning" style="width: 3rem; height: 3rem;"></div>
-      <p class="text-white mt-3">Loading...</p>
+      <div class="spinner-border" style="width: 3rem; height: 3rem; color: #0A490A;"></div>
+      <p class="mt-3" style="color: var(--color-gray-700);">Loading...</p>
     </div>
 
     <!-- Access Denied for Founders -->
@@ -132,7 +132,7 @@ function goToInventory() {
       <!-- Header -->
       <div class="text-center mb-5">
         <h1 class="gacha-title mb-3">🎁 VOUCHER GACHA 🎁</h1>
-        <p class="subtitle text-white-50">Open packs to win Singapore vouchers!</p>
+        <p class="subtitle">Open packs to win Singapore vouchers!</p>
       </div>
 
       <!-- Stats Section -->
@@ -151,11 +151,12 @@ function goToInventory() {
             <div class="stat-label">Pity Counter</div>
             <div class="progress mt-2" style="height: 8px;">
               <div
-                class="progress-bar bg-warning"
+                class="progress-bar"
+                style="background: linear-gradient(135deg, #0A490A 0%, #0f5a0f 100%);"
                 :style="{ width: pityProgress + '%' }"
               ></div>
             </div>
-            <small class="text-white-50 mt-1 d-block">
+            <small class="mt-1 d-block" style="color: var(--color-gray-600); font-size: 0.85rem;">
               {{ pityThreshold - pityCounter }} pulls until guaranteed Epic
             </small>
           </div>
@@ -273,12 +274,12 @@ function goToInventory() {
       </div>
 
       <!-- Quick Actions -->
-      <div class="text-center mb-4">
-        <button class="btn btn-outline-light btn-lg me-3" @click="goToInventory">
+      <div class="text-center mb-4 action-buttons">
+        <button class="btn-modern btn-ghost-dark me-3" @click="goToInventory">
           <i class="fas fa-wallet me-2"></i>
           View My Vouchers
         </button>
-        <router-link to="/home" class="btn btn-outline-light btn-lg">
+        <router-link to="/home" class="btn-modern btn-primary">
           <i class="fas fa-tasks me-2"></i>
           Complete Missions
         </router-link>
@@ -338,198 +339,189 @@ function goToInventory() {
 
 <style scoped>
 .gacha-page {
-  background: linear-gradient(to top, #0f4d26 7%, #F97A02 26%, #FC9D05 54%, #0f4d26);
+  background: linear-gradient(135deg, #f5f7fa 0%, #e8ebe9 100%);
   min-height: 100vh;
   padding-top: 100px;
 }
 
 .gacha-title {
-  font-size: 3.5rem;
-  font-weight: bold;
-  background: linear-gradient(45deg, #FDC955, #FC9D05, #F97A02);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  letter-spacing: 3px;
-  animation: glow 2s ease-in-out infinite;
-}
-
-@keyframes glow {
-  0%, 100% { filter: brightness(1); }
-  50% { filter: brightness(1.3); }
+  font-size: 2.5rem;
+  font-weight: var(--font-weight-bold);
+  color: var(--color-gray-900);
+  letter-spacing: 1px;
+  margin-bottom: 0.5rem;
 }
 
 .subtitle {
-  font-size: 1.2rem;
+  font-size: 1.1rem;
+  color: var(--color-gray-600);
 }
 
 /* Stat Cards */
 .stat-card {
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  border-radius: 20px;
-  padding: 2rem;
+  background: var(--color-white);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
   text-align: center;
-  border: 2px solid rgba(255, 255, 255, 0.2);
-  transition: transform 0.3s, box-shadow 0.3s;
+  border: 1px solid var(--color-gray-200);
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.2s, box-shadow 0.2s;
 }
 
 .stat-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
 }
 
 .banana-card {
-  border-color: #ff7700;
-  background: linear-gradient(135deg, rgba(253, 201, 85, 0.2), rgba(249, 122, 2, 0.2));
+  border-left: 4px solid #0A490A;
 }
 
 .pity-card {
-  border-color: #FC9D05;
-  background: linear-gradient(135deg, rgba(252, 157, 5, 0.2), rgba(253, 201, 85, 0.2));
+  border-left: 4px solid #0f5a0f;
 }
 
 .free-card {
-  border-color: #ABD453;
-  background: linear-gradient(135deg, rgba(171, 212, 83, 0.2), rgba(15, 77, 38, 0.2));
+  border-left: 4px solid #27ae60;
 }
 
 .stat-icon {
-  font-size: 3rem;
-  margin-bottom: 1rem;
+  font-size: 2.5rem;
+  margin-bottom: 0.75rem;
 }
 
 .stat-value {
-  font-size: 2.5rem;
-  font-weight: bold;
-  color: white;
+  font-size: 2rem;
+  font-weight: var(--font-weight-bold);
+  color: var(--color-gray-900);
   margin-bottom: 0.5rem;
 }
 
 .stat-label {
-  font-size: 1.1rem;
-  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.95rem;
+  color: var(--color-gray-600);
 }
 
 /* Pack Cards */
 .pack-card {
-  background: rgba(255, 255, 255, 0.95);
-  border-radius: 25px;
-  padding: 2.5rem;
+  background: var(--color-white);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-2xl);
   text-align: center;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  box-shadow: var(--shadow-md);
   position: relative;
-  transition: transform 0.3s;
+  transition: transform 0.2s, box-shadow 0.2s;
   height: 100%;
+  border: 2px solid var(--color-gray-200);
 }
 
 .pack-card:hover {
-  transform: scale(1.02);
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
 }
 
 .standard-pack {
-  border: 3px solid #ff7700;
+  border-color: #0A490A;
 }
 
 .free-pack-card {
-  border: 3px solid #ABD453;
+  border-color: #27ae60;
 }
 
 .free-badge {
   position: absolute;
-  top: -15px;
+  top: -12px;
   right: 20px;
-  background: linear-gradient(135deg, #ABD453, #0f4d26);
+  background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
   color: white;
-  padding: 0.5rem 1.5rem;
-  border-radius: 50px;
-  font-weight: bold;
-  font-size: 1.1rem;
-  box-shadow: 0 5px 15px rgba(171, 212, 83, 0.4);
+  padding: 0.4rem 1.2rem;
+  border-radius: var(--radius-full);
+  font-weight: var(--font-weight-semibold);
+  font-size: 0.9rem;
+  box-shadow: var(--shadow-sm);
 }
 
 .pack-icon-large {
-  font-size: 5rem;
+  font-size: 4rem;
   margin-bottom: 1rem;
-  animation: float 3s ease-in-out infinite;
-}
-
-@keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-15px); }
 }
 
 .pack-name {
-  font-size: 2rem;
-  font-weight: bold;
-  color: #212529;
-  margin-bottom: 1rem;
+  font-size: 1.75rem;
+  font-weight: var(--font-weight-bold);
+  color: var(--color-gray-900);
+  margin-bottom: 0.75rem;
 }
 
 .pack-description {
-  color: #6c757d;
-  margin-bottom: 2rem;
-  font-size: 1.05rem;
+  color: var(--color-gray-600);
+  margin-bottom: 1.5rem;
+  font-size: 1rem;
+  line-height: 1.5;
 }
 
 .pack-cost-display {
-  background: linear-gradient(135deg, #F97A02, #FC9D05);
-  border-radius: 50px;
-  padding: 1rem 2rem;
+  background: linear-gradient(135deg, #0A490A 0%, #0f5a0f 100%);
+  border-radius: var(--radius-full);
+  padding: 0.75rem 1.5rem;
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
 }
 
 .free-cost {
-  background: linear-gradient(135deg, #ABD453, #0f4d26);
+  background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
 }
 
 .banana-icon {
-  font-size: 2rem;
+  font-size: 1.5rem;
 }
 
 .cost-value {
-  font-size: 2rem;
-  font-weight: bold;
+  font-size: 1.5rem;
+  font-weight: var(--font-weight-bold);
   color: white;
 }
 
 .cost-label {
-  font-size: 1rem;
-  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.95);
 }
 
 .pack-rates {
-  background: #f8f9fa;
-  border-radius: 15px;
-  padding: 1.5rem;
-  margin-bottom: 2rem;
+  background: var(--color-gray-50);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-lg);
+  margin-bottom: var(--spacing-xl);
   text-align: left;
+  border: 1px solid var(--color-gray-200);
 }
 
 .rates-title {
-  font-size: 1.1rem;
-  margin-bottom: 1rem;
+  font-size: 1rem;
+  margin-bottom: var(--spacing-md);
   text-align: center;
-  color: #212529;
+  color: var(--color-gray-900);
+  font-weight: var(--font-weight-semibold);
 }
 
 .rate-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0.5rem;
+  padding: 0.5rem 0.75rem;
   margin-bottom: 0.5rem;
-  background: white;
-  border-radius: 8px;
+  background: var(--color-white);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-gray-200);
 }
 
 .rate-rarity {
-  padding: 0.25rem 0.75rem;
-  border-radius: 12px;
-  font-size: 0.9rem;
-  font-weight: bold;
+  padding: 0.25rem 0.65rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+  font-weight: var(--font-weight-semibold);
   color: white;
 }
 
@@ -546,31 +538,31 @@ function goToInventory() {
 }
 
 .rate-rarity.legendary {
-  background: linear-gradient(135deg, #FDC955, #FC9D05);
-  color: #0A490A;
-  font-weight: bold;
+  background: linear-gradient(135deg, #0A490A 0%, #0f5a0f 100%);
+  color: white;
 }
 
 .rate-rarity.legendary-disabled {
-  background: #dee2e6;
-  color: #6c757d;
+  background: var(--color-gray-300);
+  color: var(--color-gray-600);
 }
 
 .rate-percent {
-  font-weight: bold;
-  color: #212529;
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-gray-900);
 }
 
 .open-pack-btn {
-  font-weight: bold;
-  font-size: 1.2rem;
-  padding: 1rem;
-  transition: all 0.3s;
+  font-weight: var(--font-weight-semibold);
+  font-size: 1.05rem;
+  padding: 0.875rem;
+  transition: all 0.2s;
+  border: none;
 }
 
 .open-pack-btn:not(:disabled):hover {
-  transform: scale(1.05);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
 }
 
 .open-pack-btn:disabled {
@@ -580,39 +572,55 @@ function goToInventory() {
 
 .insufficient-warning,
 .claimed-notice {
-  margin-top: 1rem;
-  color: #dc3545;
-  font-weight: bold;
+  margin-top: var(--spacing-md);
+  font-weight: var(--font-weight-semibold);
+  font-size: 0.9rem;
+}
+
+.insufficient-warning {
+  color: var(--color-danger);
 }
 
 .claimed-notice {
-  color: #ABD453;
+  color: var(--color-success);
 }
 
 /* Info Cards */
 .info-card {
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  border-radius: 15px;
-  padding: 2rem;
+  background: var(--color-white);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-xl);
   text-align: center;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid var(--color-gray-200);
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.info-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
 }
 
 .info-icon {
   font-size: 2.5rem;
-  margin-bottom: 1rem;
+  margin-bottom: var(--spacing-md);
 }
 
 .info-title {
-  color: white;
-  font-size: 1.3rem;
-  margin-bottom: 1rem;
+  color: var(--color-gray-900);
+  font-size: 1.2rem;
+  font-weight: var(--font-weight-semibold);
+  margin-bottom: var(--spacing-sm);
 }
 
 .info-text {
-  color: rgba(255, 255, 255, 0.8);
+  color: var(--color-gray-600);
   font-size: 0.95rem;
   line-height: 1.6;
+}
+
+/* Container styling */
+.container {
+  max-width: 1400px;
 }
 </style>

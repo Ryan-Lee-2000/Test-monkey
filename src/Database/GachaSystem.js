@@ -227,22 +227,27 @@ export async function openVoucherPack(uid, isFree = false) {
       console.log('balance deducted')
     }
 
-    // Get pity counter
-    const pityCounter = await getPityCounter(uid)
-    console.log('get pity')
+    // Get pity counter (only for paid packs)
+    let pityCounter = 0
+    if (!isFree) {
+      pityCounter = await getPityCounter(uid)
+      console.log('get pity')
+    }
 
     // Determine rarity
     const odds = isFree ? FREE_PACK_ODDS : PAID_PACK_ODDS
     const rarity = determineRarity(odds, pityCounter)
     console.log('setting odds')
 
-    // Update pity counter
-    if (rarity === 'epic' || rarity === 'legendary') {
-      await resetPityCounter(uid)
-    } else {
-      await incrementPityCounter(uid)
+    // Update pity counter (only for paid packs)
+    if (!isFree) {
+      if (rarity === 'epic' || rarity === 'legendary') {
+        await resetPityCounter(uid)
+      } else {
+        await incrementPityCounter(uid)
+      }
+      console.log('updated pity')
     }
-    console.log('updated pity')
 
     // Select voucher
     const voucher = selectVoucher(rarity)

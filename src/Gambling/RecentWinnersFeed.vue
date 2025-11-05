@@ -128,19 +128,20 @@ onMounted(() => {
 
 <style scoped>
 .recent-winners-container {
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  border-radius: 20px;
-  padding: 1.5rem;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: var(--color-white);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-xl);
+  border: 1px solid var(--color-gray-200);
+  box-shadow: var(--shadow-sm);
   max-height: 500px;
   overflow-y: auto;
 }
 
 .feed-title {
-  color: white;
-  font-size: 1.3rem;
-  margin-bottom: 1.5rem;
+  color: var(--color-gray-900);
+  font-size: 1.25rem;
+  font-weight: var(--font-weight-semibold);
+  margin-bottom: var(--spacing-lg);
   text-align: center;
   display: flex;
   align-items: center;
@@ -149,45 +150,35 @@ onMounted(() => {
 }
 
 .feed-title i {
-  color: #FFD700;
+  color: #0A490A;
 }
 
 .empty-feed {
   text-align: center;
-  padding: 2rem;
+  padding: var(--spacing-2xl);
+  color: var(--color-gray-500);
 }
 
 .winners-feed {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: var(--spacing-sm);
 }
 
 .winner-item {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
-  padding: 1rem;
+  background: var(--color-gray-50);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-md);
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: var(--spacing-md);
   transition: transform 0.2s, background 0.2s;
-  animation: slideIn 0.3s ease-out;
-}
-
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateX(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
+  border: 1px solid var(--color-gray-200);
 }
 
 .winner-item:hover {
-  background: rgba(255, 255, 255, 0.15);
-  transform: translateX(5px);
+  background: var(--color-gray-100);
+  transform: translateX(4px);
 }
 
 .winner-icon {
@@ -201,8 +192,8 @@ onMounted(() => {
 }
 
 .winner-name {
-  color: white;
-  font-weight: bold;
+  color: var(--color-gray-900);
+  font-weight: var(--font-weight-semibold);
   font-size: 0.95rem;
   margin-bottom: 0.25rem;
   white-space: nowrap;
@@ -211,7 +202,7 @@ onMounted(() => {
 }
 
 .winner-prize {
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--color-gray-700);
   font-size: 0.85rem;
   margin-bottom: 0.25rem;
   display: flex;
@@ -221,16 +212,16 @@ onMounted(() => {
 }
 
 .voucher-badge {
-  padding: 0.15rem 0.5rem;
-  border-radius: 8px;
+  padding: 0.2rem 0.5rem;
+  border-radius: var(--radius-sm);
   font-size: 0.7rem;
-  font-weight: bold;
+  font-weight: var(--font-weight-bold);
   color: white;
   white-space: nowrap;
 }
 
 .winner-time {
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--color-gray-500);
   font-size: 0.75rem;
 }
 
@@ -240,20 +231,20 @@ onMounted(() => {
 
 /* Custom scrollbar */
 .recent-winners-container::-webkit-scrollbar {
-  width: 8px;
+  width: 6px;
 }
 
 .recent-winners-container::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 10px;
+  background: var(--color-gray-100);
+  border-radius: var(--radius-full);
 }
 
 .recent-winners-container::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.3);
-  border-radius: 10px;
+  background: var(--color-gray-400);
+  border-radius: var(--radius-full);
 }
 
 .recent-winners-container::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.5);
+  background: var(--color-gray-500);
 }
 </style>
