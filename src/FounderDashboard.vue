@@ -102,15 +102,15 @@ const viewFullReport = (missionId) => {
   router.push(`/dashboard/${missionId}`);
 };
 
-// Computed sorted missions - Active first, Completed last
+// Computed sorted missions - Active first, then Partially Completed, Completed, and Expired at bottom
 const sortedMissions = computed(() => {
   return [...missions.value].sort((a, b) => {
-    // Define status priority: Active = 0, In Progress = 1, Expired = 2, Completed = 3
+    // Define status priority: Active = 0, Partially Completed = 1, Completed = 2, Expired = 3
     const statusPriority = {
       'Active': 0,
-      'In Progress': 1,
-      'Expired': 2,
-      'Completed': 3
+      'Partially Completed': 1,
+      'Completed': 2,
+      'Expired': 3
     };
 
     const priorityA = statusPriority[a.status] ?? 3;
